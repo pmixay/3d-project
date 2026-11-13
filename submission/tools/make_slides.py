@@ -231,12 +231,12 @@ slides.append(page(4, f"""
  </div>"""))
 
 # 5 ─ Automation
-steps = ["Нагрев сопла до 150 °C без подтёков", "Чистка сопла о силиконовую щётку", "Точный Z-offset контактным датчиком",
-         "Карта высот только под деталью (KAMP)", "Печать под контролем ИИ-камеры"]
+steps = ["Предварительный нагрев сопла: пластик мягкий, но не вытекает", "Чистка сопла о силиконовую щётку", "Точный Z-offset контактным датчиком",
+         "Карта высот только под деталью (KAMP)", "Рабочая температура и печать под ИИ-контролем"]
 step_html = "".join(
     f'<div class="card" style="padding:24px 22px;min-height:250px"><div class="big" style="font-size:40px;margin-bottom:22px">{i+1:02d}</div><p style="font-size:20px">{t}</p></div>'
     for i, t in enumerate(steps))
-tools_ = [("Shake&amp;Tune", "натяжение ремней и фильтры Input Shaper по встроенному акселерометру"),
+tools_ = [("Shake&amp;Tune", "графики резонансов: подсказывают, как выровнять натяжение ремней, и подбирают Input Shaper"),
           ("TMC Autotune", "тихие моторы без вертикальных артефактов на стенках"),
           ("Pressure Advance", "чёткие углы на высокой скорости в OrcaSlicer")]
 tools_html = "".join(f'<p style="border-top:2px solid var(--line);padding-top:16px"><b class="t">{a}</b> — {b}</p>' for a, b in tools_)
@@ -248,27 +248,23 @@ slides.append(page(0, f"""<div class="pad">
 </div>"""))
 
 # 7 ─ Budget
+cost_rows = [("Этап 1: хотенд, экструдер, драйверы, блок питания, обдув", "[сумма] ₽"),
+             ("Этап 2: платы управления, датчик стола, сопло, автоматизация", "11 865 ₽"),
+             ("Камера для ИИ-контроля печати", "[сумма] ₽")]
+cost_html = "".join(
+    f'<div style="display:flex;justify-content:space-between;align-items:center;gap:30px;border-top:2px solid var(--line);padding:22px 0">'
+    f'<p style="font-size:20px">{t}</p><div style="font-family:Benzin;font-weight:700;font-size:28px;white-space:nowrap">{v}</div></div>'
+    for t, v in cost_rows)
 slides.append(page(7, f"""<div class="pad">
  <h2>Стоимость пересборки</h2>
- <div style="position:absolute;left:0;top:96px;width:760px">
-  <div style="display:flex;justify-content:space-between;align-items:baseline"><p>Этап 1: хотенд, экструдер, драйверы, питание, обдув</p><div style="font-family:Benzin;font-weight:700;font-size:24px">[сумма] ₽</div></div>
-  <div style="height:16px;border-radius:8px;background:repeating-linear-gradient(45deg,#1f8f86 0 10px,#176a64 10px 20px);margin-top:10px"></div>
-  <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:34px"><p>Этап 2: электроника, датчик, автоматизация</p><div style="font-family:Benzin;font-weight:700;font-size:24px">15 315 ₽</div></div>
-  <div style="display:flex;height:58px;margin-top:10px;border:1.5px solid var(--teal-d);border-radius:10px;overflow:hidden">
-   <div style="width:57.8%;background:var(--teal);color:#06201e;font-weight:700;font-size:18px;display:flex;align-items:center;padding-left:18px">Платы: 8 857 ₽</div>
-   <div style="width:17.2%;background:#7fe3d9;color:#06201e;font-weight:700;font-size:18px;display:flex;align-items:center;padding-left:12px">2 628 ₽</div>
-   <div style="width:25%;background:repeating-linear-gradient(45deg,#1f8f86 0 10px,#176a64 10px 20px);font-weight:700;font-size:18px;display:flex;align-items:center;padding-left:14px">3 830 ₽</div>
-  </div>
-  <ul class="dots" style="margin-top:34px">
-   <li>Плата SKR 3 EZ с драйверами — 6 129 ₽, плата на голове EBB42 GEN2 — 2 728 ₽</li>
-   <li>Датчик MicroProbe V2 — 1 669 ₽, сопло и щётки для чистки — 959 ₽</li>
-   <li>Карбоновая балка X, вентилятор, шестерня экструдера — 3 830 ₽</li>
-  </ul>
+ <div style="position:absolute;left:0;top:100px;width:760px">{cost_html}
+  <div style="display:flex;justify-content:space-between;align-items:center;border-top:2px solid var(--teal);padding:22px 0">
+   <p class="lead" style="font-weight:700">Итого</p><div style="font-family:Benzin;font-weight:700;font-size:34px;color:var(--teal)">[итого] ₽</div></div>
  </div>
- <div style="position:absolute;left:840px;top:96px;width:312px">
-  <div class="big" style="font-size:44px;white-space:normal">[итого] ₽</div>
-  <p class="lead">полная стоимость нового принтера на раме Hercules</p>
-  <p style="margin-top:26px">Новый закрытый CoreXY-принтер класса Bambu Lab P1S Combo — <b class="o">от 70 000 ₽</b> в рознице РФ</p>
+ <div style="position:absolute;left:840px;top:110px;width:312px">
+  <p class="lead">Новый закрытый CoreXY-принтер класса Bambu Lab P1S Combo в рознице РФ</p>
+  <div class="big" style="font-size:40px;color:var(--orange);margin-top:18px">от 70 000 ₽</div>
+  <p style="margin-top:22px">Механика Hercules остаётся в работе — платим только за то, что действительно меняет возможности принтера</p>
  </div>
 </div>"""))
 
