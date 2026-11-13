@@ -66,10 +66,20 @@ ul.dots li:before{{content:'';position:absolute;left:0;top:9px;width:12px;height
 a{{color:var(--teal);text-decoration:none}}
 a.u{{border-bottom:2px solid var(--teal-d)}}
 .img{{position:absolute;display:block}}
+table.cmp{{width:100%;border-collapse:collapse}}
+table.cmp th{{font-family:'Benzin';font-weight:700;font-size:19px;text-align:left;padding:0 16px 14px 0}}
+table.cmp td{{font-size:19px;font-weight:500;padding:11px 16px 11px 0;border-top:1px solid var(--line)}}
+table.cmp td:first-child,table.cmp th:first-child{{width:260px}}
+table.cmp td:nth-child(2),table.cmp th:nth-child(2){{width:380px}}
 """
 
 
-def page(n, body, extra_class=""):
+_counter = [1]
+
+
+def page(_n, body, extra_class=""):
+    _counter[0] += 1
+    n = _counter[0]
     return f'<section class="slide {extra_class}">{body}<div class="num-page">{n:02d} / {TOTAL}</div></section>'
 
 
@@ -79,8 +89,8 @@ slides = []
 slides.append(f"""<section class="slide">
  <img class="img" src="{IMG}/printer_front.png" style="right:40px;top:-10px;height:740px">
  <div class="pad" style="width:660px">
-  <h1 style="margin-top:118px">Модернизация 3D-принтера Imprinta <span class="o">Hercules</span></h1>
-  <p class="lead" style="margin-top:28px;width:560px">Скорость, точность и автоматизация уровня Bambu Lab в&nbsp;бюджете до&nbsp;20&nbsp;000&nbsp;₽</p>
+  <h1 style="margin-top:104px">Imprinta <span class="o">Hercules</span>: новый принтер на старой раме</h1>
+  <p class="lead" style="margin-top:28px;width:570px">Пересобрали серийный принтер 2016 года с&nbsp;нуля — от оригинала осталась только стальная рама</p>
   <div style="position:absolute;bottom:0;left:0">
    <p style="font-weight:700;font-size:21px" class="t">Команда «[Название команды]»</p>
    <p style="margin-top:6px">Чемпионат «3D Профи» · Оборудование для 3D-печати</p>
@@ -88,24 +98,52 @@ slides.append(f"""<section class="slide">
  </div>
 </section>""")
 
-# 2 ─ Problem / solution
-slides.append(page(2, """<div class="pad">
- <h2>Хорошая механика, устаревшая электроника</h2>
- <div class="grid3" style="font-size:20px">
-  <div class="card" style="min-height:250px"><div class="big">1 800 000+</div>
-   <p>шагов в секунду у 32-битной платы SKR 3 EZ против <b class="o">~99 000</b> у прежней 8-битной MKS Gen v1.4</p></div>
-  <div class="card" style="min-height:250px"><div class="big">4 провода</div>
-   <p>к печатной голове вместо <b class="o">12</b>: питание и шина CAN. Лёгкая каретка и точные замеры резонансов</p></div>
-  <div class="card" style="min-height:250px"><div class="big">0,002 мм</div>
-   <p>повторяемость контактного датчика MicroProbe V2 вместо <b class="o">ручной</b> калибровки стола</p></div>
- </div>
- <div style="position:absolute;left:0;right:0;bottom:30px">
-  <div style="display:flex;align-items:flex-start;gap:24px;margin-bottom:18px"><div style="font-family:Benzin;font-weight:700;font-size:21px;color:var(--teal);width:170px;padding-top:7px">Остаётся</div><div style="flex:1"><span style="display:inline-block;border:1.5px solid var(--teal);border-radius:999px;padding:7px 16px;margin:0 10px 10px 0;font-weight:600;font-size:18px">Стальной корпус</span><span style="display:inline-block;border:1.5px solid var(--teal);border-radius:999px;padding:7px 16px;margin:0 10px 10px 0;font-weight:600;font-size:18px">Линейные рельсы</span><span style="display:inline-block;border:1.5px solid var(--teal);border-radius:999px;padding:7px 16px;margin:0 10px 10px 0;font-weight:600;font-size:18px">Хотенд CHC Pro</span><span style="display:inline-block;border:1.5px solid var(--teal);border-radius:999px;padding:7px 16px;margin:0 10px 10px 0;font-weight:600;font-size:18px">Блок питания 350 Вт</span><span style="display:inline-block;border:1.5px solid var(--teal);border-radius:999px;padding:7px 16px;margin:0 10px 10px 0;font-weight:600;font-size:18px">Стекло 4 мм</span><span style="display:inline-block;border:1.5px solid var(--teal);border-radius:999px;padding:7px 16px;margin:0 10px 10px 0;font-weight:600;font-size:18px">Дисплей</span></div></div>
-  <div style="display:flex;align-items:flex-start;gap:24px"><div style="font-family:Benzin;font-weight:700;font-size:21px;color:var(--orange);width:170px;padding-top:7px">Меняем</div><div style="flex:1"><span style="display:inline-block;border:1.5px solid var(--orange);border-radius:999px;padding:7px 16px;margin:0 10px 10px 0;font-weight:600;font-size:18px">Плата управления</span><span style="display:inline-block;border:1.5px solid var(--orange);border-radius:999px;padding:7px 16px;margin:0 10px 10px 0;font-weight:600;font-size:18px">Проводка к голове</span><span style="display:inline-block;border:1.5px solid var(--orange);border-radius:999px;padding:7px 16px;margin:0 10px 10px 0;font-weight:600;font-size:18px">Калибровка стола</span><span style="display:inline-block;border:1.5px solid var(--orange);border-radius:999px;padding:7px 16px;margin:0 10px 10px 0;font-weight:600;font-size:18px">Прошивка и ПО</span></div></div>
- </div>
+# 2 ─ Only the frame is left
+def chip(t, color):
+    return (f'<span style="display:inline-block;border:1.5px solid {color};border-radius:999px;padding:8px 18px;'
+            f'margin:0 10px 12px 0;font-weight:600;font-size:17px">{t}</span>')
+
+
+new_parts = ["Плата управления SKR 3 EZ", "Плата на голове EBB42 GEN2", "Печатная голова Hefest", "Хотенд CHC Pro",
+             "Экструдер K3D Minifeeder", "Моторы NEMA17 и NEMA14", "Драйверы TMC", "Блок питания 350 Вт",
+             "Проводка: один кабель CAN", "Обдув 5015 и 3010", "Датчик стола MicroProbe", "Сопло Volcano NCB",
+             "Чистка сопла", "Подсветка камеры", "Прошивка Klipper", "Макросы и ИИ-контроль"]
+slides.append(page(2, f"""
+ <img class="img" src="{IMG}/printer_right.png" style="left:30px;top:150px;height:560px;opacity:.95">
+ <div class="pad">
+  <h2>От Hercules осталась только рама</h2>
+  <div style="position:absolute;left:500px;top:92px;width:652px">
+   <div style="display:flex;align-items:center;gap:18px;margin-bottom:22px">
+    <div style="font-family:Benzin;font-weight:700;font-size:21px;color:var(--orange)">Оставили</div>
+    <div style="margin-top:12px">{chip("Стальная рама 2 мм", "var(--orange)")}</div>
+   </div>
+   <div style="font-family:Benzin;font-weight:700;font-size:21px;color:var(--teal);margin-bottom:16px">Сделали заново</div>
+   <div>{"".join(chip(t, "var(--teal)") for t in new_parts)}</div>
+  </div>
+ </div>"""))
+
+# 3 ─ Baseline comparison with the stock Hercules
+rows = [
+    ("Электроника", "8-битная плата, ~99 000 шагов/с", "32-битная SKR 3 EZ, 1 800 000+ шагов/с"),
+    ("Хотенд", "UniHOT, до 260 °C", "CHC Pro 115 Вт, до 300 °C"),
+    ("Сопло", "латунное 0,5 мм", "биметаллическое, для композитов"),
+    ("Скорость печати", "заявлено до 150 мм/с", "цель — до 300 мм/с"),
+    ("Калибровка стола", "ручная, по трём точкам", "автоматическая, 0,002 мм"),
+    ("Вибрации", "не компенсируются", "Input Shaper по акселерометру"),
+    ("Проводка к голове", "многожильный жгут", "один кабель CAN, 4 провода"),
+    ("Обслуживание", "вручную", "автоочистка сопла, ИИ-контроль"),
+]
+trs = "".join(
+    f'<tr><td style="font-weight:700">{a}</td><td>{b}</td><td class="t" style="font-weight:700">{c}</td></tr>' for a, b, c in rows)
+slides.append(page(3, f"""<div class="pad">
+ <h2>Сравнение с серийным Hercules</h2>
+ <table class="cmp">
+  <tr><th></th><th>Hercules 2016</th><th class="t">Наш Hercules</th></tr>
+  {trs}
+ </table>
 </div>"""))
 
-# 3 ─ Architecture diagram
+# 4 ─ Architecture diagram
 def box(x, y, w, h, title, sub="", main=False):
     border = "var(--teal)" if main else "var(--line)"
     bw = "2px" if main else "1px"
@@ -195,50 +233,27 @@ slides.append(page(5, f"""
   </div>
  </div>"""))
 
-# 6 ─ Automation
-steps = ["Нагрев сопла до 150 °C без подтёков", "Чистка сопла о силиконовую щётку", "Точный Z-offset контактным датчиком",
-         "Карта высот только под деталью (KAMP)", "Печать под контролем ИИ-камеры"]
-step_html = "".join(
-    f'<div class="card" style="padding:24px 22px;min-height:270px"><div class="big" style="font-size:40px;margin-bottom:22px">{i+1:02d}</div><p style="font-size:20px">{s}</p></div>'
-    for i, s in enumerate(steps))
-slides.append(page(6, f"""<div class="pad">
- <h2>Автоматизация уровня флагманов</h2>
- <p class="lead" style="margin:-12px 0 22px">Каждая печать начинается одинаково — без ручной калибровки:</p>
- <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:16px">{step_html}</div>
- <div class="grid3" style="position:absolute;left:0;right:0;bottom:30px;gap:34px">
-  <p style="border-top:2px solid var(--line);padding-top:16px"><b class="t">Shake&amp;Tune</b> — натяжение ремней и фильтры Input Shaper по встроенному акселерометру</p>
-  <p style="border-top:2px solid var(--line);padding-top:16px"><b class="t">TMC Autotune</b> — тихие моторы без вертикальных артефактов на стенках</p>
-  <p style="border-top:2px solid var(--line);padding-top:16px"><b class="t">Pressure Advance</b> — чёткие углы на высокой скорости в OrcaSlicer</p>
- </div>
-</div>"""))
-
 # 7 ─ Budget
-def hbar(width_pct, color, text_in, value, text_color="#06201e"):
-    return (f'<div style="display:flex;align-items:center;gap:18px;margin-top:10px">'
-            f'<div style="width:{width_pct}%;height:58px;background:{color};border-radius:10px;display:flex;align-items:center;padding-left:18px;'
-            f'font-weight:700;font-size:18px;color:{text_color};white-space:nowrap">{text_in}</div>'
-            f'<div style="font-family:Benzin;font-weight:700;font-size:26px;white-space:nowrap">{value}</div></div>')
-
-
-W = 72  # % of row for 70 000 ₽
 slides.append(page(7, f"""<div class="pad">
- <h2>15 315 ₽ вместо 70 000 ₽ и выше</h2>
- <div style="position:absolute;left:0;top:104px;width:800px">
-  <p>Новый закрытый CoreXY-принтер класса Bambu Lab P1S Combo, розница РФ</p>
-  {hbar(W, "var(--orange)", "", "70 000 ₽+", "#2a1000")}
-  <p style="margin-top:40px">Модернизация Hercules, рекомендуемая конфигурация</p>
-  {hbar(W*15315/70000, "var(--teal)", "", "15 315 ₽")}
-  <p style="margin-top:60px">Бюджет дополнительных закупок, лимит 20 000 ₽</p>
+ <h2>Стоимость пересборки</h2>
+ <div style="position:absolute;left:0;top:96px;width:760px">
+  <div style="display:flex;justify-content:space-between;align-items:baseline"><p>Этап 1: хотенд, экструдер, моторы, драйверы, питание</p><div style="font-family:Benzin;font-weight:700;font-size:24px">[сумма] ₽</div></div>
+  <div style="height:16px;border-radius:8px;background:repeating-linear-gradient(45deg,#1f8f86 0 10px,#176a64 10px 20px);margin-top:10px"></div>
+  <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:34px"><p>Этап 2: электроника, датчик, автоматизация</p><div style="font-family:Benzin;font-weight:700;font-size:24px">15 315 ₽</div></div>
   <div style="display:flex;height:58px;margin-top:10px;border:1.5px solid var(--teal-d);border-radius:10px;overflow:hidden">
-   <div style="width:57.4%;background:var(--teal);color:#06201e;font-weight:700;font-size:18px;display:flex;align-items:center;padding-left:18px">Заказано и оплачено · 11 485 ₽</div>
-   <div style="width:19.2%;background:repeating-linear-gradient(45deg,#1f8f86 0 10px,#176a64 10px 20px);font-weight:700;font-size:18px;display:flex;align-items:center;padding-left:14px">3 830 ₽</div>
+   <div style="width:75%;background:var(--teal);color:#06201e;font-weight:700;font-size:18px;display:flex;align-items:center;padding-left:18px">Заказано и оплачено · 11 485 ₽</div>
+   <div style="width:25%;background:repeating-linear-gradient(45deg,#1f8f86 0 10px,#176a64 10px 20px);font-weight:700;font-size:18px;display:flex;align-items:center;padding-left:14px">3 830 ₽</div>
   </div>
-  <p style="margin-top:12px">Остаток до лимита — <b class="t">4 685 ₽</b></p>
+  <ul class="dots" style="margin-top:34px">
+   <li>Плата SKR 3 EZ с драйверами — 6 129 ₽, плата на голове EBB42 GEN2 — 2 728 ₽</li>
+   <li>Датчик MicroProbe V2 — 1 669 ₽, сопло и щётки для чистки — 959 ₽</li>
+   <li>Карбоновая балка X, вентилятор, шестерня экструдера — 3 830 ₽</li>
+  </ul>
  </div>
- <div style="position:absolute;left:880px;top:110px;width:272px">
-  <div class="big" style="font-size:84px">×4,5</div>
-  <p class="lead">дешевле нового принтера сопоставимого класса</p>
-  <p style="margin-top:28px">Корпус, рельсы, хотенд, блок питания и стекло остаются в работе</p>
+ <div style="position:absolute;left:840px;top:96px;width:312px">
+  <div class="big" style="font-size:44px;white-space:normal">[итого] ₽</div>
+  <p class="lead">полная стоимость нового принтера на раме Hercules</p>
+  <p style="margin-top:26px">Новый закрытый CoreXY-принтер класса Bambu Lab P1S Combo — <b class="o">от 70 000 ₽</b> в рознице РФ</p>
  </div>
 </div>"""))
 
@@ -265,22 +280,23 @@ slides.append(page(8, f"""<div class="pad">
 
 # 9 ─ Why us
 why = [
-    ("Оригинальность", "Собственная печатная голова Hefest под связку CHC Pro, K3D Minifeeder и EBB42 GEN2. Контактный датчик по стеклу 4 мм — там, где популярные вихретоковые датчики не работают."),
-    ("Реализуемость", "Серийные компоненты, доступные в России; основная электроника уже заказана. Архитектура «плата на голове + один кабель» — стандарт Bambu Lab, Prusa и Creality. Расчёты и модель — до сборки."),
-    ("Коммерциализация", "Набор модернизации за 12–20 тыс. ₽ для принтеров прошлого поколения: готовый комплект, установка «под ключ», открытые файлы. Клиенты — школы, вузы, кванториумы, мастерские."),
-    ("Преимущества", "В 4,5 раза дешевле нового принтера. Исправная механика продолжает работать. Функции флагманов: Input Shaper, автокалибровка, чистка сопла, ИИ-контроль печати."),
+    ("Оригинальность", "Пересобрали принтер с нуля на раме 2016 года: собственная печатная голова Hefest, новая электроника, питание и автоматизация. Контактный датчик по стеклу 4 мм — там, где вихретоковые датчики не работают."),
+    ("Реализуемость", "Серийные компоненты, доступные в России; основная электроника уже заказана. Архитектура «плата на голове + один кабель» — стандарт Bambu Lab, Prusa и Creality. Расчёты и цифровая модель — до сборки."),
+    ("Коммерциализация", "Пересборка устаревших принтеров на их собственной раме: готовый комплект, установка «под ключ», открытые файлы. Клиенты — школы, вузы, кванториумы, мастерские со списанной техникой."),
+    ("Преимущества", "По сравнению с серийным Hercules — 32-битная электроника, хотенд до 300 °C, автокалибровка, Input Shaper, автоочистка сопла и ИИ-контроль. Прочная стальная рама получает вторую жизнь."),
 ]
 why_html = "".join(
-    f'<div style="border-top:2px solid var(--line);padding-top:18px"><div style="font-family:Benzin;font-weight:700;font-size:24px;color:var(--teal);margin-bottom:14px">{t}</div><p style="font-size:20px">{s}</p></div>'
+    f'<div style="border-top:2px solid var(--line);padding-top:18px"><div style="font-family:Benzin;font-weight:700;font-size:24px;color:var(--teal);margin-bottom:14px">{t}</div><p style="font-size:19px">{s}</p></div>'
     for t, s in why)
 slides.append(page(9, f"""<div class="pad">
  <h2>Почему стоит выбрать нас</h2>
- <div style="display:grid;grid-template-columns:1fr 1fr;gap:44px 56px;margin-top:10px">{why_html}</div>
+ <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px 56px;margin-top:6px">{why_html}</div>
 </div>"""))
 
 # 10 ─ Team and materials
 qr = segno.make(LINKS["materials"], error="m")
-qr_svg = qr.svg_inline(scale=5, dark="#101315", light="#f2f4f5", border=3)
+qr_png = BUILD / "qr_materials.png"
+qr.save(str(qr_png), scale=12, dark="#101315", light="#ffffff", border=4)
 team = "".join(
     f'<div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--line);padding:20px 0">'
     f'<span style="font-weight:700;font-size:20px">[Фамилия Имя]</span><span class="t" style="font-weight:600;font-size:17px">{r}</span></div>'
@@ -297,12 +313,12 @@ slides.append(page(10, f"""<div class="pad">
  <div style="position:absolute;left:570px;top:96px;width:582px">{links_html}
 </div>
  <div style="position:absolute;left:570px;bottom:10px;display:flex;align-items:center;gap:22px">
-   <a href="{LINKS['materials']}" style="display:block;border-radius:12px;overflow:hidden;width:132px;line-height:0">{qr_svg.replace('<svg ', '<svg style="width:132px;height:132px" ')}</a>
+   <a href="{LINKS['materials']}" style="display:block;border-radius:12px;overflow:hidden;width:150px;line-height:0"><img src="{qr_png.as_uri()}" style="width:150px;height:150px;image-rendering:pixelated"></a>
    <p style="font-size:19px;font-weight:600;width:260px">Все материалы заявки — по&nbsp;QR-коду</p>
  </div>
 </div>"""))
 
-html = f'<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>Модернизация Hercules</title><style>{CSS}</style></head><body>{"".join(slides)}</body></html>'
+html = f'<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>Hercules: новый принтер на старой раме</title><style>{CSS}</style></head><body>{"".join(slides)}</body></html>'
 (BUILD / "slides.html").write_text(html, encoding="utf-8")
 
 js = BUILD / "render.js"
