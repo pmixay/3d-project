@@ -1,0 +1,327 @@
+"""Build the 10-slide presentation (PDF, 16:9) for the 3D Profi application.
+
+Fonts are not stored in the repository: put Benzin-*.ttf and Montserrat-*.ttf into
+submission/tools/fonts/ before running.
+
+Run:  python3 submission/tools/make_slides.py
+Output: submission/Hercules_prezentaciya.pdf and slide PNGs in submission/materials/
+"""
+import pathlib
+import subprocess
+
+import segno
+
+from links import LINKS
+
+TOOLS = pathlib.Path(__file__).resolve().parent
+SUB = TOOLS.parent
+BUILD = TOOLS / "build"
+BUILD.mkdir(exist_ok=True)
+FONTS = (TOOLS / "fonts").as_uri()
+IMG = (SUB / "materials" / "img").as_uri()
+
+TOTAL = 10
+
+
+def short(url):
+    return url.replace("https://", "")
+
+
+def disp(url):
+    u = short(url).replace("/blob/main", "").replace("/tree/main", "").replace("/raw/main", "")
+    return u
+
+
+CSS = f"""
+@font-face{{font-family:'Benzin';src:url('{FONTS}/Benzin-Semibold.ttf');font-weight:600}}
+@font-face{{font-family:'Benzin';src:url('{FONTS}/Benzin-Bold.ttf');font-weight:700}}
+@font-face{{font-family:'Benzin';src:url('{FONTS}/Benzin-ExtraBold.ttf');font-weight:800}}
+@font-face{{font-family:'Mont';src:url('{FONTS}/Montserrat-Regular.ttf');font-weight:400}}
+@font-face{{font-family:'Mont';src:url('{FONTS}/Montserrat-Medium.ttf');font-weight:500}}
+@font-face{{font-family:'Mont';src:url('{FONTS}/Montserrat-SemiBold.ttf');font-weight:600}}
+@font-face{{font-family:'Mont';src:url('{FONTS}/Montserrat-Bold.ttf');font-weight:700}}
+:root{{
+  --bg:#101315; --glow:#1a3a3f; --text:#f2f4f5; --teal:#2bd1c2; --teal-d:#1f8f86;
+  --orange:#ff7a1a; --card:#172024; --line:#2b373b;
+}}
+@page{{size:1280px 720px;margin:0}}
+*{{box-sizing:border-box;margin:0;padding:0}}
+html,body{{background:var(--bg)}}
+body{{font-family:'Mont';color:var(--text);-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+.slide{{width:1280px;height:720px;position:relative;overflow:hidden;page-break-after:always;
+  background:radial-gradient(ellipse 900px 600px at 78% 45%,var(--glow) 0%,var(--bg) 70%)}}
+.pad{{position:absolute;left:64px;right:64px;top:56px;bottom:56px}}
+h1{{font-family:'Benzin';font-weight:700;font-size:44px;line-height:1.12;letter-spacing:.005em}}
+h2{{font-family:'Benzin';font-weight:700;font-size:32px;line-height:1.15;margin-bottom:34px}}
+.o{{color:var(--orange)}} .t{{color:var(--teal)}}
+p,li{{font-size:19px;line-height:1.42;font-weight:500}}
+.lead{{font-size:23px;line-height:1.4;font-weight:500}}
+.num-page{{position:absolute;right:64px;bottom:34px;font-family:'Benzin';font-weight:600;font-size:16px;color:var(--teal)}}
+.card{{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px 26px}}
+.big{{font-family:'Benzin';font-weight:700;color:var(--teal);font-size:40px;line-height:1.05;margin-bottom:14px;white-space:nowrap}}
+.grid3{{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}}
+ul.dots{{list-style:none}}
+ul.dots li{{position:relative;padding-left:30px;margin-bottom:16px}}
+ul.dots li:before{{content:'';position:absolute;left:0;top:9px;width:12px;height:12px;border-radius:3px;background:var(--teal)}}
+a{{color:var(--teal);text-decoration:none}}
+a.u{{border-bottom:2px solid var(--teal-d)}}
+.img{{position:absolute;display:block}}
+"""
+
+
+def page(n, body, extra_class=""):
+    return f'<section class="slide {extra_class}">{body}<div class="num-page">{n:02d} / {TOTAL}</div></section>'
+
+
+slides = []
+
+# 1 ─ Title
+slides.append(f"""<section class="slide">
+ <img class="img" src="{IMG}/printer_front.png" style="right:40px;top:-10px;height:740px">
+ <div class="pad" style="width:660px">
+  <h1 style="margin-top:118px">Модернизация 3D-принтера Imprinta <span class="o">Hercules</span></h1>
+  <p class="lead" style="margin-top:28px;width:560px">Скорость, точность и автоматизация уровня Bambu Lab в&nbsp;бюджете до&nbsp;20&nbsp;000&nbsp;₽</p>
+  <div style="position:absolute;bottom:0;left:0">
+   <p style="font-weight:700;font-size:21px" class="t">Команда «[Название команды]»</p>
+   <p style="margin-top:6px">Чемпионат «3D Профи» · Оборудование для 3D-печати</p>
+  </div>
+ </div>
+</section>""")
+
+# 2 ─ Problem / solution
+slides.append(page(2, """<div class="pad">
+ <h2>Хорошая механика, устаревшая электроника</h2>
+ <div class="grid3" style="font-size:20px">
+  <div class="card" style="min-height:250px"><div class="big">1 800 000+</div>
+   <p>шагов в секунду у 32-битной платы SKR 3 EZ против <b class="o">~99 000</b> у прежней 8-битной MKS Gen v1.4</p></div>
+  <div class="card" style="min-height:250px"><div class="big">4 провода</div>
+   <p>к печатной голове вместо <b class="o">12</b>: питание и шина CAN. Лёгкая каретка и точные замеры резонансов</p></div>
+  <div class="card" style="min-height:250px"><div class="big">0,002 мм</div>
+   <p>повторяемость контактного датчика MicroProbe V2 вместо <b class="o">ручной</b> калибровки стола</p></div>
+ </div>
+ <div style="position:absolute;left:0;right:0;bottom:30px">
+  <div style="display:flex;align-items:flex-start;gap:24px;margin-bottom:18px"><div style="font-family:Benzin;font-weight:700;font-size:21px;color:var(--teal);width:170px;padding-top:7px">Остаётся</div><div style="flex:1"><span style="display:inline-block;border:1.5px solid var(--teal);border-radius:999px;padding:7px 16px;margin:0 10px 10px 0;font-weight:600;font-size:18px">Стальной корпус</span><span style="display:inline-block;border:1.5px solid var(--teal);border-radius:999px;padding:7px 16px;margin:0 10px 10px 0;font-weight:600;font-size:18px">Линейные рельсы</span><span style="display:inline-block;border:1.5px solid var(--teal);border-radius:999px;padding:7px 16px;margin:0 10px 10px 0;font-weight:600;font-size:18px">Хотенд CHC Pro</span><span style="display:inline-block;border:1.5px solid var(--teal);border-radius:999px;padding:7px 16px;margin:0 10px 10px 0;font-weight:600;font-size:18px">Блок питания 350 Вт</span><span style="display:inline-block;border:1.5px solid var(--teal);border-radius:999px;padding:7px 16px;margin:0 10px 10px 0;font-weight:600;font-size:18px">Стекло 4 мм</span><span style="display:inline-block;border:1.5px solid var(--teal);border-radius:999px;padding:7px 16px;margin:0 10px 10px 0;font-weight:600;font-size:18px">Дисплей</span></div></div>
+  <div style="display:flex;align-items:flex-start;gap:24px"><div style="font-family:Benzin;font-weight:700;font-size:21px;color:var(--orange);width:170px;padding-top:7px">Меняем</div><div style="flex:1"><span style="display:inline-block;border:1.5px solid var(--orange);border-radius:999px;padding:7px 16px;margin:0 10px 10px 0;font-weight:600;font-size:18px">Плата управления</span><span style="display:inline-block;border:1.5px solid var(--orange);border-radius:999px;padding:7px 16px;margin:0 10px 10px 0;font-weight:600;font-size:18px">Проводка к голове</span><span style="display:inline-block;border:1.5px solid var(--orange);border-radius:999px;padding:7px 16px;margin:0 10px 10px 0;font-weight:600;font-size:18px">Калибровка стола</span><span style="display:inline-block;border:1.5px solid var(--orange);border-radius:999px;padding:7px 16px;margin:0 10px 10px 0;font-weight:600;font-size:18px">Прошивка и ПО</span></div></div>
+ </div>
+</div>"""))
+
+# 3 ─ Architecture diagram
+def box(x, y, w, h, title, sub="", main=False):
+    border = "var(--teal)" if main else "var(--line)"
+    bw = "2px" if main else "1px"
+    s = f'<div style="font-size:15.5px;font-weight:600;color:var(--teal);margin-top:4px;line-height:1.3">{sub}</div>' if sub else ""
+    fs = "21px" if main else "17px"
+    return (f'<div style="position:absolute;left:{x}px;top:{y}px;width:{w}px;height:{h}px;background:var(--card);'
+            f'border:{bw} solid {border};border-radius:14px;padding:12px 16px;display:flex;flex-direction:column;justify-content:center">'
+            f'<div style="font-weight:700;font-size:{fs};line-height:1.2">{title}</div>{s}</div>')
+
+
+def label(x, y, text, w=140, align="center"):
+    return (f'<div style="position:absolute;left:{x}px;top:{y}px;width:{w}px;text-align:{align};'
+            f'font-size:16px;font-weight:700;color:var(--teal)">{text}</div>')
+
+
+c1x, c1w = 0, 236
+skx, skw = 346, 230
+ebx, ebw = 712, 196
+c4x, c4w = 960, 192
+rows1 = [(20, "Ноутбук", "хост Klipper"), (152, "Дисплей", "с энкодером"), (284, "MeanWell 350 Вт", "24 В")]
+diagram = []
+svg = []
+for y, t, s in rows1:
+    diagram.append(box(c1x, y, c1w, 92, t, s))
+    cy = y + 46
+    svg.append(f'<line x1="{c1w}" y1="{cy}" x2="{skx}" y2="{cy}" stroke="#2bd1c2" stroke-width="2"/>')
+diagram.append(label(c1w, 20 + 18, "USB", skx - c1w))
+diagram.append(label(c1w, 152 + 18, "EXP1/2", skx - c1w))
+diagram.append(label(c1w, 284 + 18, "24 В", skx - c1w))
+diagram.append(box(skx, 20, skw, 356, "BTT SKR 3 EZ", "STM32H7 · 480 МГц<br>драйверы X · Y · Z<br>в отсеке электроники", main=True))
+# CAN link
+ey, eh = 120, 156
+svg.append(f'<line x1="{skx+skw}" y1="{ey+eh/2}" x2="{ebx}" y2="{ey+eh/2}" stroke="#2bd1c2" stroke-width="6"/>')
+diagram.append(label(skx + skw, ey + eh / 2 - 34, "CAN + 24 В", ebx - skx - skw))
+diagram.append(label(skx + skw, ey + eh / 2 + 12, "4 провода", ebx - skx - skw))
+diagram.append(box(ebx, ey, ebw, eh, "EBB42 GEN2", "плата на печатной голове", main=True))
+rows4 = [("Хотенд CHC Pro", "115 Вт"), ("Экструдер", "NEMA14, 5:1"), ("Датчик стола", "MicroProbe V2"),
+         ("Вентиляторы", "5015 и 3010"), ("Акселерометр", "на плате")]
+for i, (t, s) in enumerate(rows4):
+    y = 6 + i * 76
+    diagram.append(box(c4x, y, c4w, 64, t, s).replace("padding:12px 16px", "padding:6px 14px"))
+    svg.append(f'<path d="M{ebx+ebw} {ey+eh/2} C {ebx+ebw+30} {ey+eh/2}, {c4x-30} {y+32}, {c4x} {y+32}" fill="none" stroke="#2bd1c2" stroke-width="2"/>')
+slides.append(page(3, f"""<div class="pad">
+ <h2>Архитектура: один кабель к голове</h2>
+ <div style="position:relative;height:390px">
+  <svg width="1152" height="390" style="position:absolute;left:0;top:0">{''.join(svg)}</svg>
+  {''.join(diagram)}
+ </div>
+ <p style="margin-top:20px;width:1060px">Разъём XT30 рассчитан на <b class="t">15 А</b> при рабочем токе <b class="t">2,94 А</b> — запас более чем в 5 раз.
+ Выходы платы защищены от короткого замыкания, температура контролируется в Klipper.</p>
+</div>"""))
+
+# 4 ─ Hefest head
+slides.append(page(4, f"""
+ <div style="position:absolute;left:64px;top:140px;width:360px;height:470px;border-radius:18px;overflow:hidden;background:#a7a7a7;display:flex;align-items:center;justify-content:center"><img src="{IMG}/hefest_assembly_full.png" style="height:440px"></div>
+ <img class="img" src="{IMG}/hefest_parts_front.png" style="left:432px;top:215px;height:380px">
+ <div class="pad">
+  <h2>Печатная голова Hefest — наша разработка</h2>
+  <div style="position:absolute;left:640px;top:96px;width:512px">
+   <ul class="dots">
+    <li>Спроектирована командой с нуля в КОМПАС-3D под каретку MGN12H</li>
+    <li>Шесть печатных деталей: рама, крышка ремня, ферма, две обоймы хотенда, воздуховод</li>
+    <li>Объединяет хотенд CHC Pro, экструдер K3D Minifeeder, плату EBB42 GEN2, датчик MicroProbe и обдув 5015 + 3010</li>
+    <li>Зазоры до ремней проверяем собственным скриптом по STL-моделям</li>
+   </ul>
+   <p style="margin-top:18px"><a class="u" href="{LINKS['head']}">Подробнее о голове на GitHub</a></p>
+  </div>
+ </div>"""))
+
+# 5 ─ Digital twin
+slides.append(page(5, f"""
+ <img class="img" src="{IMG}/printer_right.png" style="left:40px;top:120px;height:580px">
+ <div class="pad">
+  <h2>Цифровой двойник принтера</h2>
+  <div style="position:absolute;left:560px;top:96px;width:592px">
+   <ul class="dots">
+    <li>Параметрическая модель всего принтера на CadQuery (Python)</li>
+    <li>Все размеры — в одном файле параметров с указанием источника</li>
+    <li>Экспорт в STEP, GLB и STL: КОМПАС-3D, слайсер, веб-просмотр</li>
+    <li>Компоновка головы, платы и кабеля проверяется до изготовления</li>
+   </ul>
+   <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:20px">
+    <div class="card" style="padding:18px 22px"><div class="big" style="font-size:32px;margin-bottom:8px">2,94 А</div><p style="font-size:17px">рабочий ток головы по расчёту</p></div>
+    <div class="card" style="padding:18px 22px"><div class="big" style="font-size:32px;margin-bottom:8px">&lt;0,44 Вт</div><p style="font-size:17px">потери во всём кабеле к голове</p></div>
+   </div>
+   <p style="margin-top:22px"><a class="u" href="{LINKS['model']}">Модель и рендеры на GitHub</a></p>
+  </div>
+ </div>"""))
+
+# 6 ─ Automation
+steps = ["Нагрев сопла до 150 °C без подтёков", "Чистка сопла о силиконовую щётку", "Точный Z-offset контактным датчиком",
+         "Карта высот только под деталью (KAMP)", "Печать под контролем ИИ-камеры"]
+step_html = "".join(
+    f'<div class="card" style="padding:24px 22px;min-height:270px"><div class="big" style="font-size:40px;margin-bottom:22px">{i+1:02d}</div><p style="font-size:20px">{s}</p></div>'
+    for i, s in enumerate(steps))
+slides.append(page(6, f"""<div class="pad">
+ <h2>Автоматизация уровня флагманов</h2>
+ <p class="lead" style="margin:-12px 0 22px">Каждая печать начинается одинаково — без ручной калибровки:</p>
+ <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:16px">{step_html}</div>
+ <div class="grid3" style="position:absolute;left:0;right:0;bottom:30px;gap:34px">
+  <p style="border-top:2px solid var(--line);padding-top:16px"><b class="t">Shake&amp;Tune</b> — натяжение ремней и фильтры Input Shaper по встроенному акселерометру</p>
+  <p style="border-top:2px solid var(--line);padding-top:16px"><b class="t">TMC Autotune</b> — тихие моторы без вертикальных артефактов на стенках</p>
+  <p style="border-top:2px solid var(--line);padding-top:16px"><b class="t">Pressure Advance</b> — чёткие углы на высокой скорости в OrcaSlicer</p>
+ </div>
+</div>"""))
+
+# 7 ─ Budget
+def hbar(width_pct, color, text_in, value, text_color="#06201e"):
+    return (f'<div style="display:flex;align-items:center;gap:18px;margin-top:10px">'
+            f'<div style="width:{width_pct}%;height:58px;background:{color};border-radius:10px;display:flex;align-items:center;padding-left:18px;'
+            f'font-weight:700;font-size:18px;color:{text_color};white-space:nowrap">{text_in}</div>'
+            f'<div style="font-family:Benzin;font-weight:700;font-size:26px;white-space:nowrap">{value}</div></div>')
+
+
+W = 72  # % of row for 70 000 ₽
+slides.append(page(7, f"""<div class="pad">
+ <h2>15 315 ₽ вместо 70 000 ₽ и выше</h2>
+ <div style="position:absolute;left:0;top:104px;width:800px">
+  <p>Новый закрытый CoreXY-принтер класса Bambu Lab P1S Combo, розница РФ</p>
+  {hbar(W, "var(--orange)", "", "70 000 ₽+", "#2a1000")}
+  <p style="margin-top:40px">Модернизация Hercules, рекомендуемая конфигурация</p>
+  {hbar(W*15315/70000, "var(--teal)", "", "15 315 ₽")}
+  <p style="margin-top:60px">Бюджет дополнительных закупок, лимит 20 000 ₽</p>
+  <div style="display:flex;height:58px;margin-top:10px;border:1.5px solid var(--teal-d);border-radius:10px;overflow:hidden">
+   <div style="width:57.4%;background:var(--teal);color:#06201e;font-weight:700;font-size:18px;display:flex;align-items:center;padding-left:18px">Заказано и оплачено · 11 485 ₽</div>
+   <div style="width:19.2%;background:repeating-linear-gradient(45deg,#1f8f86 0 10px,#176a64 10px 20px);font-weight:700;font-size:18px;display:flex;align-items:center;padding-left:14px">3 830 ₽</div>
+  </div>
+  <p style="margin-top:12px">Остаток до лимита — <b class="t">4 685 ₽</b></p>
+ </div>
+ <div style="position:absolute;left:880px;top:110px;width:272px">
+  <div class="big" style="font-size:84px">×4,5</div>
+  <p class="lead">дешевле нового принтера сопоставимого класса</p>
+  <p style="margin-top:28px">Корпус, рельсы, хотенд, блок питания и стекло остаются в работе</p>
+ </div>
+</div>"""))
+
+# 8 ─ Plan
+done = ["Спецификация и закупки — 11 485 ₽ уже оплачено", "Печатная голова Hefest спроектирована",
+        "Цифровая модель принтера построена", "Расчёт токов и нагрева кабеля к голове"]
+done_html = "".join(f'<li style="display:flex;gap:14px;margin-bottom:14px"><span class="t" style="font-weight:700;font-size:22px;line-height:1.2">✓</span><span>{d}</span></li>' for d in done)
+plan = [("до 22.11", "Печать деталей головы, конфигурация Klipper"), ("22–26.11", "Монтаж электроники, CAN-кабель, первый запуск"),
+        ("27–30.11", "Shake&amp;Tune, Input Shaper, карта стола"), ("1–2.12", "Тестовые печати, замеры, видео"),
+        ("3 и 5.12", "Демонстрация на чемпионате")]
+pts = "".join(
+    f'<div style="text-align:center;position:relative"><div style="font-family:Benzin;font-weight:700;font-size:22px;color:var(--teal)">{d}</div>'
+    f'<div style="width:24px;height:24px;border-radius:50%;margin:22px auto 22px;background:{"var(--orange)" if i==4 else "var(--teal)"};border:5px solid var(--bg);position:relative;z-index:2"></div>'
+    f'<p style="font-size:18px;line-height:1.35;padding:0 8px">{t}</p></div>' for i, (d, t) in enumerate(plan))
+slides.append(page(8, f"""<div class="pad">
+ <h2>План до демонстрации</h2>
+ <ul style="list-style:none;columns:2;column-gap:40px;width:1100px">{done_html}</ul>
+ <div style="position:absolute;left:0;right:0;top:250px">
+  <div style="position:absolute;left:10%;right:10%;top:60px;height:4px;background:var(--teal-d);border-radius:2px"></div>
+  <div style="display:grid;grid-template-columns:repeat(5,1fr)">{pts}</div>
+ </div>
+ <p class="lead" style="position:absolute;left:0;bottom:6px">Электроника поставляется <b class="t">22–24 ноября</b> — к чемпионату принтер будет собран и откалиброван</p>
+</div>"""))
+
+# 9 ─ Why us
+why = [
+    ("Оригинальность", "Собственная печатная голова Hefest под связку CHC Pro, K3D Minifeeder и EBB42 GEN2. Контактный датчик по стеклу 4 мм — там, где популярные вихретоковые датчики не работают."),
+    ("Реализуемость", "Серийные компоненты, доступные в России; основная электроника уже заказана. Архитектура «плата на голове + один кабель» — стандарт Bambu Lab, Prusa и Creality. Расчёты и модель — до сборки."),
+    ("Коммерциализация", "Набор модернизации за 12–20 тыс. ₽ для принтеров прошлого поколения: готовый комплект, установка «под ключ», открытые файлы. Клиенты — школы, вузы, кванториумы, мастерские."),
+    ("Преимущества", "В 4,5 раза дешевле нового принтера. Исправная механика продолжает работать. Функции флагманов: Input Shaper, автокалибровка, чистка сопла, ИИ-контроль печати."),
+]
+why_html = "".join(
+    f'<div style="border-top:2px solid var(--line);padding-top:18px"><div style="font-family:Benzin;font-weight:700;font-size:24px;color:var(--teal);margin-bottom:14px">{t}</div><p style="font-size:20px">{s}</p></div>'
+    for t, s in why)
+slides.append(page(9, f"""<div class="pad">
+ <h2>Почему стоит выбрать нас</h2>
+ <div style="display:grid;grid-template-columns:1fr 1fr;gap:44px 56px;margin-top:10px">{why_html}</div>
+</div>"""))
+
+# 10 ─ Team and materials
+qr = segno.make(LINKS["materials"], error="m")
+qr_svg = qr.svg_inline(scale=5, dark="#101315", light="#f2f4f5", border=3)
+team = "".join(
+    f'<div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--line);padding:20px 0">'
+    f'<span style="font-weight:700;font-size:20px">[Фамилия Имя]</span><span class="t" style="font-weight:600;font-size:17px">{r}</span></div>'
+    for r in ["Капитан, электроника", "Конструктор головы", "Klipper и ПО", "3D-модель и печать", "Экономика и документы"])
+links = [("Описание проекта (.docx)", "docx"), ("Все материалы заявки", "materials"), ("Цифровая модель принтера", "model"),
+         ("Печатная голова Hefest", "head"), ("Спецификация и закупки", "spec")]
+links_html = "".join(
+    f'<a href="{LINKS[k]}" style="display:block;color:var(--text);margin-bottom:16px"><span style="font-weight:700;font-size:19px;border-bottom:2px solid var(--teal-d)">{t}</span>'
+    f'<span style="display:block;color:var(--teal);font-size:14.5px;font-weight:600;margin-top:5px;white-space:nowrap">{disp(LINKS[k])}</span></a>'
+    for t, k in links)
+slides.append(page(10, f"""<div class="pad">
+ <h2>Команда и материалы</h2>
+ <div style="position:absolute;left:0;top:92px;width:520px">{team}</div>
+ <div style="position:absolute;left:570px;top:96px;width:582px">{links_html}
+</div>
+ <div style="position:absolute;left:570px;bottom:10px;display:flex;align-items:center;gap:22px">
+   <a href="{LINKS['materials']}" style="display:block;border-radius:12px;overflow:hidden;width:132px;line-height:0">{qr_svg.replace('<svg ', '<svg style="width:132px;height:132px" ')}</a>
+   <p style="font-size:19px;font-weight:600;width:260px">Все материалы заявки — по&nbsp;QR-коду</p>
+ </div>
+</div>"""))
+
+html = f'<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>Модернизация Hercules</title><style>{CSS}</style></head><body>{"".join(slides)}</body></html>'
+(BUILD / "slides.html").write_text(html, encoding="utf-8")
+
+js = BUILD / "render.js"
+js.write_text("""
+const { chromium } = require('playwright');
+(async () => {
+  const [html, pdf, pngDir] = process.argv.slice(2);
+  const b = await chromium.launch();
+  const p = await b.newPage({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: 2 });
+  await p.goto('file://' + html); await p.evaluate(() => document.fonts.ready); await p.waitForTimeout(400);
+  await p.pdf({ path: pdf, width: '1280px', height: '720px', printBackground: true, preferCSSPageSize: true });
+  if (pngDir) {
+    const slides = await p.$$('section.slide');
+    for (let i = 0; i < slides.length; i++) await slides[i].screenshot({ path: `${pngDir}/slide_${String(i+1).padStart(2,'0')}.png` });
+  }
+  await b.close();
+})();
+""")
+PNG = BUILD / "png"
+PNG.mkdir(exist_ok=True)
+subprocess.run(["node", str(js), str(BUILD / "slides.html"), str(SUB / "Hercules_prezentaciya.pdf"), str(PNG)], check=True)
+print("done")

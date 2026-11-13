@@ -1,0 +1,45 @@
+# Заявка на чемпионат «3D Профи» — модернизация 3D-принтера Imprinta Hercules
+
+Направление: **оборудование для 3D-печати**. Команда: **[Название команды]**.
+
+## Основные документы
+
+| Файл | Что это |
+| :--- | :--- |
+| [Hercules_prezentaciya.pdf](Hercules_prezentaciya.pdf) | Презентация проекта (10 слайдов) |
+| [Hercules_opisanie_proekta.docx](Hercules_opisanie_proekta.docx) | Краткое текстовое описание проекта (до 5 страниц, Times New Roman 12 пт) |
+
+## Вспомогательные материалы
+
+**Схемы и графики**
+
+- [Архитектура электроники: один кабель к печатной голове](materials/slides/architecture.png)
+- [Бюджет и сравнение с новым принтером](materials/slides/budget.png)
+- [План работ до демонстрации](materials/slides/plan.png)
+
+**Печатная голова Hefest (собственная разработка команды)**
+
+- [Сборка головы в КОМПАС-3D](materials/img/hefest_assembly_full.png)
+- [Печатные детали — вид спереди](materials/img/hefest_parts_front.png) и [вид сзади](materials/img/hefest_parts_rear.png)
+- [Описание конструкции и проверка зазоров до ремней](../head/README.md)
+
+**Цифровая модель принтера (CadQuery)**
+
+- [Рендер — вид спереди](materials/img/printer_front.png), [вид справа](materials/img/printer_right.png), [портал X/Y крупно](materials/img/gantry_close.png)
+- [Все рендеры](../model/out/renders), файлы [STEP](../model/out/hercules_printer.step), [GLB](../model/out/hercules_printer.glb), [STL](../model/out/hercules_printer.stl)
+- [Исходный код модели и список компонентов](../model)
+
+**Спецификация и закупки**
+
+- [Технический план и обоснование решений](../README.md)
+- [Список закупок v7 с формулами (xlsx)](../3D_Printer_Upgrade_Components-v7.xlsx)
+
+**Фото и видео** — будут добавлены по мере сборки.
+
+## Как пересобрать
+
+```bash
+cd submission/tools
+python3 make_docx.py      # описание .docx
+python3 make_slides.py    # презентация .pdf; шрифты Benzin и Montserrat положить в tools/fonts/
+```
