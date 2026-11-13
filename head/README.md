@@ -44,15 +44,32 @@ Head coordinates: origin at the carriage centre, +Z along the X rail, +Y up, hot
    White is free space along the whole head. The red box is the mirrored belt position — an assumption until the real belt positions are measured.
 
 2. **Carriage screw holes.** The four holes are 2.7 mm with a 5.7 mm counterbore that leaves 1.7 mm of plastic under the screw head. M3 screws need 3.2–3.4 mm, and 1.7 mm is thin for the joint that carries the whole head.
-3. **No model of the ordered board.** The repository has the first-generation EBB42 and an EBB36 Gen2, but not the EBB42 GEN2 V1.0 that was ordered. Its outline, hole pattern and XT30 position are needed before the board mount is fixed.
+3. **The board model in the repository is the wrong generation.** It has the first-generation EBB42 and an EBB36 Gen2, but not the EBB42 GEN2 V1.0 that was ordered. The GEN2 is 5 mm longer and its hole pattern is off-centre — see the dimensions below and use the official STEP model.
 4. **Exports lag behind the assembly.** The STEP/STL files date from Nov 11; the assembly changed on Nov 13 (board moved up). Positions of the purchased parts exist only inside the `.a3d` file, which cannot be read outside KOMPAS.
+
+## EBB42 GEN2 V1.0 dimensions
+
+Measured from BigTreeTech's official STEP model and checked against the dimension drawing on their wiki.
+
+| Item | Value |
+| :--- | :--- |
+| Board outline | 40 × 45 mm (45.8 mm including the XT30, which overhangs the top edge by 0.8 mm) |
+| Mounting holes | 4 × Ø3.1 mm (M3) on a 31 × 31 mm square |
+| Hole position | 4.5 mm from each long edge; 4.4 mm from the bottom edge, 9.6 mm from the top (XT30) edge — not centred along the 45 mm side |
+| XT30 (2+2) power/data connector | at the top edge, 13.4 mm wide × 12.7 mm deep, 16.3–29.7 mm from the left edge, 5.4 mm above the board; the plug goes in from beyond the top edge, in the plane of the board |
+| Height above the board | 8.6 mm at the heater screw terminal (right edge), 6–7 mm for the other connectors |
+| Below the board's top face | through-hole pins reach 3.8 mm; total model height 12.4 mm |
+
+Electronics, from the wiki and the official sample config: `STM32G0B1CBT6` MCU, on-board `TMC2209`, `LIS2DW` accelerometer, USB or CAN selected by a jumper, 24–28 V input, 120 W heater output, NTC or PT1000 thermistor input, two 2-pin fan ports plus one 3-pin with tachometer, probe port for MicroProbe / BLTouch / 24 V inductive.
+
+Sources: [STEP model](https://github.com/bigtreetech/EBB/tree/master/EBB_GEN2/EBB42_GEN2/CAD), [sample Klipper config](https://github.com/bigtreetech/EBB/blob/master/EBB_GEN2/EBB42_GEN2/sample-bigtreetech-ebb42-gen2-v1.0.cfg), [BTT wiki page](https://global.bttwiki.com/EBB42_GEN2.html).
+
+The board thickness in the STEP model is not drawn realistically, so the clearance under the board should be checked on the real part.
 
 ## Needed to finalise the head
 
 - **Belt positions on the printer:** distance from the rail centre to each belt run (front and back), height of the belt edges relative to the top of the rail, belt width, and whether the front run is attached to the current carriage or passes through freely.
 - **A STEP export of the whole assembly** (`Сборка башки.a3d` → STEP), so every part is available in its real position for interference checks.
-- **EBB42 GEN2 V1.0 model or dimensions** (board outline, mounting holes, connector positions).
-
 ## Tools
 
 `tools/belt_corridor.py` projects any set of head STL files along the rail and reports how much of a given belt zone is blocked. The belt zone is a constant at the top of the script.

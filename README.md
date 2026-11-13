@@ -104,16 +104,16 @@ Standoffs are not on the list: a team member already has them.
 
 ### 3.2. What the toolhead board replaces
 
-The square `BTT EBB42` format (40×40 mm, 31×31 mm mounting pattern) was chosen over the elongated `EBB36` (51.5×38 mm) because it fits in the place of the stock green breakout board without touching the belts.
+The `BTT EBB42` format (the GEN2 board is 40×45 mm with a 31×31 mm mounting pattern) was chosen over the elongated `EBB36` (51.5×38 mm) because it fits in the place of the stock green breakout board without touching the belts.
 
 One toolhead board removes six old parts and problems:
 
 1. **The stock green breakout board with hot-glued connectors.** Its JST-XH pin headers are rated for 2–3 A at most and would overheat with the 115 W `CHC Pro` hotend (4.79 A peak).
-2. **The external accelerometer board on the toolhead and its USB cable.** The EBB42 GEN2 has an on-board accelerometer for Input Shaper.
-3. **The separate extruder driver in the tray.** The extruder driver is on the toolhead board, 5 cm from the `NEMA14` motor.
+2. **The external accelerometer board on the toolhead and its USB cable.** The EBB42 GEN2 has an on-board `LIS2DW` accelerometer for Input Shaper.
+3. **The separate extruder driver in the tray.** The `TMC2209` extruder driver is on the toolhead board, 5 cm from the `NEMA14` motor.
 4. **The thick 12-wire braided harness.** Keeping the old breakout board while adding the probe (+5 wires) and the accelerometer (+4 wires) would grow the bundle to 21 wires. A stiff harness pulls on the carriage and distorts Input Shaper measurements. With the toolhead board, a single 4-wire cable goes to the head (24 V, GND, CAN_H, CAN_L).
 5. **Long cable runs for the bed probe and fans.** The `BIQU MicroProbe V2` plugs into the 5-pin `PROBE` port on the toolhead board with its short lead; the heater, thermistor and fans connect with 5–15 cm leads.
-6. **Extruder step generation on the mainboard.** The toolhead board's own 32-bit MCU generates the extruder steps, including the 141 100 steps/s peaks on corners.
+6. **Extruder step generation on the mainboard.** The toolhead board's own 32-bit `STM32G0B1` MCU generates the extruder steps, including the 141 100 steps/s peaks on corners.
 
 The `CHC Pro` uses a standard NTC 100K thermistor, which connects directly to the thermistor port; no PT100/PT1000 amplifier is needed.
 
@@ -155,8 +155,9 @@ A toolhead board with a single cable is the industry-standard architecture (Bamb
 ### 4.1. Assembly and wiring
 
 - **Keep the stock fuse board in the tray.** Feed 24 V from the `MeanWell LRS-350-24` through it to the `BTT SKR 3 EZ` power inputs and to the toolhead cable.
+- **Toolhead link.** The EBB42 GEN2 works over CAN or USB, selected by a jumper on the board; this plan uses CAN.
 - **CAN bus termination.** Enable the 120 Ω termination resistors at both ends of the line (the `120R` jumpers on the mainboard and on the toolhead board).
-- **Accelerometer orientation.** Set `axes_map` in the accelerometer section to match how the toolhead board is actually mounted.
+- **Accelerometer orientation.** Set `axes_map` in the `[lis2dw]` section to match how the toolhead board is actually mounted.
 - **Mounting the toolhead board.** A team member already has the standoffs; the team makes a flat adapter plate with a 31×31 mm mounting square (4 × M3).
 
 ### 4.2. Klipper stack
@@ -181,4 +182,4 @@ A toolhead board with a single cable is the industry-standard architecture (Bamb
 
 - **Toolhead board orientation.** The plan assumed the EBB42 lies horizontally in place of the green breakout board, but photos of the current build show that board standing vertically at the rear of the toolhead. Check the fit and belt clearance before making the adapter plate; a vertical bracket may be needed.
 - **SKR 3 EZ package.** Confirm on arrival that the kit includes the 5 `EZ2209` drivers.
-- **EBB42 GEN2 details.** The interface, MCU and accelerometer details in sections 3.2 and 4 were written for the first-generation `EBB42 CAN v1.2` (CAN bus, `STM32G0B1`, `ADXL345`, on-board `TMC2209`). Check them against the GEN2 documentation before writing `printer.cfg`.
+- **EBB42 GEN2 pin names.** Take them from BigTreeTech's [sample config for the EBB42 GEN2](https://github.com/bigtreetech/EBB/blob/master/EBB_GEN2/EBB42_GEN2/sample-bigtreetech-ebb42-gen2-v1.0.cfg) when writing `printer.cfg`. Board dimensions are in `head/README.md`.
