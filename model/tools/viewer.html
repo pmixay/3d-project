@@ -1,0 +1,34 @@
+<!doctype html><html><body style="margin:0;background:#fff">
+<script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+const r = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+r.setSize(innerWidth, innerHeight); document.body.appendChild(r.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0xf3f4f6);
+scene.add(new THREE.HemisphereLight(0xffffff, 0x777777, 1.6));
+const d1 = new THREE.DirectionalLight(0xffffff, 1.8); d1.position.set(500, -700, 900); scene.add(d1);
+const d2 = new THREE.DirectionalLight(0xffffff, 0.9); d2.position.set(-600, 500, -600); scene.add(d2);
+const cam = new THREE.PerspectiveCamera(32, innerWidth / innerHeight, 10, 6000);
+const holder = new THREE.Group(); scene.add(holder);
+new GLTFLoader().load('/model.glb', g => {
+  const m = g.scene;
+  holder.add(m);
+  let box = new THREE.Box3().setFromObject(m); const s = box.getSize(new THREE.Vector3());
+  console.log('raw bbox', JSON.stringify(box.min), JSON.stringify(box.max));
+  // CadQuery exports glTF Y-up; rotate back to printer coordinates (Z up) and detect unit scale
+  holder.rotation.x = Math.PI / 2;
+  holder.updateMatrixWorld(true);
+  box = new THREE.Box3().setFromObject(holder);
+  const sz = box.getSize(new THREE.Vector3());
+  if (sz.x < 5) { holder.scale.setScalar(1000); holder.updateMatrixWorld(true); box = new THREE.Box3().setFromObject(holder); }
+  console.log('bbox', JSON.stringify(box.min), JSON.stringify(box.max));
+  m.traverse(o => { if (o.isMesh) { o.material.side = THREE.DoubleSide; if (o.material.opacity < 1) { o.material.transparent = true; o.material.depthWrite = false; } o.material.metalness = 0.1; o.material.roughness = 0.7; } });
+  window.setView = (pos, tgt, hide, up) => {
+    const re = hide ? new RegExp(hide) : null;
+    m.traverse(o => { if (o.name) { let n = o, vis = true; while (n) { if (re && re.test(n.name)) vis = false; n = n.parent; } if (o.isMesh) o.visible = vis; } });
+    cam.up.set(...up); cam.position.set(...pos); cam.lookAt(...tgt); r.render(scene, cam);
+  };
+  window.ready = true;
+});
+</script></body></html>
