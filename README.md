@@ -37,11 +37,12 @@ These are on the printer or were bought under the original list, and are not par
 
 1. **Hotend:** TriangleLab CHC Pro (24 V, 115 W ceramic PTC heater, stock NTC 100K thermistor `ATC Semitec 104NT-4`, up to 300 °C).
 2. **Feeder (housing and motor):** printed `K3D Minifeeder` extruder + `NEMA14` 36 mm stepper (round pancake, 10T gear, 98 g) + basic BMG gear set (50:10 reduction, 5:1 ratio).
-3. **Part cooling:** one 24 V `5015` blower fan — enough airflow for current needs.
-4. **Drivers from the first purchase:** 1 × `TMC2209` and a set of `TMC2130` (StepStick format). The ordered SKR 3 EZ takes EZ-format drivers and ships with its own, so these stay as spares.
-5. **Accelerometer from the first purchase:** `BTT ADXL345 S2DW` board with USB-C, currently on a printed bracket on the toolhead. Once the EBB42 GEN2 with its on-board accelerometer is installed it can be removed, or moved to the bed to measure Z-axis vibration.
-6. **Power and lighting:** `MeanWell LRS-350-24` power supply (24 V, 350 W) and `Navigator SMD 2835` LED strip (24 V).
-7. **Stock printer parts that are kept:**
+3. **Axis steppers:** the `NEMA17` motors are kept. Replacement motors (Tier 3 below) stay a reserve and are bought only if the kept ones skip steps in testing.
+4. **Part cooling:** one 24 V `5015` blower fan — enough airflow for current needs.
+5. **Drivers from the first purchase:** 1 × `TMC2209` and a set of `TMC2130` (StepStick format). The ordered SKR 3 EZ takes EZ-format drivers and ships with its own, so these stay as spares.
+6. **Accelerometer from the first purchase:** `BTT ADXL345 S2DW` board with USB-C, currently on a printed bracket on the toolhead. Once the EBB42 GEN2 with its on-board accelerometer is installed it can be removed, or moved to the bed to measure Z-axis vibration.
+7. **Power and lighting:** `MeanWell LRS-350-24` power supply (24 V, 350 W) and `Navigator SMD 2835` LED strip (24 V).
+8. **Stock printer parts that are kept:**
    - GT2 belts on X and Y (in working condition).
    - 4 mm borosilicate glass on clips (kept to hold the plane over the thin aluminium bed).
    - The green fuse board with power terminals in the electronics tray.

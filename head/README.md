@@ -19,13 +19,13 @@ The head is designed in KOMPAS-3D v23 (educational version). History: 11 commits
 
 **`Компоненты/` (purchased parts and references):** 3010 fan, Artillery X4 Pro 5015 blower, BTT EBB42, BTT EBB36 Gen2 v1.1, BTT S2DW accelerometer, TriangleLab CHC Pro, E3D Volcano block, NEMA14 `14HR08-0654S`, MGN12H carriage, K3D Minifeeder mod 5A (Thingiverse 5773294), the stock green breakout board, duct tubes, a nut drawing.
 
-![Assembly preview extracted from the .a3d file](img/hefest_assembly_preview.png)
-
-The preview stored inside the assembly file shows the current state: two toolhead boards placed for comparison — one flat on a shelf above the extruder motor, one upright on the side next to the extruder.
-
 ![Printed parts in assembly coordinates](img/hefest_printed_parts.png)
 
 Printed parts as exported: frame (blue), belt cover (orange), hotend mounts (green, purple), triangle (red), duct (yellow).
+
+## Design decisions
+
+- **The toolhead board does not go on top of the head.** A variant with a board on a shelf above the extruder motor was tried in the assembly and rejected.
 
 ## Geometry read from the STEP files
 
