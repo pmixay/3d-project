@@ -13,23 +13,20 @@
 
 **Схемы и графики**
 
+- [Актуальность и необходимость](materials/slides/relevance.png)
 - [Архитектура электроники: один кабель к печатной голове](materials/slides/architecture.png)
 - [Сравнение с серийным Hercules 2016](materials/slides/baseline.png)
 - [Что осталось от Hercules и что сделано заново](materials/slides/rebuild.png)
 - [Стоимость пересборки](materials/slides/budget.png)
-- [План работ до демонстрации](materials/slides/plan.png)
 
 **Печатная голова Hefest (собственная разработка команды)**
 
-- [Сборка головы в КОМПАС-3D](materials/img/hefest_assembly_full.png)
 - [Печатные детали — вид спереди](materials/img/hefest_parts_front.png) и [вид сзади](materials/img/hefest_parts_rear.png)
 - [Описание конструкции и проверка зазоров до ремней](../head/README.md)
 
-**Цифровая модель принтера (CadQuery)**
+**Рендеры принтера**
 
-- [Рендер — вид спереди](materials/img/printer_front.png), [вид справа](materials/img/printer_right.png), [портал X/Y крупно](materials/img/gantry_close.png)
-- [Все рендеры](../model/out/renders), файлы [STEP](../model/out/hercules_printer.step), [GLB](../model/out/hercules_printer.glb), [STL](../model/out/hercules_printer.stl)
-- [Исходный код модели и список компонентов](../model)
+- [Вид спереди](materials/img/printer_front.png), [вид справа](materials/img/printer_right.png), [портал X/Y крупно](materials/img/gantry_close.png)
 
 **Спецификация и закупки**
 
@@ -44,4 +41,5 @@
 cd submission/tools
 python3 make_docx.py      # описание .docx
 python3 make_slides.py    # презентация .pdf; шрифты Benzin и Montserrat положить в tools/fonts/
+# рендеры: node render_model.mjs ../../model/out/hercules_printer.glb <папка> front_iso right_iso gantry_close (нужен three@0.160.0)
 ```

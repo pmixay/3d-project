@@ -1,0 +1,60 @@
+<!doctype html><html><body style="margin:0;background:transparent">
+<script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+const r = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true, alpha: true });
+r.setPixelRatio(2); r.setSize(innerWidth, innerHeight); r.setClearColor(0x000000, 0);
+r.toneMapping = THREE.ACESFilmicToneMapping; r.toneMappingExposure = 1.0;
+r.outputColorSpace = THREE.SRGBColorSpace;
+r.shadowMap.enabled = true; r.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(r.domElement);
+const scene = new THREE.Scene();
+const pm = new THREE.PMREMGenerator(r);
+scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture;
+scene.add(new THREE.HemisphereLight(0xdfefff, 0x20262a, 0.35));
+const key = new THREE.DirectionalLight(0xfff6ea, 3.2); key.position.set(700, -900, 1300);
+key.castShadow = true; key.shadow.mapSize.set(4096, 4096); key.shadow.radius = 6; key.shadow.bias = -0.0005; key.shadow.normalBias = 2;
+Object.assign(key.shadow.camera, { left: -500, right: 500, top: 500, bottom: -500, near: 100, far: 4000 });
+key.target.position.set(182, 177, 200); scene.add(key); scene.add(key.target);
+const rim = new THREE.DirectionalLight(0x9fe8ff, 1.2); rim.position.set(-700, 900, 700); scene.add(rim);
+const cam = new THREE.PerspectiveCamera(30, innerWidth / innerHeight, 10, 8000);
+const holder = new THREE.Group(); scene.add(holder);
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(4000, 4000), new THREE.ShadowMaterial({ opacity: 0.45 }));
+ground.position.set(182, 177, -0.5); ground.receiveShadow = true; scene.add(ground);
+const near = (c, r, g, b) => Math.abs(c.r - r) + Math.abs(c.g - g) + Math.abs(c.b - b) < 0.12;
+new GLTFLoader().load('/model.glb', g => {
+  const m = g.scene; holder.add(m);
+  holder.rotation.x = Math.PI / 2; holder.updateMatrixWorld(true);
+  let box = new THREE.Box3().setFromObject(holder);
+  if (box.getSize(new THREE.Vector3()).x < 5) { holder.scale.setScalar(1000); holder.updateMatrixWorld(true); }
+  m.traverse(o => {
+    if (!o.isMesh) return;
+    const old = o.material; const c = old.color.clone(); const lin = c.clone().convertLinearToSRGB();
+    const op = old.opacity;
+    let mat;
+    const p = { color: c, side: THREE.DoubleSide };
+    if (op < 1) {
+      mat = new THREE.MeshPhysicalMaterial({ ...p, metalness: 0, roughness: 0.04, transparent: true, opacity: Math.min(op, 0.14), envMapIntensity: 0.9, depthWrite: false, clearcoat: 1 });
+    } else if (near(lin, 0.20, 0.47, 0.52)) {           // painted steel enclosure
+      mat = new THREE.MeshStandardMaterial({ side: THREE.DoubleSide, color: new THREE.Color(0x2a6f7a), metalness: 0.25, roughness: 0.42, envMapIntensity: 0.7 });
+    } else if (near(lin, 0.78, 0.80, 0.82) || near(lin, 0.86, 0.87, 0.88) || near(lin, 0.55, 0.56, 0.58)) { // steel / alu
+      mat = new THREE.MeshStandardMaterial({ ...p, color: c.clone().multiplyScalar(0.85), metalness: 1.0, roughness: 0.3, envMapIntensity: 1.0 });
+    } else if (near(lin, 0.07, 0.07, 0.08) || near(lin, 0.16, 0.16, 0.18)) {   // black anodised / plastic
+      mat = new THREE.MeshStandardMaterial({ ...p, metalness: 0.35, roughness: 0.42 });
+    } else if (near(lin, 0.80, 0.62, 0.20)) {
+      mat = new THREE.MeshStandardMaterial({ ...p, metalness: 1.0, roughness: 0.3 });
+    } else {
+      mat = new THREE.MeshStandardMaterial({ ...p, metalness: 0.1, roughness: 0.5 });
+    }
+    o.material = mat; o.castShadow = op >= 1; o.receiveShadow = false;
+  });
+  window.setView = (pos, tgt, hide, up) => {
+    const re = hide ? new RegExp(hide) : null;
+    m.traverse(o => { if (o.isMesh) { let n = o, vis = true; while (n) { if (re && n.name && re.test(n.name)) vis = false; n = n.parent; } o.visible = vis; } });
+    cam.up.set(...up); cam.position.set(...pos); cam.lookAt(...tgt); r.render(scene, cam);
+  };
+  window.ready = true;
+});
+</script></body></html>

@@ -90,7 +90,7 @@ slides.append(f"""<section class="slide">
  <img class="img" src="{IMG}/printer_front.png" style="right:40px;top:-10px;height:740px">
  <div class="pad" style="width:660px">
   <h1 style="margin-top:104px">Imprinta <span class="o">Hercules</span>: новый принтер на старой раме</h1>
-  <p class="lead" style="margin-top:28px;width:570px">Пересобрали серийный принтер 2016 года с&nbsp;нуля — от оригинала осталась только стальная рама</p>
+  <p class="lead" style="margin-top:28px;width:570px">Пересобрали серийный принтер 2016 года — от оригинала остались только рама и&nbsp;механика осей</p>
   <div style="position:absolute;bottom:0;left:0">
    <p style="font-weight:700;font-size:21px" class="t">Команда «[Название команды]»</p>
    <p style="margin-top:6px">Чемпионат «3D Профи»</p>
@@ -99,26 +99,41 @@ slides.append(f"""<section class="slide">
  </div>
 </section>""")
 
+# 1b ─ Why it matters
+need = [
+    ("Устаревший парк принтеров", "Школы, «Кванториумы», «Точка роста», «IT-кубы», ЦМИТ и вузы массово закупали 3D-принтеры в 2015–2020 годах. Первое поколение уже не справляется с современными задачами."),
+    ("Замена стоит дорого", "Новый быстрый закрытый принтер — от 70 000 ₽. Для школы это бюджет на целый кабинет, а исправная механика старого принтера уходит в утиль."),
+    ("Закрытые экосистемы", "Современные быстрые принтеры — это фирменные запчасти и облачные сервисы производителя. Klipper и открытая документация дают ремонт на месте и любые серийные компоненты."),
+    ("Кадры для отрасли", "Пересборка — готовый учебный проект: электроника, CAD, прошивка, калибровка. Студенты понимают устройство оборудования, а не только нажимают «Печать»."),
+]
+need_html = "".join(
+    f'<div style="border-top:2px solid var(--line);padding-top:16px"><div style="font-family:Benzin;font-weight:700;font-size:22px;color:var(--teal);margin-bottom:12px">{t}</div><p style="font-size:19px">{d}</p></div>'
+    for t, d in need)
+slides.append(page(0, f"""<div class="pad">
+ <h2>Почему это нужно сейчас</h2>
+ <div style="display:grid;grid-template-columns:1fr 1fr;gap:34px 56px">{need_html}</div>
+ <p class="lead" style="position:absolute;left:0;right:0;bottom:24px">Наш подход превращает списанный принтер в&nbsp;современный — <span class="t">на&nbsp;той же механике и за&nbsp;долю цены нового</span></p>
+</div>"""))
+
 # 2 ─ Only the frame is left
 def chip(t, color):
     return (f'<span style="display:inline-block;border:1.5px solid {color};border-radius:999px;padding:8px 18px;'
             f'margin:0 10px 12px 0;font-weight:600;font-size:17px">{t}</span>')
 
 
-new_parts = ["Плата управления SKR 3 EZ", "Плата на голове EBB42 GEN2", "Печатная голова Hefest", "Хотенд CHC Pro",
-             "Экструдер K3D Minifeeder", "Моторы NEMA17 и NEMA14", "Драйверы TMC", "Блок питания 350 Вт",
-             "Проводка: один кабель CAN", "Обдув 5015 и 3010", "Датчик стола MicroProbe", "Сопло Volcano NCB",
-             "Чистка сопла", "Подсветка камеры", "Прошивка Klipper", "Макросы и ИИ-контроль"]
+kept_parts = ["Стальная рама 2 мм", "Рельсы X и Y", "Ось Z", "Стол и стекло", "Моторы NEMA17", "Ремни GT2", "Дисплей"]
+new_parts = ["Плата SKR 3 EZ", "Плата на голове EBB42 GEN2", "Печатная голова Hefest", "Хотенд CHC Pro",
+             "Экструдер K3D Minifeeder + NEMA14", "Драйверы TMC", "Блок питания 350 Вт", "Один кабель CAN",
+             "Обдув 5015 и 3010", "Датчик стола MicroProbe", "Сопло Volcano NCB", "Чистка сопла",
+             "Klipper и ИИ-контроль"]
 slides.append(page(2, f"""
  <img class="img" src="{IMG}/printer_right.png" style="left:30px;top:150px;height:560px;opacity:.95">
  <div class="pad">
-  <h2>От Hercules осталась только рама</h2>
+  <h2>Механика осталась, остальное — новое</h2>
   <div style="position:absolute;left:500px;top:92px;width:652px">
-   <div style="display:flex;align-items:center;gap:18px;margin-bottom:22px">
-    <div style="font-family:Benzin;font-weight:700;font-size:21px;color:var(--orange)">Оставили</div>
-    <div style="margin-top:12px">{chip("Стальная рама 2 мм", "var(--orange)")}</div>
-   </div>
-   <div style="font-family:Benzin;font-weight:700;font-size:21px;color:var(--teal);margin-bottom:16px">Сделали заново</div>
+   <div style="font-family:Benzin;font-weight:700;font-size:21px;color:var(--orange);margin-bottom:14px">Оставили механику</div>
+   <div style="margin-bottom:22px">{"".join(chip(t, "var(--orange)") for t in kept_parts)}</div>
+   <div style="font-family:Benzin;font-weight:700;font-size:21px;color:var(--teal);margin-bottom:14px">Сделали заново</div>
    <div>{"".join(chip(t, "var(--teal)") for t in new_parts)}</div>
   </div>
  </div>"""))
@@ -199,8 +214,8 @@ slides.append(page(3, f"""<div class="pad">
 
 # 4 ─ Hefest head
 slides.append(page(4, f"""
- <div style="position:absolute;left:64px;top:140px;width:360px;height:470px;border-radius:18px;overflow:hidden;background:#a7a7a7;display:flex;align-items:center;justify-content:center"><img src="{IMG}/hefest_assembly_full.png" style="height:440px"></div>
- <img class="img" src="{IMG}/hefest_parts_front.png" style="left:432px;top:215px;height:380px">
+ <img class="img" src="{IMG}/hefest_parts_front.png" style="left:48px;top:170px;height:370px">
+ <img class="img" src="{IMG}/hefest_parts_rear.png" style="left:338px;top:200px;height:370px">
  <div class="pad">
   <h2>Печатная голова Hefest — наша разработка</h2>
   <div style="position:absolute;left:640px;top:96px;width:512px">
@@ -214,35 +229,33 @@ slides.append(page(4, f"""
   </div>
  </div>"""))
 
-# 5 ─ Digital twin
-slides.append(page(5, f"""
- <img class="img" src="{IMG}/printer_right.png" style="left:40px;top:120px;height:580px">
- <div class="pad">
-  <h2>Цифровой двойник принтера</h2>
-  <div style="position:absolute;left:560px;top:96px;width:592px">
-   <ul class="dots">
-    <li>Параметрическая модель всего принтера на CadQuery (Python)</li>
-    <li>Все размеры — в одном файле параметров с указанием источника</li>
-    <li>Экспорт в STEP, GLB и STL: КОМПАС-3D, слайсер, веб-просмотр</li>
-    <li>Компоновка головы, платы и кабеля проверяется до изготовления</li>
-   </ul>
-   <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:20px">
-    <div class="card" style="padding:18px 22px"><div class="big" style="font-size:32px;margin-bottom:8px">2,94 А</div><p style="font-size:17px">рабочий ток головы по расчёту</p></div>
-    <div class="card" style="padding:18px 22px"><div class="big" style="font-size:32px;margin-bottom:8px">&lt;0,44 Вт</div><p style="font-size:17px">потери во всём кабеле к голове</p></div>
-   </div>
-   <p style="margin-top:22px"><a class="u" href="{LINKS['model']}">Модель и рендеры на GitHub</a></p>
-  </div>
- </div>"""))
+# 5 ─ Automation
+steps = ["Нагрев сопла до 150 °C без подтёков", "Чистка сопла о силиконовую щётку", "Точный Z-offset контактным датчиком",
+         "Карта высот только под деталью (KAMP)", "Печать под контролем ИИ-камеры"]
+step_html = "".join(
+    f'<div class="card" style="padding:24px 22px;min-height:250px"><div class="big" style="font-size:40px;margin-bottom:22px">{i+1:02d}</div><p style="font-size:20px">{t}</p></div>'
+    for i, t in enumerate(steps))
+tools_ = [("Shake&amp;Tune", "натяжение ремней и фильтры Input Shaper по встроенному акселерометру"),
+          ("TMC Autotune", "тихие моторы без вертикальных артефактов на стенках"),
+          ("Pressure Advance", "чёткие углы на высокой скорости в OrcaSlicer")]
+tools_html = "".join(f'<p style="border-top:2px solid var(--line);padding-top:16px"><b class="t">{a}</b> — {b}</p>' for a, b in tools_)
+slides.append(page(0, f"""<div class="pad">
+ <h2>Автоматизация уровня флагманов</h2>
+ <p class="lead" style="margin:-12px 0 22px">Каждая печать начинается одинаково — без ручной калибровки:</p>
+ <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:16px">{step_html}</div>
+ <div class="grid3" style="position:absolute;left:0;right:0;bottom:30px;gap:34px">{tools_html}</div>
+</div>"""))
 
 # 7 ─ Budget
 slides.append(page(7, f"""<div class="pad">
  <h2>Стоимость пересборки</h2>
  <div style="position:absolute;left:0;top:96px;width:760px">
-  <div style="display:flex;justify-content:space-between;align-items:baseline"><p>Этап 1: хотенд, экструдер, моторы, драйверы, питание</p><div style="font-family:Benzin;font-weight:700;font-size:24px">[сумма] ₽</div></div>
+  <div style="display:flex;justify-content:space-between;align-items:baseline"><p>Этап 1: хотенд, экструдер, драйверы, питание, обдув</p><div style="font-family:Benzin;font-weight:700;font-size:24px">[сумма] ₽</div></div>
   <div style="height:16px;border-radius:8px;background:repeating-linear-gradient(45deg,#1f8f86 0 10px,#176a64 10px 20px);margin-top:10px"></div>
   <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:34px"><p>Этап 2: электроника, датчик, автоматизация</p><div style="font-family:Benzin;font-weight:700;font-size:24px">15 315 ₽</div></div>
   <div style="display:flex;height:58px;margin-top:10px;border:1.5px solid var(--teal-d);border-radius:10px;overflow:hidden">
-   <div style="width:75%;background:var(--teal);color:#06201e;font-weight:700;font-size:18px;display:flex;align-items:center;padding-left:18px">Заказано и оплачено: 11 485 ₽</div>
+   <div style="width:57.8%;background:var(--teal);color:#06201e;font-weight:700;font-size:18px;display:flex;align-items:center;padding-left:18px">Платы: 8 857 ₽</div>
+   <div style="width:17.2%;background:#7fe3d9;color:#06201e;font-weight:700;font-size:18px;display:flex;align-items:center;padding-left:12px">2 628 ₽</div>
    <div style="width:25%;background:repeating-linear-gradient(45deg,#1f8f86 0 10px,#176a64 10px 20px);font-weight:700;font-size:18px;display:flex;align-items:center;padding-left:14px">3 830 ₽</div>
   </div>
   <ul class="dots" style="margin-top:34px">
@@ -258,33 +271,12 @@ slides.append(page(7, f"""<div class="pad">
  </div>
 </div>"""))
 
-# 8 ─ Plan
-done = ["Спецификация и закупки — 11 485 ₽ уже оплачено", "Печатная голова Hefest спроектирована",
-        "Цифровая модель принтера построена", "Расчёт токов и нагрева кабеля к голове"]
-done_html = "".join(f'<li style="display:flex;gap:14px;margin-bottom:14px"><span class="t" style="font-weight:700;font-size:22px;line-height:1.2">✓</span><span>{d}</span></li>' for d in done)
-plan = [("до 22.11", "Печать деталей головы, конфигурация Klipper"), ("22–26.11", "Монтаж электроники, CAN-кабель, первый запуск"),
-        ("27–30.11", "Shake&amp;Tune, Input Shaper, карта стола"), ("1–2.12", "Тестовые печати, замеры, видео"),
-        ("3 и 5.12", "Демонстрация на чемпионате")]
-pts = "".join(
-    f'<div style="text-align:center;position:relative"><div style="font-family:Benzin;font-weight:700;font-size:22px;color:var(--teal)">{d}</div>'
-    f'<div style="width:24px;height:24px;border-radius:50%;margin:22px auto 22px;background:{"var(--orange)" if i==4 else "var(--teal)"};border:5px solid var(--bg);position:relative;z-index:2"></div>'
-    f'<p style="font-size:18px;line-height:1.35;padding:0 8px">{t}</p></div>' for i, (d, t) in enumerate(plan))
-slides.append(page(8, f"""<div class="pad">
- <h2>План до демонстрации</h2>
- <ul style="list-style:none;columns:2;column-gap:40px;width:1100px">{done_html}</ul>
- <div style="position:absolute;left:0;right:0;top:250px">
-  <div style="position:absolute;left:10%;right:10%;top:60px;height:4px;background:var(--teal-d);border-radius:2px"></div>
-  <div style="display:grid;grid-template-columns:repeat(5,1fr)">{pts}</div>
- </div>
- <p class="lead" style="position:absolute;left:0;bottom:6px">Электроника поставляется <b class="t">22–24 ноября</b> — к чемпионату принтер будет собран и откалиброван</p>
-</div>"""))
-
 # 9 ─ Why us
 why = [
-    ("Оригинальность", "Пересобрали принтер с нуля на раме 2016 года: собственная печатная голова Hefest, новая электроника, питание и автоматизация. Контактный датчик по стеклу 4 мм — там, где вихретоковые датчики не работают."),
-    ("Реализуемость", "Серийные компоненты, доступные в России; основная электроника уже заказана. Архитектура «плата на голове + один кабель» — стандарт Bambu Lab, Prusa и Creality. Расчёты и цифровая модель — до сборки."),
-    ("Коммерциализация", "Пересборка устаревших принтеров на их собственной раме: готовый комплект, установка «под ключ», открытые файлы. Клиенты — школы, вузы, кванториумы, мастерские со списанной техникой."),
-    ("Преимущества", "По сравнению с серийным Hercules — 32-битная электроника, хотенд до 300 °C, автокалибровка, Input Shaper, автоочистка сопла и ИИ-контроль. Прочная стальная рама получает вторую жизнь."),
+    ("Оригинальность", "Пересобрали принтер 2016 года, оставив только механику: собственная печатная голова Hefest, новая электроника, питание и автоматизация. Контактный датчик по стеклу 4 мм — там, где вихретоковые датчики не работают."),
+    ("Реализуемость", "Только серийные компоненты, доступные в России. Архитектура «плата на голове + один кабель» — стандарт Bambu Lab, Prusa и Creality. Токи и нагрев рассчитаны, зазоры головы проверены."),
+    ("Коммерциализация", "Пересборка устаревших принтеров на их собственной механике: готовый комплект, установка «под ключ», открытые файлы. Клиенты — школы, вузы, кванториумы, мастерские со списанной техникой."),
+    ("Преимущества", "По сравнению с серийным Hercules — 32-битная электроника, хотенд до 300 °C, автокалибровка, Input Shaper, автоочистка сопла и ИИ-контроль. Прочная механика получает вторую жизнь."),
 ]
 why_html = "".join(
     f'<div style="border-top:2px solid var(--line);padding-top:18px"><div style="font-family:Benzin;font-weight:700;font-size:24px;color:var(--teal);margin-bottom:14px">{t}</div><p style="font-size:19px">{s}</p></div>'
@@ -302,7 +294,7 @@ team = "".join(
     f'<div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--line);padding:20px 0">'
     f'<span style="font-weight:700;font-size:20px">[Фамилия Имя]</span><span class="t" style="font-weight:600;font-size:17px">{r}</span></div>'
     for r in ["Капитан, электроника", "Конструктор головы", "Klipper и ПО", "3D-модель и печать", "Экономика и документы"])
-links = [("Описание проекта (.docx)", "docx"), ("Все материалы заявки", "materials"), ("Цифровая модель принтера", "model"),
+links = [("Описание проекта (.docx)", "docx"), ("Все материалы заявки", "materials"), 
          ("Печатная голова Hefest", "head"), ("Спецификация и закупки", "spec")]
 links_html = "".join(
     f'<a href="{LINKS[k]}" style="display:block;color:var(--text);margin-bottom:16px"><span style="font-weight:700;font-size:19px;border-bottom:2px solid var(--teal-d)">{t}</span>'
