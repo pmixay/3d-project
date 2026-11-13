@@ -16,7 +16,7 @@ X0, X1, Y0, Y1 = -56, 42, -72, 60        # window, mm
 RAIL = (-6.5, -4.0, 12.0, 8.0)           # MGN12 rail: x, y, w, h (carriage holes centred on x = -0.5)
 BLOCK = (-14.0, -1.0, 27.0, 10.0)        # MGN12H block, top face at y = 9 (underside of the frame plate)
 BELT_REAR = (15.0, -2.0, 6.0, 6.0)       # clamped run: teardrop pockets x 15..21, belt y -2..4
-BELT_FRONT = (-22.0, -2.0, 6.0, 6.0)     # second run IF it mirrors the rear one about the rail (to be measured)
+BELT_FRONT = (-16.1, -2.0, 1.4, 6.0)     # free run as the design assumes it: centred in the 2.75 mm gap, same height as the clamped run
 COLORS = ["#1f5fbf", "#e67e22", "#27ae60", "#8e44ad", "#c0392b", "#b8860b", "#555555"]
 
 
@@ -42,7 +42,7 @@ def main(out, paths):
     ax.imshow(img, extent=(X0, X1, Y0, Y1))
     for (x, y, bw, bh), ec, ls, lab in [(RAIL, "k", "-", "MGN12 rail"), (BLOCK, "k", "--", "MGN12H block"),
                                         (BELT_REAR, "lime", "-", "belt, clamped run"),
-                                        (BELT_FRONT, "red", "-", "belt, second run if mirrored")]:
+                                        (BELT_FRONT, "red", "-", "belt, free front run (design position)")]:
         ax.add_patch(plt.Rectangle((x, y), bw, bh, fill=False, ec=ec, ls=ls, lw=2, label=lab))
     ax.set_xlabel("x, mm  (− = hotend side, + = belt-clamp side)")
     ax.set_ylabel("y, mm (up)")

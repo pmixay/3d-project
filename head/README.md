@@ -37,11 +37,15 @@ Head coordinates: origin at the carriage centre, +Z along the X rail, +Y up, hot
 
 ## Findings
 
-1. **No corridor for a second belt run in front of the carriage.** The photos of the printer show a belt run on each side of the X rail. The frame clamps the run behind the rail; if the other run mirrors it in front of the rail (x ≈ −19), it passes through the front lip of the frame and the front bar of the triangle. The only gap there is about 2.5 mm high.
+1. **The gap for the free front belt run is very tight.** By design the front belt run is not clamped: it passes through the gap between the frame, the triangle and the carriage block. That gap is 2.75 mm wide (x = −16.75…−14.0, the last being the face of the MGN12H block) and 10 mm tall (y = −1.1…8.75) along the whole length of the head.
 
    ![Projection along the rail](img/belt_corridor.png)
 
-   White is free space along the whole head. The red box is the mirrored belt position — an assumption until the real belt positions are measured.
+   White is free space along the whole head; the narrow white strip to the left of the dashed block is the gap. The red box is the free front run at the position the design assumes; the green box is the clamped rear run.
+
+   - **Sideways:** a GT2 belt is about 1.4 mm thick, so it has roughly 0.7 mm of clearance to the carriage block on one side and to the frame on the other, and only if it runs exactly 14.9 mm in front of the rail centre. The clamped run sits 18.5 mm behind the rail centre, so the design assumes the two runs are not symmetric about the rail.
+   - **Vertically:** the clamp holds the rear run at y = −2…4, with its top edge level with the top of the rail. A front run at the same height would overlap the top of the triangle by about 0.9 mm.
+   - A belt moves sideways when the head accelerates, so 0.7 mm per side is likely to rub. A slot of about 5 mm (1.5–2 mm per side) with the triangle top lowered to y ≤ −4 would be safe, if the measured belt position allows it.
 
 2. **Carriage screw holes.** The four holes are 2.7 mm with a 5.7 mm counterbore that leaves 1.7 mm of plastic under the screw head. M3 screws need 3.2–3.4 mm, and 1.7 mm is thin for the joint that carries the whole head.
 3. **The board model in the repository is the wrong generation.** It has the first-generation EBB42 and an EBB36 Gen2, but not the EBB42 GEN2 V1.0 that was ordered. The GEN2 is 5 mm longer and its hole pattern is off-centre — see the dimensions below and use the official STEP model.
@@ -68,7 +72,7 @@ The board thickness in the STEP model is not drawn realistically, so the clearan
 
 ## Needed to finalise the head
 
-- **Belt positions on the printer:** distance from the rail centre to each belt run (front and back), height of the belt edges relative to the top of the rail, belt width, and whether the front run is attached to the current carriage or passes through freely.
+- **Belt positions on the printer:** distance from the front face of the rail to the front belt run and from the rear face to the rear run, and the height of the belt's top edge relative to the top of the rail (both runs), and belt width. The design assumes 8.9 mm in front, 12.5 mm behind, and the top edge level with the rail top.
 - **A STEP export of the whole assembly** (`Сборка башки.a3d` → STEP), so every part is available in its real position for interference checks.
 ## Tools
 
