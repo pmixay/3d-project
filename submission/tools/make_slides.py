@@ -93,7 +93,8 @@ slides.append(f"""<section class="slide">
   <p class="lead" style="margin-top:28px;width:570px">Пересобрали серийный принтер 2016 года с&nbsp;нуля — от оригинала осталась только стальная рама</p>
   <div style="position:absolute;bottom:0;left:0">
    <p style="font-weight:700;font-size:21px" class="t">Команда «[Название команды]»</p>
-   <p style="margin-top:6px">Чемпионат «3D Профи» · Оборудование для 3D-печати</p>
+   <p style="margin-top:6px">Чемпионат «3D Профи»</p>
+   <p>Направление «Оборудование для 3D-печати»</p>
   </div>
  </div>
 </section>""")
@@ -173,7 +174,7 @@ for y, t, s in rows1:
 diagram.append(label(c1w, 20 + 18, "USB", skx - c1w))
 diagram.append(label(c1w, 152 + 18, "EXP1/2", skx - c1w))
 diagram.append(label(c1w, 284 + 18, "24 В", skx - c1w))
-diagram.append(box(skx, 20, skw, 356, "BTT SKR 3 EZ", "STM32H7 · 480 МГц<br>драйверы X · Y · Z<br>в отсеке электроники", main=True))
+diagram.append(box(skx, 20, skw, 356, "BTT SKR 3 EZ", "STM32H7, 480 МГц<br>драйверы X, Y, Z<br>в отсеке электроники", main=True))
 # CAN link
 ey, eh = 120, 156
 svg.append(f'<line x1="{skx+skw}" y1="{ey+eh/2}" x2="{ebx}" y2="{ey+eh/2}" stroke="#2bd1c2" stroke-width="6"/>')
@@ -241,7 +242,7 @@ slides.append(page(7, f"""<div class="pad">
   <div style="height:16px;border-radius:8px;background:repeating-linear-gradient(45deg,#1f8f86 0 10px,#176a64 10px 20px);margin-top:10px"></div>
   <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:34px"><p>Этап 2: электроника, датчик, автоматизация</p><div style="font-family:Benzin;font-weight:700;font-size:24px">15 315 ₽</div></div>
   <div style="display:flex;height:58px;margin-top:10px;border:1.5px solid var(--teal-d);border-radius:10px;overflow:hidden">
-   <div style="width:75%;background:var(--teal);color:#06201e;font-weight:700;font-size:18px;display:flex;align-items:center;padding-left:18px">Заказано и оплачено · 11 485 ₽</div>
+   <div style="width:75%;background:var(--teal);color:#06201e;font-weight:700;font-size:18px;display:flex;align-items:center;padding-left:18px">Заказано и оплачено: 11 485 ₽</div>
    <div style="width:25%;background:repeating-linear-gradient(45deg,#1f8f86 0 10px,#176a64 10px 20px);font-weight:700;font-size:18px;display:flex;align-items:center;padding-left:14px">3 830 ₽</div>
   </div>
   <ul class="dots" style="margin-top:34px">
