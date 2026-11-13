@@ -46,13 +46,13 @@ Object.assign(key.shadow.camera, { left: -620, right: 620, top: 620, bottom: -62
 key.shadow.bias = -0.0004; key.shadow.normalBias = 1.2; key.shadow.radius = 3;
 const fill = new THREE.DirectionalLight(0xdfeaff, 0.55); fill.position.set(-900, -500, 500); fill.target.position.set(182, 177, 200);
 const rim = new THREE.DirectionalLight(0xffffff, 1.1); rim.position.set(-300, 1100, 900); rim.target.position.set(182, 177, 250);
-const top = new THREE.DirectionalLight(0xffffff, 0.2); top.position.set(182, 150, 1600); top.target.position.set(182, 177, 0);
+const top = new THREE.DirectionalLight(0xffffff, 0.18); top.position.set(-420, -260, 1500); top.target.position.set(182, 177, 0);
 const under = new THREE.DirectionalLight(0xffffff, 0.0); under.position.set(250, 100, -900); under.target.position.set(182, 177, 60);
 scene.add(key, key.target, fill, fill.target, rim, rim.target, top, top.target, under, under.target);
 scene.add(new THREE.HemisphereLight(0xffffff, 0x9aa3ad, 0.18));
 // chamber light: stands in for the LED strip so the bed and Z column stay readable inside the enclosure
-const chamber = new THREE.PointLight(0xfff8ee, 0.35, 0, 0); chamber.position.set(182, 60, 360); scene.add(chamber);
-const chamber2 = new THREE.PointLight(0xffffff, 0.2, 0, 0); chamber2.position.set(182, 300, 330); scene.add(chamber2);
+const chamber = new THREE.PointLight(0xfff8ee, 0.3, 0, 0); chamber.position.set(40, 30, 380); scene.add(chamber);
+const chamber2 = new THREE.PointLight(0xffffff, 0.18, 0, 0); chamber2.position.set(330, 320, 330); scene.add(chamber2);
 
 // PBR presets, first match on the part name (or any parent's name) wins
 const P = (o) => o;
@@ -81,7 +81,7 @@ function restyle(mesh) {
   const p = presetFor(mesh), c = mesh.material.color.clone();
   let m;
   if (p.kind === 'acrylic') m = new THREE.MeshPhysicalMaterial({ color: 0x5d737b, transparent: true, opacity: 0.3, roughness: 0.04, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.03, envMapIntensity: 1.0, side: THREE.DoubleSide, depthWrite: false });
-  else if (p.kind === 'glass') m = new THREE.MeshPhysicalMaterial({ color: 0x1b2226, transparent: true, opacity: 0.8, roughness: 0.06, metalness: 0, clearcoat: 0.6, clearcoatRoughness: 0.05, envMapIntensity: 0.7, depthWrite: false });
+  else if (p.kind === 'glass') m = new THREE.MeshPhysicalMaterial({ color: 0x1b2226, transparent: true, opacity: 0.82, roughness: 0.14, metalness: 0, clearcoat: 0.4, clearcoatRoughness: 0.12, envMapIntensity: 0.6, depthWrite: false });
   else if (p.kind === 'ghost') m = new THREE.MeshStandardMaterial({ color: c.lerp(new THREE.Color(0.55, 0.55, 0.55), 0.45), transparent: true, opacity: p.opacity, roughness: 0.4, metalness: 0, envMapIntensity: 0.6, side: THREE.DoubleSide, depthWrite: false });
   else { if (p.lift) { c.r = Math.max(c.r, p.lift); c.g = Math.max(c.g, p.lift); c.b = Math.max(c.b, p.lift * 1.1); }
     m = new THREE.MeshStandardMaterial({ color: c, metalness: p.metalness, roughness: p.roughness, envMapIntensity: p.env });
@@ -107,7 +107,7 @@ const floor = new THREE.Mesh(new THREE.PlaneGeometry(9000, 9000), new THREE.Shad
 floor.receiveShadow = true; scene.add(floor);
 // soft contact shadow under the footprint (blurred rounded rectangle), grounds the model on the backdrop
 const contact = (() => { const c = document.createElement('canvas'); c.width = c.height = 512; const g = c.getContext('2d');
-  g.filter = 'blur(26px)'; g.fillStyle = 'rgba(0,0,0,0.78)'; g.beginPath(); g.roundRect(96, 96, 320, 320, 30); g.fill();
+  g.filter = 'blur(34px)'; g.fillStyle = 'rgba(0,0,0,0.72)'; g.beginPath(); g.roundRect(96, 96, 320, 320, 30); g.fill();
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
   return new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: t, transparent: true, depthWrite: false, toneMapped: false })); })();
 scene.add(contact);
@@ -121,12 +121,12 @@ new GLTFLoader().load('/model.glb', g => {
   console.log('bbox', JSON.stringify(box.min), JSON.stringify(box.max));
   m.traverse(o => { if (o.isMesh) restyle(o); });
   floor.position.z = box.min.z - 0.5;
-  { const sx = box.max.x - box.min.x, sy = box.max.y - box.min.y; contact.scale.set(sx * 1.6, sy * 1.6, 1); contact.position.set((box.min.x + box.max.x) / 2, (box.min.y + box.max.y) / 2, box.min.z - 0.3); }
+  { const sx = box.max.x - box.min.x, sy = box.max.y - box.min.y; contact.scale.set(sx * 1.95, sy * 1.95, 1); contact.position.set((box.min.x + box.max.x) / 2, (box.min.y + box.max.y) / 2, box.min.z - 0.3); }
   window.setView = (pos, tgt, hide, up, fov) => {
     const re = hide ? new RegExp(hide) : null;
     m.traverse(o => { if (o.isMesh) { let vis = true; for (let n = o; n; n = n.parent) if (re && n.name && re.test(n.name)) vis = false; o.visible = vis; } });
     const below = pos[2] < 0;
-    floor.visible = contact.visible = !below; under.intensity = below ? 2.2 : 0.0; key.castShadow = true;
+    contact.visible = !below; floor.visible = !below && up[2] === 1;   // no long cast shadow in the plan view under.intensity = below ? 2.2 : 0.0; key.castShadow = true;
     cam.fov = fov || 30; cam.updateProjectionMatrix();
     cam.up.set(...up); cam.position.set(...pos); cam.lookAt(...tgt);
     ao.enabled = !below || true; composer.render();
