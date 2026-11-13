@@ -26,6 +26,8 @@ Technical plan and purchase specification for modernising an Imprinta Hercules 3
 | `Hercules_3D_Printer_Upgrade_Spec_and_Plan-v3.docx` | Current purchase specification and upgrade plan (v3), with order numbers and notes from photos of the build. |
 | `3D_Printer_Upgrade_Components-v7.xlsx` | Purchase list v7 with formulas: items, status, order numbers, delivery dates, tier totals and budget control. |
 | `Components.xlsx` | The original components list (parts bought in the first round), with shop links. |
+| `model/` | Parametric CadQuery model of the whole printer (`printer.py`, dimensions in `params.py`), exported to STEP / GLB / STL in `model/out/`, with renders and the list of components seen on the machine (`COMPONENTS.md`). Only the outer size and build volume are published figures; the rest is estimated from photos. |
+| `head/` | Review of the print head design from the Hefest repository, including a belt-clearance check. |
 
 ---
 
