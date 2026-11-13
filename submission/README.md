@@ -7,6 +7,7 @@
 | Файл | Что это |
 | :--- | :--- |
 | [Hercules_prezentaciya.pdf](Hercules_prezentaciya.pdf) | Презентация проекта (10 слайдов) |
+| [Hercules_prezentaciya.pptx](Hercules_prezentaciya.pptx) | Та же презентация в PowerPoint, текст редактируется (нужны шрифты Benzin и Montserrat) |
 | [Hercules_opisanie_proekta.docx](Hercules_opisanie_proekta.docx) | Краткое текстовое описание проекта (до 5 страниц, Times New Roman 12 пт) |
 
 ## Вспомогательные материалы
@@ -41,5 +42,6 @@
 cd submission/tools
 python3 make_docx.py      # описание .docx
 python3 make_slides.py    # презентация .pdf; шрифты Benzin и Montserrat положить в tools/fonts/
+python3 make_pptx.py      # та же презентация в .pptx (после make_slides.py)
 # рендеры: node render_model.mjs ../../model/out/hercules_printer.glb <папка> front_iso right_iso gantry_close (нужен three@0.160.0)
 ```

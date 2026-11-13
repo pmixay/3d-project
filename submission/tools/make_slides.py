@@ -7,6 +7,7 @@ Run:  python3 submission/tools/make_slides.py
 Output: submission/Hercules_prezentaciya.pdf and slide PNGs in submission/materials/
 """
 import pathlib
+import re
 import subprocess
 
 import segno
@@ -312,6 +313,8 @@ slides.append(page(10, f"""<div class="pad">
 </div>"""))
 
 html = f'<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>Hercules: новый принтер на старой раме</title><style>{CSS}</style></head><body>{"".join(slides)}</body></html>'
+html = re.sub(r"(\d) (\d{3})", "\\1\u00a0\\2", html)   # keep numbers like 15 315 ₽ on one line
+html = re.sub(r"(\d) ₽", "\\1\u00a0₽", html)
 (BUILD / "slides.html").write_text(html, encoding="utf-8")
 
 js = BUILD / "render.js"
