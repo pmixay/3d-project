@@ -6,6 +6,7 @@ Technical plan and purchase specification for modernising an Imprinta Hercules 3
 - **Firmware and control:** Klipper, with the host running on an external Lenovo laptop.
 - **Goal:** bring print accuracy, speed and automation close to the level of Bambu Lab printers.
 - **Budget for additional purchases:** 15 000 – 20 000 ₽.
+- **New electronics (ordered):** BigTreeTech SKR 3 EZ mainboard + BIGTREETECH EBB42 GEN2 V1.0 toolhead board.
 
 ## Status (orders as of November 10, 2026)
 
@@ -48,13 +49,13 @@ These are on the printer or were bought under the original list, and are not par
 
 ## 2. Purchase list (revision v7)
 
-Standoffs are not on the list: a team member makes them in-house.
+Standoffs are not on the list: a team member already has them.
 
 ### Tier 1 — Mandatory core (electronics, bed auto-leveling, precision)
 
 | No. | Printer unit | Item | Qty | Price | Status | Purpose |
 | :--- | :--- | :--- | :--- | ---: | :--- | :--- |
-| 1 | Mainboard + drivers | **BigTreeTech SKR 3 EZ** (kit with EZ2209 drivers) | 1 | 6 129 ₽ | Ordered — No. 5552 9359 2802 4601, by Nov 24 | Replaces the 8-bit `MKS Gen v1.4`. Separate axis drivers no longer need to be bought. |
+| 1 | Mainboard + drivers | **BigTreeTech SKR 3 EZ** (kit with EZ2209 drivers) | 1 | 6 129 ₽ | Ordered — No. 5552 9359 2802 4601, by Nov 24 (to the post office) | Replaces the 8-bit `MKS Gen v1.4`. Separate axis drivers no longer need to be bought. |
 | 2 | Toolhead board | **BIGTREETECH EBB42 GEN2 V1.0** (XT30 2+2 connector, short-circuit protection, cable) | 1 | 2 728 ₽ | Ordered — No. 5552 1863 3888 4601, by Nov 22 | Replaces the green breakout board, the wire harness, the external accelerometer and the extruder driver in the tray. |
 | 3 | Bed auto-leveling probe | **BIQU MicroProbe V2** | 1 | 1 669 ₽ | Ordered — No. 5552 1863 3884 4601, by Nov 23 | Contact micro-probe; probes the glass directly and plugs into the 5-pin `PROBE` port on the EBB42 GEN2. |
 | 4 | Hotend nozzle (high flow) | **TriangleLab Volcano NCB** bimetallic nozzle | 1 | 879 ₽ | Ordered — No. 5552 9359 2800 4601, by Nov 24 | Copper body with wear-resistant coating for the CHC Pro, instead of the budget brass Printfly nozzles. |
@@ -154,7 +155,7 @@ A toolhead board with a single cable is the industry-standard architecture (Bamb
 - **Keep the stock fuse board in the tray.** Feed 24 V from the `MeanWell LRS-350-24` through it to the `BTT SKR 3 EZ` power inputs and to the toolhead cable.
 - **CAN bus termination.** Enable the 120 Ω termination resistors at both ends of the line (the `120R` jumpers on the mainboard and on the toolhead board).
 - **Accelerometer orientation.** Set `axes_map` in the accelerometer section to match how the toolhead board is actually mounted.
-- **Mounting the toolhead board.** The standoffs and a flat adapter plate with a 31×31 mm mounting square (4 × M3) are made by the team.
+- **Mounting the toolhead board.** A team member already has the standoffs; the team makes a flat adapter plate with a 31×31 mm mounting square (4 × M3).
 
 ### 4.2. Klipper stack
 
@@ -171,7 +172,7 @@ A toolhead board with a single cable is the industry-standard architecture (Bamb
 **Before the orders arrive (November 22–24):**
 
 1. Order the RIDGA V2 drive gear shaft (~650 ₽) — the only mandatory part not yet ordered.
-2. Prepare the standoffs and the adapter plate for the EBB42 GEN2.
+2. Prepare the adapter plate for the EBB42 GEN2 (the standoffs are already on hand).
 3. Optionally, within the remaining 4 685 ₽: the GDSTime 3010 fan (380 ₽) and the carbon tube with PETG-CF filament (2 800 ₽).
 
 **To verify on the hardware:**
