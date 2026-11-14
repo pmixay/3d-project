@@ -3,7 +3,7 @@
 Technical plan for the Hefest project: an Imprinta Hercules H18 (2018) rebuilt with new electronics, a new print head and Klipper firmware.
 
 - **Base platform:** Imprinta Hercules H18 (2018) — rigid steel enclosure, linear rails on X and Y, cantilevered bed on Z.
-- **Firmware and control:** Klipper, with the host running on a Raspberry Pi-type single-board computer from BigTreeTech (BTT).
+- **Firmware and control:** Klipper, with the host running on a BigTreeTech BTT Pi v1.2 single-board computer. The printer was moved from Marlin to Klipper.
 - **Goal:** bring print accuracy, speed and automation close to the level of Bambu Lab printers.
 - **New electronics:** BigTreeTech SKR 3 EZ mainboard (bought as a kit with 5 EZ2209 drivers) + BIGTREETECH EBB42 GEN2 V1.0 toolhead board.
 
@@ -20,6 +20,15 @@ All components, prices and order numbers are in one spreadsheet, [`Hefest_komple
 - **Stage 2:** 11 865 ₽ is what was actually paid (five orders of November 10, 2026, delivery November 22–24, plus the hotend fan). The camera is still to be bought; its price (about 2 200 ₽) is an estimate from AliExpress listings.
 - **Stage 1** purchase prices were not recorded. The power supply uses a retail price found on November 14, 2026; the other five prices are estimates, marked yellow in the spreadsheet, to be replaced with the real purchase prices.
 - The BTT Pi board and the new belts are listed in the spreadsheet but not counted in the totals until it is confirmed they were bought for the project.
+
+## Team
+
+| Member | Role |
+| :--- | :--- |
+| Еремей | Programmer and electronics: moved the mainboard and the BTT Pi v1.2 host from Marlin to Klipper, did the wiring on the board and found the pins for the connections, including the drivers. |
+| Андрей | Mechanic: the mechanical side — frame and axes, belt replacement, design and assembly of the Hefest print head, fitting the new units. |
+| Паша | AI print monitoring: the camera system that recognises print defects with machine learning. |
+| Илья | Components and documentation: selecting and buying components, cost calculation, 3D-printing the parts, the project description and the presentation. |
 
 ## Repository contents
 
@@ -41,7 +50,7 @@ All components, prices and order numbers are in one spreadsheet, [`Hefest_komple
 
 1. **Hotend:** TriangleLab CHC Pro (24 V, 115 W ceramic PTC heater, stock NTC 100K thermistor `ATC Semitec 104NT-4`, up to 300 °C) with a TriangleLab Volcano NCB nozzle.
 2. **Feeder:** printed `K3D Minifeeder` extruder + `NEMA14` 36 mm stepper (round pancake, 10T gear, 98 g) + BMG gear set (50:10 reduction, 5:1 ratio).
-3. **Electronics:** SKR 3 EZ mainboard with `EZ2209` drivers, EBB42 GEN2 toolhead board (extruder driver and accelerometer on board), BTT Raspberry Pi-type host.
+3. **Electronics:** SKR 3 EZ mainboard with `EZ2209` drivers, EBB42 GEN2 toolhead board (extruder driver and accelerometer on board), BTT Pi v1.2 host.
 4. **Cooling:** one 24 V `5015` blower for the part and a `3010` fan for the hotend heatsink.
 5. **Power and lighting:** `MeanWell LRS-350-24` power supply (24 V, 350 W) and `Navigator SMD 2835` LED strip (24 V). The stock printer ran on 12 V; the rebuild moves it to 24 V.
 6. **Belts:** the GT2 belts on X and Y are replaced with new ones.
