@@ -26,9 +26,10 @@ All components, prices and order numbers are in one spreadsheet, [`Hefest_komple
 | Member | Role |
 | :--- | :--- |
 | Еремей | Programmer and electronics: moved the mainboard and the BTT Pi v1.2 host from Marlin to Klipper, did the wiring on the board and found the pins for the connections, including the drivers. |
-| Андрей | Mechanic: the mechanical side — frame and axes, belt replacement, design and assembly of the Hefest print head, fitting the new units. |
+| Андрей | Mechanic and head designer: modelled the Hefest print head in KOMPAS-3D; shares the mechanical work and the head assembly with Илья. |
+| Илья | Mechanic: shares the mechanical side with Андрей — frame and axes, belt replacement, fitting the new units, 3D-printing the parts. |
 | Паша | AI print monitoring: the camera system that recognises print defects with machine learning. |
-| Илья | Components and documentation: selecting and buying components, cost calculation, 3D-printing the parts, the project description and the presentation. |
+| Пётр | Components and documentation: selecting and buying components, cost calculation, the project description and the presentation. |
 
 ## Repository contents
 
