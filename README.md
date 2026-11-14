@@ -2,7 +2,7 @@
 
 Technical plan and purchase specification for modernising an Imprinta Hercules 3D printer.
 
-- **Base platform:** Imprinta Hercules — rigid steel enclosure, linear rails on X and Y, cantilevered bed on Z.
+- **Base platform:** Imprinta Hercules H18 (2018) — rigid steel enclosure, linear rails on X and Y, cantilevered bed on Z.
 - **Firmware and control:** Klipper, with the host running on an external Lenovo laptop.
 - **Goal:** bring print accuracy, speed and automation close to the level of Bambu Lab printers.
 - **Budget for additional purchases:** 15 000 – 20 000 ₽.
@@ -41,9 +41,9 @@ These are on the printer or were bought under the original list, and are not par
 4. **Part cooling:** one 24 V `5015` blower fan — enough airflow for current needs.
 5. **Drivers from the first purchase:** 1 × `TMC2209` and a set of `TMC2130` (StepStick format). The ordered SKR 3 EZ takes EZ-format drivers and ships with its own, so these stay as spares.
 6. **Accelerometer from the first purchase:** `BTT ADXL345 S2DW` board with USB-C, currently on a printed bracket on the toolhead. Once the EBB42 GEN2 with its on-board accelerometer is installed it can be removed, or moved to the bed to measure Z-axis vibration.
-7. **Power and lighting:** `MeanWell LRS-350-24` power supply (24 V, 350 W) and `Navigator SMD 2835` LED strip (24 V).
-8. **Stock printer parts that are kept:**
-   - GT2 belts on X and Y (in working condition).
+7. **Power and lighting:** `MeanWell LRS-350-24` power supply (24 V, 350 W) and `Navigator SMD 2835` LED strip (24 V). The stock printer ran on 12 V; the rebuild moves it to 24 V.
+8. **Belts:** the GT2 belts on X and Y are replaced with new ones.
+9. **Stock printer parts that are kept:**
    - 4 mm borosilicate glass on clips (kept to hold the plane over the thin aluminium bed).
    - The green fuse board with power terminals in the electronics tray.
    - The stock display with encoder on the front panel (`EXP1` and `EXP2` ribbon cables).

@@ -1,4 +1,4 @@
-# Заявка на чемпионат «3D Профи» — Imprinta Hercules: новый принтер на старой раме
+# Заявка на чемпионат «3D Профи» — Hefest: новый принтер на базе старого
 
 Направление: **оборудование для 3D-печати**. Команда: **[Название команды]**.
 
@@ -6,17 +6,25 @@
 
 | Файл | Что это |
 | :--- | :--- |
-| [Hercules_prezentaciya.pdf](Hercules_prezentaciya.pdf) | Презентация проекта (10 слайдов) |
-| [Hercules_prezentaciya.pptx](Hercules_prezentaciya.pptx) | Та же презентация в PowerPoint, текст редактируется (нужны шрифты Benzin и Montserrat) |
+| [Hercules_prezentaciya.pptx](Hercules_prezentaciya.pptx) | Презентация проекта (9 слайдов) — **рабочая версия**, правится вручную в PowerPoint (нужны шрифты Benzin и Montserrat) |
+| [Hercules_prezentaciya.pdf](Hercules_prezentaciya.pdf) | Экспорт **предыдущей** редакции (10 слайдов). Устарел: после финальных правок заменить экспортом из PowerPoint |
 | [Hercules_opisanie_proekta.docx](Hercules_opisanie_proekta.docx) | Краткое текстовое описание проекта (до 5 страниц, Times New Roman 12 пт) |
+
+## Что осталось сделать в презентации
+
+- **Слайд 6 «Автоматизация»** — текст пишет команда сама; сейчас на слайде старый вариант.
+- **Слайд 7 «Стоимость»** — вписать сумму этапа 1 и итог; проверить, что в этап 2 входят только купленные позиции.
+- **Слайд 5 «Печатная голова»** — заменить картинку на новый рендер головы с компонентами.
+- **Слайд 9 «Команда»** — каждый участник пишет свою роль; добавить фото.
+- **Ссылки и QR-код на слайде 9** ведут на ветку `main`; пока рабочая ветка не влита в `main`, они не открываются.
 
 ## Вспомогательные материалы
 
-**Схемы и графики**
+**Схемы и графики** (экспорт слайдов предыдущей редакции, будут обновлены вместе с PDF)
 
 - [Актуальность и необходимость](materials/slides/relevance.png)
-- [Архитектура электроники: один кабель к печатной голове](materials/slides/architecture.png)
-- [Сравнение с серийным Hercules 2016](materials/slides/baseline.png)
+- [Архитектура электроники: один кабель к печатной голове](materials/slides/architecture.png) — слайд из презентации убран
+- [Сравнение с серийным Hercules](materials/slides/baseline.png)
 - [Что осталось от Hercules и что сделано заново](materials/slides/rebuild.png)
 - [Стоимость пересборки](materials/slides/budget.png)
 
@@ -25,7 +33,7 @@
 - [Печатные детали — вид спереди](materials/img/hefest_parts_front.png) и [вид сзади](materials/img/hefest_parts_rear.png)
 - [Описание конструкции и проверка зазоров до ремней](../head/README.md)
 
-**Рендеры принтера**
+**Рендеры принтера** (без жгута проводов)
 
 - [Вид спереди](materials/img/printer_front.png), [вид справа](materials/img/printer_right.png), [портал X/Y крупно](materials/img/gantry_close.png)
 
@@ -41,7 +49,7 @@
 ```bash
 cd submission/tools
 python3 make_docx.py      # описание .docx
-python3 make_slides.py    # презентация .pdf; шрифты Benzin и Montserrat положить в tools/fonts/
-python3 make_pptx.py      # та же презентация в .pptx (после make_slides.py)
 # рендеры: node render_model.mjs ../../model/out/hercules_printer.glb <папка> front_iso right_iso gantry_close (нужен three@0.160.0)
 ```
+
+Скрипты `make_slides.py` и `make_pptx.py` собирают **предыдущую** редакцию презентации. Не запускать их поверх `Hercules_prezentaciya.pptx`: они затрут ручные правки.
