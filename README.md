@@ -14,12 +14,12 @@ All components, prices and order numbers are in one spreadsheet, [`Hefest_komple
 | Stage | What it covers | Total |
 | :--- | :--- | ---: |
 | Stage 1 | Hotend, extruder, power supply, part cooling, lighting | ≈ 8 600 ₽ |
-| Stage 2 | Mainboard with 5 drivers, toolhead board, bed probe, nozzle, nozzle cleaning, hotend fan | 11 865 ₽ |
-| **Total** | | **≈ 20 500 ₽** |
+| Stage 2 | Mainboard with 5 drivers, toolhead board, bed probe, nozzle, nozzle cleaning, hotend fan, camera | ≈ 14 100 ₽ |
+| **Total** | | **≈ 22 700 ₽** |
 
-- **Stage 2** prices are what was actually paid (five orders of November 10, 2026, delivery November 22–24, plus the hotend fan).
+- **Stage 2:** 11 865 ₽ is what was actually paid (five orders of November 10, 2026, delivery November 22–24, plus the hotend fan). The camera is still to be bought; its price (about 2 200 ₽) is an estimate from AliExpress listings.
 - **Stage 1** purchase prices were not recorded. The power supply uses a retail price found on November 14, 2026; the other five prices are estimates, marked yellow in the spreadsheet, to be replaced with the real purchase prices.
-- The BTT Pi board, the camera and the new belts are listed in the spreadsheet but not counted in the totals until it is confirmed they were bought for the project.
+- The BTT Pi board and the new belts are listed in the spreadsheet but not counted in the totals until it is confirmed they were bought for the project.
 
 ## Repository contents
 
@@ -46,6 +46,7 @@ All components, prices and order numbers are in one spreadsheet, [`Hefest_komple
 5. **Power and lighting:** `MeanWell LRS-350-24` power supply (24 V, 350 W) and `Navigator SMD 2835` LED strip (24 V). The stock printer ran on 12 V; the rebuild moves it to 24 V.
 6. **Belts:** the GT2 belts on X and Y are replaced with new ones.
 7. **Bed probe and nozzle cleaning:** BIQU MicroProbe V2 and silicone wiper brushes.
+8. **Camera (to buy):** Creality Nebula Camera for machine-learning defect detection — see section 4.3.
 
 Standoffs for the toolhead board are not bought: a team member already has them.
 
@@ -135,6 +136,17 @@ With the new mainboard and toolhead board the electronics are no longer the bott
 3. **Nozzle auto-cleaning and adaptive bed mesh (`Adaptive Bed Mesh` + `KAMP`)** — the `START_PRINT` macro heats the nozzle to 150 °C (so filament does not ooze), wipes it on the silicone brush at the edge of the bed, measures the Z-offset precisely, and meshes the glass with the MicroProbe only within the footprint of the printed part (`BED_MESH_CALIBRATE ADAPTIVE=1`).
 4. **Extrusion tuning in `OrcaSlicer`** — a short `smooth_time: 0.02` and Adaptive Pressure Advance (for the short `K3D Minifeeder` + `CHC Pro` path, PA values around 0.015–0.035 are expected).
 5. **Camera with machine-learning defect detection (`Crowsnest` + `Obico`)** — a webcam watches the print and pauses it when a defect is detected, such as a part detaching from the glass or "spaghetti".
+
+### 4.3. Camera for defect detection
+
+The camera feeds Obico, which recognises print defects and pauses the print. The pick is the **Creality Nebula Camera**, to be bought on AliExpress:
+
+- **USB, 1920×1080:** plugs into a USB port of the BTT host; no camera connector on the board is needed.
+- **Manual focus:** it can be set once for the 25–30 cm distance to the bed and does not hunt while the head moves.
+- **95° horizontal field of view:** covers the whole 200 × 200 mm bed from a top corner of the enclosure.
+- **Made for 3D printers:** compact (55 × 40 × 35 mm), with its own mount and infrared night vision.
+
+Creality lists it only for its own printers and pads. On arrival, confirm that it shows up as a standard USB webcam under Crowsnest (`v4l2-ctl --list-formats-ext`). If it does not, the fallback is a Logitech C270, which is documented as working with Klipper but has a narrower view and 720p.
 
 ---
 
