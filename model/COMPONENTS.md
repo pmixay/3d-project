@@ -11,7 +11,7 @@ Photos referred to below:
 | :--- | :--- |
 | P1 | Whole printer, three-quarter view from the front-right |
 | P2 | Whole printer, straight from the front |
-| P3 | Electronics tray seen from underneath (laptop resting on top) |
+| P3 | Electronics tray seen from underneath |
 | P4 | Toolhead close-up, accelerometer side, harness in the foreground |
 | P5 | Toolhead close-up, green breakout board and its connectors |
 | P6 | Toolhead close-up from below/behind (green board edge-on, accelerometer on its arm) |
@@ -98,7 +98,6 @@ All of these are covered by the single envelope part `toolhead_placeholder`; the
 | Unused brass standoffs on the plate | P3 | `spare_brass_standoffs` | Clear that they exist; pattern estimated. |
 | Power supply | not in the photos | `psu_lrs_350_24_planned` | **Not fitted in P3.** Shown translucent at catalogue size (LRS-350-24 from the project document) where the loose leads end. Set `INCLUDE_PLANNED_PSU = False` in `printer.py` to drop it. |
 | Wiring looms, cable-tie mounts | P3 | — | Not modelled. |
-| Lenovo laptop and its charger (Klipper host) | P3 | — | External; not modelled. |
 
 ## Measurements needed to replace the estimates
 

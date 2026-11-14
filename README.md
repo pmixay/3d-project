@@ -3,7 +3,7 @@
 Technical plan and purchase specification for modernising an Imprinta Hercules 3D printer.
 
 - **Base platform:** Imprinta Hercules H18 (2018) — rigid steel enclosure, linear rails on X and Y, cantilevered bed on Z.
-- **Firmware and control:** Klipper, with the host running on an external Lenovo laptop.
+- **Firmware and control:** Klipper, with the host running on a Raspberry Pi-type single-board computer from BigTreeTech (BTT).
 - **Goal:** bring print accuracy, speed and automation close to the level of Bambu Lab printers.
 - **Budget for additional purchases:** 15 000 – 20 000 ₽.
 - **New electronics (ordered):** BigTreeTech SKR 3 EZ mainboard + BIGTREETECH EBB42 GEN2 V1.0 toolhead board.
@@ -12,7 +12,7 @@ Technical plan and purchase specification for modernising an Imprinta Hercules 3
 
 | | Amount |
 | :--- | ---: |
-| Already ordered and paid (5 orders, delivery November 22–24) | **11 485 ₽** |
+| Already ordered or bought (5 orders with delivery November 22–24, plus the hotend fan) | **11 865 ₽** |
 | Remaining to buy in the mandatory core (RIDGA V2 gear shaft only) | 650 ₽ |
 | Tier 1 total (full mandatory core) | 12 135 ₽ |
 | Tier 1 + 2 total (with carbon X-beam reinforcement and heatsink fan) | 15 315 ₽ |
@@ -71,7 +71,7 @@ Standoffs are not on the list: a team member already has them.
 
 | No. | Printer unit | Item | Qty | Price | Status | Purpose |
 | :--- | :--- | :--- | :--- | ---: | :--- | :--- |
-| 7 | Hotend heatsink fan | **GDSTime 24V 3010 Dual Ball Bearing** (12 000 RPM) | 1 | 380 ₽ | To buy | Dual ball bearing; guards against heat-creep clogs in the heat break better than a budget fan. |
+| 7 | Hotend heatsink fan | **GDSTime 24V 3010 Dual Ball Bearing** (12 000 RPM) | 1 | 380 ₽ | Bought | Dual ball bearing; guards against heat-creep clogs in the heat break better than a budget fan. |
 | 8 | X-beam and carriages | **Carbon square tube 20×20 mm** (1.5–2 mm wall) + 1 kg of **PETG-CF / PA-CF** filament | 1 set | 2 800 ₽ | To buy | Removes the sag of the unsupported X rail and allows printing light carriages instead of the heavy double aluminium plates. |
 
 **Tier 1 + 2 total: 15 315 ₽.**
