@@ -6,8 +6,8 @@ TREE = BASE + "/tree/main"
 LINKS = {
     "repo": BASE,
     "materials": TREE + "/submission",
-    "docx": BASE + "/raw/main/submission/Hercules_opisanie_proekta.docx",
-    "docx_page": BLOB + "/submission/Hercules_opisanie_proekta.docx",
+    "docx": BASE + "/raw/main/submission/Hefest_opisanie_proekta.docx",
+    "docx_page": BLOB + "/submission/Hefest_opisanie_proekta.docx",
     "model": TREE + "/model",
     "renders": TREE + "/model/out/renders",
     "head": BLOB + "/head/README.md",

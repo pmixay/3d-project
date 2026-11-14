@@ -6,14 +6,13 @@
 
 | Файл | Что это |
 | :--- | :--- |
-| [Hercules_prezentaciya.pptx](Hercules_prezentaciya.pptx) | Презентация проекта (9 слайдов) — **рабочая версия**, правится вручную в PowerPoint (нужны шрифты Benzin и Montserrat) |
-| [Hercules_prezentaciya.pdf](Hercules_prezentaciya.pdf) | Экспорт текущей версии презентации в PDF (9 слайдов); после правок в PowerPoint пересохранить |
-| [Hercules_opisanie_proekta.docx](Hercules_opisanie_proekta.docx) | Краткое текстовое описание проекта (до 5 страниц, Times New Roman 12 пт) |
+| [Hefest_prezentaciya.pptx](Hefest_prezentaciya.pptx) | Презентация проекта (9 слайдов) — **рабочая версия**, правится вручную в PowerPoint (нужны шрифты Benzin и Montserrat) |
+| [Hefest_prezentaciya.pdf](Hefest_prezentaciya.pdf) | Экспорт текущей версии презентации в PDF (9 слайдов); после правок в PowerPoint пересохранить |
+| [Hefest_opisanie_proekta.docx](Hefest_opisanie_proekta.docx) | Краткое текстовое описание проекта (до 5 страниц, Times New Roman 12 пт) |
 
 ## Что осталось сделать в презентации
 
-- **Слайд 6 «Автоматизация»** — текст пишет команда сама; сейчас на слайде старый вариант.
-- **Слайд 7 «Стоимость»** — вписать сумму этапа 1 и итог; проверить, что в этап 2 входят только купленные позиции.
+- **Слайд 7 «Стоимость»** — сумма этапа 1 и итог оценочные (со знаком ≈): вписать фактические цены покупки в жёлтые ячейки [таблицы комплектующих](../Hefest_komplektuyushchie.xlsx) и обновить числа на слайде.
 - **Слайд 5 «Печатная голова»** — заменить картинку на новый рендер головы с компонентами.
 - **Слайд 9 «Команда»** — каждый участник пишет свою роль; добавить фото.
 - **Ссылки и QR-код на слайде 9** ведут на ветку `main` и заработают после слияния рабочей ветки в `main`.
@@ -25,6 +24,7 @@
 - [Актуальность и необходимость](materials/slides/relevance.png)
 - [Сравнение с серийным Hercules H18](materials/slides/baseline.png)
 - [Что осталось от Hercules и что сделано заново](materials/slides/rebuild.png)
+- [Автоматизация и калибровка на Klipper](materials/slides/automation.png)
 - [Стоимость пересборки](materials/slides/budget.png)
 
 **Печатная голова Hefest (собственная разработка команды)**
@@ -39,7 +39,7 @@
 **Спецификация и закупки**
 
 - [Технический план и обоснование решений](../README.md)
-- [Список закупок v7 с формулами (xlsx)](../3D_Printer_Upgrade_Components-v7.xlsx)
+- [Единая таблица комплектующих с ценами и итогами по этапам (xlsx)](../Hefest_komplektuyushchie.xlsx)
 
 **Фото и видео** — будут добавлены по мере сборки.
 
@@ -48,8 +48,8 @@
 ```bash
 cd submission/tools
 python3 make_docx.py      # описание .docx
-soffice --headless --convert-to pdf --outdir .. ../Hercules_prezentaciya.pptx   # PDF из презентации; шрифты из tools/fonts/ должны быть установлены
-# рендеры: node render_model.mjs ../../model/out/hercules_printer.glb <папка> front_iso right_iso gantry_close (нужен three@0.160.0)
+soffice --headless --convert-to pdf --outdir .. ../Hefest_prezentaciya.pptx   # PDF из презентации; шрифты из tools/fonts/ должны быть установлены
+# рендеры: node render_model.mjs ../../model/out/hefest_printer.glb <папка> front_iso right_iso gantry_close (нужен three@0.160.0)
 ```
 
-Шрифты Benzin и Montserrat лежат в `tools/fonts/`. Скрипты `make_slides.py` и `make_pptx.py` собирают **предыдущую** редакцию презентации. Не запускать их поверх `Hercules_prezentaciya.pptx`: они затрут ручные правки.
+Шрифты Benzin и Montserrat лежат в `tools/fonts/`. Презентация правится вручную в PowerPoint; старые скрипты сборки слайдов удалены.

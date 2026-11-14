@@ -129,5 +129,5 @@ pip install cadquery
 python model/printer.py
 ```
 
-Outputs go to `model/out/`: `hercules_printer.step`, `hercules_printer.glb`, `hercules_printer.stl`.
+Outputs go to `model/out/`: `hefest_printer.step`, `hefest_printer.glb`, `hefest_printer.stl`.
 The preview images in `model/out/renders/` are made with `model/tools/render.mjs` (see the comment at the top of that file).

@@ -1,9 +1,9 @@
 """Parametric CadQuery model of the Imprinta Hercules as seen in the team photos.
 
 Run:   python model/printer.py            (needs `pip install cadquery`)
-Out:   model/out/hercules_printer.step    assembly with named, coloured parts
-       model/out/hercules_printer.glb     same, for web viewers
-       model/out/hercules_printer.stl     everything merged into one mesh
+Out:   model/out/hefest_printer.step    assembly with named, coloured parts
+       model/out/hefest_printer.glb     same, for web viewers
+       model/out/hefest_printer.stl     everything merged into one mesh
 
 All dimensions come from params.py.  Most are estimates from photos - see the
 [EST] markers there and COMPONENTS.md.  The toolhead is only an envelope
@@ -449,7 +449,7 @@ def build():
     build_gantry()
     build_bed_z()
     build_tray()
-    assy = cq.Assembly(name="imprinta_hercules")
+    assy = cq.Assembly(name="hefest_printer")
     for name, shape, colour in parts:
         assy.add(shape, name=name, color=colour)
     return assy
@@ -458,10 +458,10 @@ def build():
 def main():
     os.makedirs(OUT, exist_ok=True)
     assy = build()
-    assy.export(os.path.join(OUT, "hercules_printer.step"))
-    assy.export(os.path.join(OUT, "hercules_printer.glb"), tolerance=0.1, angularTolerance=0.3)
+    assy.export(os.path.join(OUT, "hefest_printer.step"))
+    assy.export(os.path.join(OUT, "hefest_printer.glb"), tolerance=0.1, angularTolerance=0.3)
     comp = cq.Compound.makeCompound([solid for _, sh, _ in parts for solid in sh.vals()])
-    cq.exporters.export(cq.Workplane("XY").add(comp), os.path.join(OUT, "hercules_printer.stl"),
+    cq.exporters.export(cq.Workplane("XY").add(comp), os.path.join(OUT, "hefest_printer.stl"),
                         tolerance=0.1, angularTolerance=0.3)
     bb = comp.BoundingBox()
     print(f"{len(parts)} parts; bbox X {bb.xmin:.1f}..{bb.xmax:.1f}  Y {bb.ymin:.1f}..{bb.ymax:.1f}  "

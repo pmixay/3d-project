@@ -1,88 +1,53 @@
-# Imprinta Hercules 3D Printer Upgrade
+# Hefest — a new 3D printer on the frame of an Imprinta Hercules H18
 
-Technical plan and purchase specification for modernising an Imprinta Hercules 3D printer.
+Technical plan for the Hefest project: an Imprinta Hercules H18 (2018) rebuilt with new electronics, a new print head and Klipper firmware.
 
 - **Base platform:** Imprinta Hercules H18 (2018) — rigid steel enclosure, linear rails on X and Y, cantilevered bed on Z.
 - **Firmware and control:** Klipper, with the host running on a Raspberry Pi-type single-board computer from BigTreeTech (BTT).
 - **Goal:** bring print accuracy, speed and automation close to the level of Bambu Lab printers.
-- **Budget for additional purchases:** 15 000 – 20 000 ₽.
-- **New electronics (ordered):** BigTreeTech SKR 3 EZ mainboard + BIGTREETECH EBB42 GEN2 V1.0 toolhead board.
+- **New electronics:** BigTreeTech SKR 3 EZ mainboard (bought as a kit with 5 EZ2209 drivers) + BIGTREETECH EBB42 GEN2 V1.0 toolhead board.
 
-## Status (orders as of November 10, 2026)
+## Cost of the rebuild
 
-| | Amount |
-| :--- | ---: |
-| Already ordered or bought (5 orders with delivery November 22–24, plus the hotend fan) | **11 865 ₽** |
-| Remaining to buy in the mandatory core (RIDGA V2 gear shaft only) | 650 ₽ |
-| Tier 1 total (full mandatory core) | 12 135 ₽ |
-| Tier 1 + 2 total (with carbon X-beam reinforcement and heatsink fan) | 15 315 ₽ |
-| Maximum total with Tier 3 (reserve X/Y motors) | 18 615 ₽ |
-| Left under the 20 000 ₽ limit after Tier 1 + 2 | +4 685 ₽ |
+All components, prices and order numbers are in one spreadsheet, [`Hefest_komplektuyushchie.xlsx`](Hefest_komplektuyushchie.xlsx) (in Russian). It replaces every component table that used to be in this repository.
+
+| Stage | What it covers | Total |
+| :--- | :--- | ---: |
+| Stage 1 | Hotend, extruder, power supply, part cooling, lighting | ≈ 8 600 ₽ |
+| Stage 2 | Mainboard with 5 drivers, toolhead board, bed probe, nozzle, nozzle cleaning, hotend fan | 11 865 ₽ |
+| **Total** | | **≈ 20 500 ₽** |
+
+- **Stage 2** prices are what was actually paid (five orders of November 10, 2026, delivery November 22–24, plus the hotend fan).
+- **Stage 1** purchase prices were not recorded. The power supply uses a retail price found on November 14, 2026; the other five prices are estimates, marked yellow in the spreadsheet, to be replaced with the real purchase prices.
+- The BTT Pi board, the camera and the new belts are listed in the spreadsheet but not counted in the totals until it is confirmed they were bought for the project.
 
 ## Repository contents
 
 | File | What it is |
 | :--- | :--- |
-| `Hercules_3D_Printer_Upgrade_Spec_and_Plan-v3.docx` | Current purchase specification and upgrade plan (v3), with order numbers and notes from photos of the build. |
-| `3D_Printer_Upgrade_Components-v7.xlsx` | Purchase list v7 with formulas: items, status, order numbers, delivery dates, tier totals and budget control. |
-| `Components.xlsx` | The original components list (parts bought in the first round), with shop links. |
+| `Hefest_komplektuyushchie.xlsx` | The single list of components with prices, status and order numbers, split into two stages, with totals (in Russian). |
+| `Hefest_Spec_and_Plan-v3.docx` | Upgrade plan (v3): architecture of the new boards and notes from photos of the build. |
 | `model/` | Parametric CadQuery model of the whole printer (`printer.py`, dimensions in `params.py`), exported to STEP / GLB / STL in `model/out/`, with renders and the list of components seen on the machine (`COMPONENTS.md`). Only the outer size and build volume are published figures; the rest is estimated from photos. |
-| `head/` | Review of the print head design from the Hefest repository, including a belt-clearance check. |
+| `head/` | Review of the Hefest print head design, including a belt-clearance check and a frame proposal. |
+| `submission/` | Application for the "3D Profi" championship: presentation and project description (in Russian). |
 
 ---
 
-## 1. Components already installed or purchased
+## 1. What is kept and what is new
 
-These are on the printer or were bought under the original list, and are not part of the purchase list below.
+**Kept from the Hercules H18:** steel frame, X and Y rails, Z axis, bed with its 4 mm borosilicate glass on clips, `NEMA17` axis motors, the display with encoder (`EXP1` and `EXP2` ribbon cables) and the green fuse board in the electronics tray.
 
-1. **Hotend:** TriangleLab CHC Pro (24 V, 115 W ceramic PTC heater, stock NTC 100K thermistor `ATC Semitec 104NT-4`, up to 300 °C).
-2. **Feeder (housing and motor):** printed `K3D Minifeeder` extruder + `NEMA14` 36 mm stepper (round pancake, 10T gear, 98 g) + basic BMG gear set (50:10 reduction, 5:1 ratio).
-3. **Axis steppers:** the `NEMA17` motors are kept. Replacement motors (Tier 3 below) stay a reserve and are bought only if the kept ones skip steps in testing.
-4. **Part cooling:** one 24 V `5015` blower fan — enough airflow for current needs.
-5. **Drivers from the first purchase:** 1 × `TMC2209` and a set of `TMC2130` (StepStick format). The ordered SKR 3 EZ takes EZ-format drivers and ships with its own, so these stay as spares.
-6. **Accelerometer from the first purchase:** `BTT ADXL345 S2DW` board with USB-C, currently on a printed bracket on the toolhead. Once the EBB42 GEN2 with its on-board accelerometer is installed it can be removed, or moved to the bed to measure Z-axis vibration.
-7. **Power and lighting:** `MeanWell LRS-350-24` power supply (24 V, 350 W) and `Navigator SMD 2835` LED strip (24 V). The stock printer ran on 12 V; the rebuild moves it to 24 V.
-8. **Belts:** the GT2 belts on X and Y are replaced with new ones.
-9. **Stock printer parts that are kept:**
-   - 4 mm borosilicate glass on clips (kept to hold the plane over the thin aluminium bed).
-   - The green fuse board with power terminals in the electronics tray.
-   - The stock display with encoder on the front panel (`EXP1` and `EXP2` ribbon cables).
+**New:**
 
----
+1. **Hotend:** TriangleLab CHC Pro (24 V, 115 W ceramic PTC heater, stock NTC 100K thermistor `ATC Semitec 104NT-4`, up to 300 °C) with a TriangleLab Volcano NCB nozzle.
+2. **Feeder:** printed `K3D Minifeeder` extruder + `NEMA14` 36 mm stepper (round pancake, 10T gear, 98 g) + BMG gear set (50:10 reduction, 5:1 ratio).
+3. **Electronics:** SKR 3 EZ mainboard with `EZ2209` drivers, EBB42 GEN2 toolhead board (extruder driver and accelerometer on board), BTT Raspberry Pi-type host.
+4. **Cooling:** one 24 V `5015` blower for the part and a `3010` fan for the hotend heatsink.
+5. **Power and lighting:** `MeanWell LRS-350-24` power supply (24 V, 350 W) and `Navigator SMD 2835` LED strip (24 V). The stock printer ran on 12 V; the rebuild moves it to 24 V.
+6. **Belts:** the GT2 belts on X and Y are replaced with new ones.
+7. **Bed probe and nozzle cleaning:** BIQU MicroProbe V2 and silicone wiper brushes.
 
-## 2. Purchase list (revision v7)
-
-Standoffs are not on the list: a team member already has them.
-
-### Tier 1 — Mandatory core (electronics, bed auto-leveling, precision)
-
-| No. | Printer unit | Item | Qty | Price | Status | Purpose |
-| :--- | :--- | :--- | :--- | ---: | :--- | :--- |
-| 1 | Mainboard + drivers | **BigTreeTech SKR 3 EZ** (kit with EZ2209 drivers) | 1 | 6 129 ₽ | Ordered — No. 5552 9359 2802 4601, by Nov 24 (to the post office) | Replaces the 8-bit `MKS Gen v1.4`. Separate axis drivers no longer need to be bought. |
-| 2 | Toolhead board | **BIGTREETECH EBB42 GEN2 V1.0** (XT30 2+2 connector, short-circuit protection, cable) | 1 | 2 728 ₽ | Ordered — No. 5552 1863 3888 4601, by Nov 22 | Replaces the green breakout board, the wire harness, the external accelerometer and the extruder driver in the tray. |
-| 3 | Bed auto-leveling probe | **BIQU MicroProbe V2** | 1 | 1 669 ₽ | Ordered — No. 5552 1863 3884 4601, by Nov 23 | Contact micro-probe; probes the glass directly and plugs into the 5-pin `PROBE` port on the EBB42 GEN2. |
-| 4 | Hotend nozzle (high flow) | **TriangleLab Volcano NCB** bimetallic nozzle | 1 | 879 ₽ | Ordered — No. 5552 9359 2800 4601, by Nov 24 | Copper body with wear-resistant coating for the CHC Pro, instead of the budget brass Printfly nozzles. |
-| 5 | Nozzle cleaning | **Silicone nozzle wiper brushes for Bambu Lab A1** (set of 3) | 1 | 80 ₽ | Ordered — No. 5552 1863 3886 4601, by Nov 23 | Automatic nozzle cleaning before Z-zero probing in the `START_PRINT` macro. |
-| 6 | Extruder internals | **RIDGA V2 / IDGA integrated drive gear shaft** (for BMG) | 1 | 650 ₽ | **To buy** | Replaces the stock gear in the `K3D Minifeeder`; removes runout and periodic ripple on walls. |
-
-**Tier 1 total: 12 135 ₽** (11 485 ₽ ordered + 650 ₽ to buy).
-
-### Tier 2 — Cooling and X-beam stiffness (recommended)
-
-| No. | Printer unit | Item | Qty | Price | Status | Purpose |
-| :--- | :--- | :--- | :--- | ---: | :--- | :--- |
-| 7 | Hotend heatsink fan | **GDSTime 24V 3010 Dual Ball Bearing** (12 000 RPM) | 1 | 380 ₽ | Bought | Dual ball bearing; guards against heat-creep clogs in the heat break better than a budget fan. |
-| 8 | X-beam and carriages | **Carbon square tube 20×20 mm** (1.5–2 mm wall) + 1 kg of **PETG-CF / PA-CF** filament | 1 set | 2 800 ₽ | To buy | Removes the sag of the unsupported X rail and allows printing light carriages instead of the heavy double aluminium plates. |
-
-**Tier 1 + 2 total: 15 315 ₽.**
-
-### Tier 3 — Budget reserve (buy only after the first tests)
-
-| No. | Printer unit | Item | Qty | Price | Status | Purpose |
-| :--- | :--- | :--- | :--- | ---: | :--- | :--- |
-| 9 | X and Y steppers | **NEMA17 48 mm 2.0 A** low-inductance (`StepperOnline 17HS19-2004S1` or `LDO-42STH48-2004AC`) | 2 | 1 650 ₽ each | To buy (reserve) | Only if the NEMA17 motors already purchased skip steps at high accelerations. |
-
-**Maximum total, Tiers 1 + 2 + 3: 18 615 ₽.**
+Standoffs for the toolhead board are not bought: a team member already has them.
 
 ---
 
@@ -101,7 +66,7 @@ Standoffs are not on the list: a team member already has them.
    - A built-in CAN transceiver, so the toolhead board connects directly without a separate `BTT U2C` adapter.
    - `EXP1`/`EXP2` connectors for the stock display.
    - EZ-format driver slots: the pinless `EZ2209` drivers slide into enclosed slots like memory cards and cannot be inserted the wrong way round. The ordered kit (6 129 ₽) corresponds to the board with 5 `EZ2209` drivers; three are needed (X, Y, Z), since the extruder is driven from the toolhead board.
-   - If the order arrives as a bare board without drivers, it will need `EZ2209`-format drivers, or EZ-Driver Connector adapters to use the StepStick drivers already owned.
+   - If the order arrives as a bare board without drivers, it will need `EZ2209`-format drivers.
 
 ### 3.2. What the toolhead board replaces
 
@@ -163,11 +128,13 @@ A toolhead board with a single cable is the industry-standard architecture (Bamb
 
 ### 4.2. Klipper stack
 
+With the new mainboard and toolhead board the electronics are no longer the bottleneck: Klipper has headroom for high speeds, and new functions are added by configuration instead of new hardware. Calibration is done by the firmware as well.
+
 1. **`Klippain Shake&Tune`** — spectral analysis of the mechanics through the toolhead board's accelerometer: symmetric tensioning of the A and B belts by frequency peaks, detection of carriage skew, and precise Input Shaper filter selection.
 2. **`klipper_tmc_autotune`** — automatic calculation of TMC2209 registers and current tables for 24 V and the specific motors (less noise and heat, no VFA at 80–160 mm/s).
 3. **Nozzle auto-cleaning and adaptive bed mesh (`Adaptive Bed Mesh` + `KAMP`)** — the `START_PRINT` macro heats the nozzle to 150 °C (so filament does not ooze), wipes it on the silicone brush at the edge of the bed, measures the Z-offset precisely, and meshes the glass with the MicroProbe only within the footprint of the printed part (`BED_MESH_CALIBRATE ADAPTIVE=1`).
 4. **Extrusion tuning in `OrcaSlicer`** — a short `smooth_time: 0.02` and Adaptive Pressure Advance (for the short `K3D Minifeeder` + `CHC Pro` path, PA values around 0.015–0.035 are expected).
-5. **Camera and AI monitoring (`Crowsnest` + `Obico`)** — a webcam that pauses the print automatically when a part detaches from the glass or "spaghetti" forms.
+5. **Camera with machine-learning defect detection (`Crowsnest` + `Obico`)** — a webcam watches the print and pauses it when a defect is detected, such as a part detaching from the glass or "spaghetti".
 
 ---
 
@@ -175,9 +142,7 @@ A toolhead board with a single cable is the industry-standard architecture (Bamb
 
 **Before the orders arrive (November 22–24):**
 
-1. Order the RIDGA V2 drive gear shaft (~650 ₽) — the only mandatory part not yet ordered.
-2. Prepare the adapter plate for the EBB42 GEN2 (the standoffs are already on hand).
-3. Optionally, within the remaining 4 685 ₽: the GDSTime 3010 fan (380 ₽) and the carbon tube with PETG-CF filament (2 800 ₽).
+1. Prepare the adapter plate for the EBB42 GEN2 (the standoffs are already on hand).
 
 **To verify on the hardware:**
 

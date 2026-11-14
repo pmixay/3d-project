@@ -1,5 +1,5 @@
 // Renders preview PNGs of a GLB with three.js in headless Chromium (Playwright).
-// Usage:  cd model/tools && npm i three@0.160.0 && node render.mjs ../out/hercules_printer.glb ../out/renders [view ...]
+// Usage:  cd model/tools && npm i three@0.160.0 && node render.mjs ../out/hefest_printer.glb ../out/renders [view ...]
 // Needs the 'playwright' package to be resolvable (globally installed is fine).
 import { createRequire } from 'module'; const { chromium } = createRequire(import.meta.url)('playwright');
 import http from 'http'; import fs from 'fs'; import path from 'path';

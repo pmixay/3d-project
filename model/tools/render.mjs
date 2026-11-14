@@ -1,6 +1,6 @@
 // Studio renders of a GLB with three.js in headless Chromium (Playwright); the look is defined in viewer.html.
 // Usage (from a directory that has node_modules/three, e.g. after `npm i three@0.160.0` in model/tools):
-//   NODE_PATH=$(npm root -g) node /path/to/model/tools/render.mjs ../out/hercules_printer.glb ../out/renders [view ...]
+//   NODE_PATH=$(npm root -g) node /path/to/model/tools/render.mjs ../out/hefest_printer.glb ../out/renders [view ...]
 // Needs the 'playwright' package to be resolvable (globally installed is fine).
 import { createRequire } from 'module'; const { chromium } = createRequire(import.meta.url)('playwright');
 import http from 'http'; import fs from 'fs'; import path from 'path'; import { fileURLToPath } from 'url';
