@@ -39,7 +39,7 @@ Team name: **«Печатники»**.
 | :--- | :--- |
 | `Hefest_komplektuyushchie.xlsx` | The single list of components with prices, status and order numbers, split into two stages, with totals (in Russian). |
 | `Hefest_Spec_and_Plan-v3.docx` | Upgrade plan (v3): architecture of the new boards and notes from photos of the build. |
-| `model/` | Parametric CadQuery model of the whole printer (`printer.py`, dimensions in `params.py`), exported to STEP / GLB / STL in `model/out/`, with renders and the list of components seen on the machine (`COMPONENTS.md`). Only the outer size and build volume are published figures; the rest is estimated from photos. |
+| `model/` | Parametric CadQuery model of the whole printer (`printer.py`, dimensions in `params.py`), exported to STEP / GLB / STL in `model/out/`, with renders and the list of components seen on the machine (`COMPONENTS.md`). The GLB carries the Hefest head on the X carriage. Only the outer size and build volume are published figures; the rest is measured on photos. |
 | `head/` | Explanatory note for the Hefest print head (in Russian): why each part and component is needed, the toolhead board on the side wall of the frame (frame v2) and the current budget of the head cable. |
 | `submission/` | Application for the "3D Profi" championship: presentation and project description (in Russian). |
 

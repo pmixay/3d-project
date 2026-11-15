@@ -15,12 +15,12 @@ const srv = http.createServer((q, r) => {
 const port = srv.address().port;
 const views = {
   // name: [camera position, target, hidden-part regex]   (printer coords: X right, Y back, Z up)
-  front_iso: [[732, -778, 814], [182, 170, 250], 'toolhead_placeholder|psu|ghost|harness'],
+  front_iso: [[732, -778, 814], [182, 170, 250], 'psu|cable'],
   front: [[182, -900, 330], [182, 170, 250], null],
   top: [[182, 170, 1300], [182, 177, 300], null],
-  right_iso: [[1044, -454, 694], [182, 170, 250], 'toolhead_placeholder|psu|ghost|harness'],
+  right_iso: [[1044, -454, 694], [182, 170, 250], 'psu|cable'],
   tray_underside: [[182, 178, -620], [182, 178, 60], null],
-  gantry_close: [[330, -90, 600], [182, 185, 400], 'toolhead_placeholder|psu|ghost|harness'],
+  gantry_close: [[318, -70, 585], [168, 178, 405], 'psu|cable'],
   rear_iso: [[-420, 900, 420], [182, 170, 200], null],
 };
 const b = await chromium.launch({ args: ['--use-gl=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });

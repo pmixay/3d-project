@@ -6,8 +6,11 @@ Out:   model/out/hefest_printer.step    assembly with named, coloured parts
        model/out/hefest_printer.stl     everything merged into one mesh
 
 All dimensions come from params.py.  Most are estimates from photos - see the
-[EST] markers there and COMPONENTS.md.  The toolhead is only an envelope
-(`toolhead_placeholder`); the real head is modelled separately.
+[EST] / [FIT] markers there and COMPONENTS.md.
+
+The Hefest print head is not built here: model/parts/hefest_head.glb (made by
+tools/head_glb.py from the team's CAD) is placed on the carriage and merged into the
+GLB only.  The STEP and STL hold the printer without the head.
 """
 import os
 import sys
@@ -35,7 +38,7 @@ C = {
     "alu": cq.Color(0.86, 0.87, 0.88, 1),
     "red": cq.Color(0.80, 0.10, 0.12, 1),
     "white": cq.Color(0.93, 0.93, 0.90, 1),
-    "belt": cq.Color(0.88, 0.88, 0.84, 1),
+    "belt": cq.Color(0.93, 0.93, 0.90, 1),
     "glass": cq.Color(0.70, 0.85, 0.90, 0.25),
     "bedglass": cq.Color(0.25, 0.30, 0.32, 0.55),
     "pcb_green": cq.Color(0.20, 0.60, 0.25, 1),
@@ -195,58 +198,66 @@ def build_gantry():
     add("top_frame_plate", plate, "black")
 
     ylen = P.Y_RAIL_Y1 - P.Y_RAIL_Y0
+    bz0, bz1 = P.BELT_Z0, P.BELT_Z1
+
+    def idler(x, y, z0=bz0, z1=bz1):
+        """GT2 idler/pulley: toothed hub between two flanges."""
+        return (cyl_z(x, y, z0 - 0.5, z1 + 0.5, P.IDLER_PITCH_R)
+                .union(cyl_z(x, y, z0 - 1.5, z0 - 0.5, P.IDLER_FLANGE_R))
+                .union(cyl_z(x, y, z1 + 0.5, z1 + 1.5, P.IDLER_FLANGE_R)))
+
     for side, xr in (("left", P.Y_RAIL_X_L), ("right", P.Y_RAIL_X_R)):
-        sgn = 1 if side == "left" else -1
+        mx_ = (lambda x: x) if side == "left" else mirror_x
         r = rail(ylen).rotate((0, 0, 0), (0, 0, 1), 90).translate((xr, P.Y_RAIL_Y0, P.TOP_PLATE_Z))
         add(f"y_rail_{side}", r, "steel")
         body, caps = block()
         mv = lambda s: s.rotate((0, 0, 0), (0, 0, 1), 90).translate((xr, GY, P.TOP_PLATE_Z))  # noqa: E731
         add(f"y_carriage_{side}", mv(body), "steel")
         add(f"y_carriage_{side}_end_seals", mv(caps), "red")
+        sx, sy, sz = P.Y_RAIL_STOP
+        add(f"y_rail_stop_{side}", box(xr - sx / 2, xr + sx / 2, P.Y_RAIL_Y0 - sy + 2, P.Y_RAIL_Y0 + 2,
+                                       P.TOP_PLATE_Z, P.TOP_PLATE_Z + sz), "black")
 
-        # X-end plates (lower + upper) with two idlers between them
+        # X-end plates (lower + upper): outer corners chamfered, idlers at the inner corners
         px0, px1 = P.XEND_PLATE_X
         if side == "right":
             px0, px1 = mirror_x(px1), mirror_x(px0)
         hy = P.XEND_PLATE_HALF_Y
+        k = 12.0
+        if side == "left":
+            pts = [(px0, GY - hy + k), (px0 + k, GY - hy), (px1, GY - hy), (px1, GY + hy), (px0 + k, GY + hy), (px0, GY + hy - k)]
+        else:
+            pts = [(px1, GY - hy + k), (px1 - k, GY - hy), (px0, GY - hy), (px0, GY + hy), (px1 - k, GY + hy), (px1, GY + hy - k)]
 
         def xplate(z0, z1):
-            return box(px0, px1, GY - hy, GY + hy, z0, z1).edges("|Z").fillet(7)
+            return cq.Workplane("XY").polyline(pts).close().extrude(z1 - z0).translate((0, 0, z0))
 
         add(f"x_end_plate_{side}_lower", xplate(P.XEND_LOWER_Z0, P.XEND_LOWER_Z1), "alu")
         up = xplate(P.XEND_UPPER_Z0, P.XEND_UPPER_Z1)
-        ix = P.XEND_IDLER_X if side == "left" else mirror_x(P.XEND_IDLER_X)
+        ix = mx_(P.XEND_IDLER_X)
         idlers = None
-        for dy in (-P.XEND_IDLER_DY, P.XEND_IDLER_DY):
-            up = up.cut(cyl_z(ix, GY + dy, P.XEND_UPPER_Z0 - 1, P.XEND_UPPER_Z1 + 1, 1.7))
-            idl = (cyl_z(ix, GY + dy, P.BELT_Z0 - 0.5, P.BELT_Z1 + 0.5, P.IDLER_PITCH_R)
-                   .union(cyl_z(ix, GY + dy, P.XEND_LOWER_Z1 + 1.5, P.BELT_Z0 - 0.5, P.IDLER_FLANGE_R))
-                   .union(cyl_z(ix, GY + dy, P.BELT_Z1 + 0.5, P.XEND_UPPER_Z0 - 1.5, P.IDLER_FLANGE_R))
-                   .union(cyl_z(ix, GY + dy, P.XEND_LOWER_Z1, P.XEND_UPPER_Z1 + 2.5, 1.5)))
+        for dy in (P.XEND_IDLER_DY_FRONT, P.XEND_IDLER_DY_REAR):
+            idl = idler(ix, GY + dy).union(cyl_z(ix, GY + dy, P.XEND_LOWER_Z1, P.XEND_UPPER_Z1 + 2.5, 1.5))
             idlers = idl if idlers is None else idlers.union(idl)
-        # plate screws (4 per plate) - cosmetic
-        for sx in (px0 + 9, px1 - 9):
-            for sy in (GY - hy + 9, GY + hy - 9):
-                up = up.union(cyl_z(sx, sy, P.XEND_UPPER_Z1, P.XEND_UPPER_Z1 + 2, 3))
+        screws = None
+        for sx_ in (px0 + 8, (px0 + px1) / 2, px1 - 8):
+            for sy_ in (GY - hy + 8, GY + hy - 8):
+                sc = cyl_z(sx_, sy_, P.XEND_UPPER_Z1, P.XEND_UPPER_Z1 + 2, 2.8)
+                screws = sc if screws is None else screws.union(sc)
         add(f"x_end_plate_{side}_upper", up, "alu")
+        add(f"x_end_plate_{side}_screws", screws, "steel")
         add(f"x_end_idlers_{side}", idlers, "steel")
 
-        # rear motor (hangs under the top plate) with pulley, front corner idler on a printed bracket
-        mx = P.PULLEY_X if side == "left" else mirror_x(P.PULLEY_X)
+        # rear motor (hangs under the top plate) with pulley; front corner idler on a white printed block
+        mx = mx_(P.PULLEY_X)
         add(f"xy_motor_{side}", nema17().translate((mx, P.MOTOR_Y, P.TOP_PLATE_Z - P.TOP_PLATE_T)), "black")
-        pul = (cyl_z(mx, P.MOTOR_Y, P.TOP_PLATE_Z - P.TOP_PLATE_T, P.BELT_Z1 + 3, 2.5)
-               .union(cyl_z(mx, P.MOTOR_Y, P.BELT_Z0 - 0.5, P.BELT_Z1 + 0.5, P.IDLER_PITCH_R))
-               .union(cyl_z(mx, P.MOTOR_Y, P.BELT_Z0 - 9, P.BELT_Z0 - 0.5, P.IDLER_FLANGE_R))
-               .union(cyl_z(mx, P.MOTOR_Y, P.BELT_Z1 + 0.5, P.BELT_Z1 + 1.5, P.IDLER_FLANGE_R)))
+        pul = idler(mx, P.MOTOR_Y).union(cyl_z(mx, P.MOTOR_Y, P.TOP_PLATE_Z - P.TOP_PLATE_T, bz1 + 3, 2.5))
         add(f"xy_motor_pulley_{side}", pul, "alu")
-        bx0, bx1 = (mx - 13, mx + 15) if side == "left" else (mx - 15, mx + 13)
-        brk = box(bx0, bx1, 7, P.FRONT_IDLER_Y + 13, P.TOP_PLATE_Z, P.BELT_Z0 - 2).edges("|Z").fillet(4)
-        add(f"front_idler_bracket_{side}", brk, "white")
-        fid = (cyl_z(mx, P.FRONT_IDLER_Y, P.BELT_Z0 - 0.5, P.BELT_Z1 + 0.5, P.IDLER_PITCH_R)
-               .union(cyl_z(mx, P.FRONT_IDLER_Y, P.BELT_Z0 - 2, P.BELT_Z0 - 0.5, P.IDLER_FLANGE_R))
-               .union(cyl_z(mx, P.FRONT_IDLER_Y, P.BELT_Z1 + 0.5, P.BELT_Z1 + 2, P.IDLER_FLANGE_R)))
-        add(f"front_corner_idler_{side}", fid, "steel")
-        _ = sgn
+        bx0, bx1 = mx - 12, mx + 12
+        brk = box(bx0, bx1, 6, P.FRONT_IDLER_Y + 12, P.TOP_PLATE_Z, bz0 - 2).edges("|Z").fillet(4)
+        add(f"front_idler_block_{side}", brk, "white")
+        add(f"front_corner_idler_{side}", idler(P.PULLEY_X if side == "left" else mirror_x(P.PULLEY_X), P.FRONT_IDLER_Y)
+            .union(cyl_z(mx, P.FRONT_IDLER_Y, bz0 - 2, bz1 + 3, 1.5)), "steel")
 
     # X rail = the X beam, resting on the lower X-end plates, carriage on top
     xr = rail(P.X_RAIL_X1 - P.X_RAIL_X0).translate((P.X_RAIL_X0, GY, P.X_RAIL_BOTTOM_Z))
@@ -255,39 +266,54 @@ def build_gantry():
     add("x_carriage", body.translate((CX, GY, P.X_RAIL_BOTTOM_Z)), "steel")
     add("x_carriage_end_seals", caps.translate((CX, GY, P.X_RAIL_BOTTOM_Z)), "red")
 
-    # belts (single plane): two X runs flanking the rail, two Y runs per side
-    t, z0, z1 = P.BELT_T, P.BELT_Z0, P.BELT_Z1
-    segs = []
-    for xo, xi, ixx in ((P.BELT_Y_RUN_X_OUT, P.BELT_Y_RUN_X_IN, P.XEND_IDLER_X),
-                        (mirror_x(P.BELT_Y_RUN_X_OUT), mirror_x(P.BELT_Y_RUN_X_IN), mirror_x(P.XEND_IDLER_X))):
-        segs.append(box(xo - t / 2, xo + t / 2, P.FRONT_IDLER_Y, P.MOTOR_Y, z0, z1))               # outer run
-        segs.append(box(xi - t / 2, xi + t / 2, P.FRONT_IDLER_Y, GY - P.XEND_IDLER_DY, z0, z1))    # front idler -> X-end
-        segs.append(box(xi - t / 2, xi + t / 2, GY + P.XEND_IDLER_DY, P.MOTOR_Y, z0, z1))          # X-end -> motor
-        _ = ixx
-    for dy in (-P.BELT_X_RUN_OFFSET, P.BELT_X_RUN_OFFSET):
-        segs.append(box(P.XEND_IDLER_X, mirror_x(P.XEND_IDLER_X), GY + dy - t / 2, GY + dy + t / 2, z0, z1))
-    add("belts_gt2", union(segs), "belt")
+    # belts: straight runs (x0, y0) -> (x1, y1) along X or Y, with GT2 teeth on one face
+    t = P.BELT_T
+    runs = []   # (axis, fixed coordinate, start, end, teeth side +1/-1)
+    for side in ("left", "right"):
+        m = (lambda x: x) if side == "left" else mirror_x
+        sgn = 1 if side == "left" else -1
+        xo, xi = m(P.BELT_Y_RUN_X_OUT), m(P.BELT_Y_RUN_X_IN)
+        runs.append(("y", xo, P.FRONT_IDLER_Y, P.MOTOR_Y, sgn))                     # outer: front idler -> motor
+        runs.append(("y", xi, P.FRONT_IDLER_Y, GY + P.XEND_IDLER_DY_FRONT, -sgn))   # inner: front idler -> X-end
+        runs.append(("y", xi, GY + P.XEND_IDLER_DY_REAR, P.MOTOR_Y, -sgn))          # inner: X-end -> motor
+    xa, xb = P.XEND_IDLER_X, mirror_x(P.XEND_IDLER_X)
+    runs.append(("x", GY + P.BELT_FRONT_RUN_DY, xa, xb, -1))
+    runs.append(("x", GY + P.BELT_REAR_RUN_DY, xa, xb, 1))
+    belt_solids, teeth = [], []
+    for axis, c, a0, a1, ts in runs:
+        if axis == "y":
+            belt_solids.append(box(c - t / 2, c + t / 2, a0, a1, bz0, bz1).val())
+        else:
+            belt_solids.append(box(a0, a1, c - t / 2, c + t / 2, bz0, bz1).val())
+        n = int((a1 - a0) // P.BELT_TOOTH_PITCH)
+        for i in range(n):
+            u = a0 + (i + 0.5) * P.BELT_TOOTH_PITCH
+            if axis == "y":
+                xx = c + ts * (t / 2 + 0.375)
+                teeth.append(cq.Solid.makeBox(0.75, 1.0, P.BELT_W, cq.Vector(xx - 0.375, u - 0.5, bz0)))
+            else:
+                yy = c + ts * (t / 2 + 0.375)
+                teeth.append(cq.Solid.makeBox(1.0, 0.75, P.BELT_W, cq.Vector(u - 0.5, yy - 0.375, bz0)))
+    add("belts_gt2", cq.Workplane("XY").add(cq.Compound.makeCompound(belt_solids)), "belt")
+    add("belts_gt2_teeth", cq.Workplane("XY").add(cq.Compound.makeCompound(teeth)), "belt")
 
     # Y endstop microswitch at the rear of the right rail
     es = box(P.W - 36, P.W - 16, P.Y_RAIL_Y1 + 3, P.Y_RAIL_Y1 + 13, P.TOP_PLATE_Z, P.TOP_PLATE_Z + 6.5).union(
         box(P.W - 33, P.W - 19, P.Y_RAIL_Y1 + 1, P.Y_RAIL_Y1 + 3, P.TOP_PLATE_Z + 2, P.TOP_PLATE_Z + 5))
     add("y_endstop_switch", es, "dark")
 
-    # toolhead envelope (placeholder) and the braided cable harness
-    hx, hy_, hz = P.HEAD_ENV_X, P.HEAD_ENV_Y, P.HEAD_ENV_Z
-    ghost = box(CX + hx[0], CX + hx[1], GY + hy_[0], GY + hy_[1], hz[0] + 8, hz[1])
-    nozzle = cq.Workplane("XY").circle(0.5).workplane(offset=8).circle(4).loft().translate(
-        (CX, GY + P.NOZZLE_Y_OFFSET, P.NOZZLE_Z))
-    add("toolhead_placeholder", ghost.union(nozzle), "ghost")
-    harness = tube([
-        (CX + 5, GY + 15, hz[1]),
-        (CX + 10, GY + 25, hz[1] + 70),
-        (CX + 35, GY + 55, hz[1] + 140),
-        (P.W - 110, P.D - 95, hz[1] + 150),
-        (P.W - 62, P.D - 50, hz[1] + 70),
-        (P.W - 52, P.D - 34, P.TOP_PLATE_Z + 4),
-    ], 5.5)
-    add("toolhead_cable_harness", harness, "dark")
+    # the single CAN + 24 V cable from the XT30 on the toolhead board to the rear-right corner
+    hx, hy_, hz = P.XT30_HEAD
+    x0, y0, z0 = CX + hz, GY + hx + 0.5, P.HEAD_ORIGIN_Z + hy_ + 6
+    cable = tube([
+        (x0, y0, z0),
+        (x0 - 4, y0 + 4, z0 + 60),
+        (x0 + 30, y0 + 50, z0 + 125),
+        (P.W - 120, P.D - 80, z0 + 115),
+        (P.W - 58, P.D - 42, P.H + 20),
+        (P.W - 50, P.D - 30, P.TOP_PLATE_Z + 4),
+    ], 3.2)
+    add("toolhead_cable_can", cable, "dark")
 
 
 # ============================================================================= BED + Z AXIS
@@ -315,9 +341,9 @@ def build_bed_z():
     cw, cd, ch = P.Z_CARRIAGE
     arms = None
     for dx in (-70, 70):
-        a = box(cx + dx - 6, cx + dx + 6, P.BED_Y0 + 20, zy - cd / 2 + 2, arm_top - 22, arm_top)
+        a = box(cx + dx - 6, cx + dx + 6, P.BED_Y0 + 20, P.Z_COVER_Y0, arm_top - 22, arm_top)
         arms = a if arms is None else arms.union(a)
-    arms = arms.union(box(cx - 76, cx + 76, zy - cd / 2 - 14, zy - cd / 2 + 2, arm_top - 22, arm_top))
+    arms = arms.union(box(cx - 76, cx + 76, P.Z_COVER_Y0 - 14, zy - cd / 2 + 2, arm_top - 22, arm_top))
     arms = arms.union(box(cx - 76, cx + 76, P.BED_Y0 + 20, P.BED_Y0 + 32, arm_top - 22, arm_top - 8))
     add("bed_support_arms", arms, "black")
 
@@ -334,11 +360,12 @@ def build_bed_z():
     car = box(cx - cw / 2, cx + cw / 2, zy - cd / 2, zy + cd / 2, arm_top - ch, arm_top).cut(holes)
     add("z_carriage", car, "black")
     vw, vd, vh = P.Z_COVER
-    cov = box(cx - vw / 2, cx + vw / 2, zy - cd / 2 - 8, zy - cd / 2 - 8 + vd + 30, arm_top, arm_top + vh)
+    y0c = P.Z_COVER_Y0
+    cov = box(cx - vw / 2, cx + vw / 2, y0c, y0c + vd, arm_top, arm_top + vh)
     cov = cov.edges("|Z").fillet(3).cut(holes)
     try:
-        txt = (cq.Workplane("XZ", origin=(cx, zy - cd / 2 - 8, arm_top + vh / 2))
-               .text("HERCULES", 13, 1.2, kind="bold", halign="center", valign="center"))
+        txt = (cq.Workplane("XZ", origin=(cx, y0c, arm_top + vh / 2))
+               .text("HERCULES", 17, 1.2, kind="bold", halign="center", valign="center"))
         cov = cov.union(txt)
     except Exception as e:  # font problems must not break the build
         print("text skipped:", e)
@@ -444,23 +471,96 @@ def build_tray():
 
 
 # ============================================================================= BUILD + EXPORT
+COSMETIC = ("belts_gt2_teeth",)   # in the GLB only: thousands of small solids bloat the STEP
+
+
 def build():
     build_enclosure()
     build_gantry()
     build_bed_z()
     build_tray()
+
+
+def assembly(cosmetic):
     assy = cq.Assembly(name="hefest_printer")
     for name, shape, colour in parts:
-        assy.add(shape, name=name, color=colour)
+        if cosmetic or name not in COSMETIC:
+            assy.add(shape, name=name, color=colour)
     return assy
+
+
+HEAD_GLB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "parts", "hefest_head.glb")
+
+
+def _read_glb(path):
+    import json
+    import struct
+    data = open(path, "rb").read()
+    jlen = struct.unpack("<I", data[12:16])[0]
+    j = json.loads(data[20:20 + jlen])
+    rest = data[20 + jlen:]
+    blen = struct.unpack("<I", rest[:4])[0]
+    return j, rest[8:8 + blen]
+
+
+def merge_glb(printer_glb, head_glb, out_glb):
+    """Put the head (head coordinates) on the carriage: both files' buffers are copied unchanged.
+
+    glTF is Y-up: a CadQuery point (x, y, z) is stored as (x, z, -y).  Head coordinates map to
+    printer coordinates as X = CX + z_h, Y = GY + x_h + 0.5, Z = HEAD_ORIGIN_Z + y_h, which in
+    glTF space is the matrix below, applied on top of the head file's own root transform.
+    """
+    import json
+    import struct
+    a, abin = _read_glb(printer_glb)
+    b, bbin = _read_glb(head_glb)
+    pad = (-len(abin)) % 4
+    off = len(abin) + pad
+    n_bv, n_acc, n_mat, n_mesh, n_node = (len(a.get(k, [])) for k in ("bufferViews", "accessors", "materials", "meshes", "nodes"))
+    for bv in b.get("bufferViews", []):
+        bv["buffer"] = 0
+        bv["byteOffset"] = bv.get("byteOffset", 0) + off
+    for acc in b.get("accessors", []):
+        if "bufferView" in acc:
+            acc["bufferView"] += n_bv
+    for m in b.get("meshes", []):
+        for pr in m["primitives"]:
+            pr["attributes"] = {k: v + n_acc for k, v in pr["attributes"].items()}
+            if "indices" in pr:
+                pr["indices"] += n_acc
+            if "material" in pr:
+                pr["material"] += n_mat
+    for nd in b.get("nodes", []):
+        if "mesh" in nd:
+            nd["mesh"] += n_mesh
+        if "children" in nd:
+            nd["children"] = [c + n_node for c in nd["children"]]
+    for k in ("bufferViews", "accessors", "materials", "meshes", "nodes"):
+        a.setdefault(k, []).extend(b.get(k, []))
+    roots = [r + n_node for r in b["scenes"][b.get("scene", 0)]["nodes"]]
+    a["nodes"].append({"name": "hefest_head", "children": roots,
+                       "matrix": [0, 0, -1, 0, 1, 0, 0, 0, 0, -1, 0, 0, CX, P.HEAD_ORIGIN_Z, -GY - 0.5, 1]})
+    a["scenes"][a.get("scene", 0)]["nodes"].append(len(a["nodes"]) - 1)
+    binary = abin + b"\0" * pad + bbin
+    binary += b"\0" * ((-len(binary)) % 4)
+    a["buffers"] = [{"byteLength": len(binary)}]
+    js = json.dumps(a, separators=(",", ":")).encode()
+    js += b" " * ((-len(js)) % 4)
+    out = (struct.pack("<III", 0x46546C67, 2, 12 + 8 + len(js) + 8 + len(binary))
+           + struct.pack("<II", len(js), 0x4E4F534A) + js + struct.pack("<II", len(binary), 0x004E4942) + binary)
+    open(out_glb, "wb").write(out)
 
 
 def main():
     os.makedirs(OUT, exist_ok=True)
-    assy = build()
-    assy.export(os.path.join(OUT, "hefest_printer.step"))
-    assy.export(os.path.join(OUT, "hefest_printer.glb"), tolerance=0.1, angularTolerance=0.3)
-    comp = cq.Compound.makeCompound([solid for _, sh, _ in parts for solid in sh.vals()])
+    build()
+    assembly(False).export(os.path.join(OUT, "hefest_printer.step"))
+    glb = os.path.join(OUT, "hefest_printer.glb")
+    assembly(True).export(glb, tolerance=0.1, angularTolerance=0.3)
+    if os.path.exists(HEAD_GLB):
+        merge_glb(glb, HEAD_GLB, glb)
+        print("head merged into", glb)
+    comp = cq.Compound.makeCompound([solid for n, sh, _ in parts if n not in COSMETIC for solid in sh.vals()])
     cq.exporters.export(cq.Workplane("XY").add(comp), os.path.join(OUT, "hefest_printer.stl"),
                         tolerance=0.1, angularTolerance=0.3)
     bb = comp.BoundingBox()

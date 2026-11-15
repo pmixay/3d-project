@@ -2,8 +2,12 @@
 
 The model in this folder is built by `printer.py` from the dimensions in `params.py`.
 Only the outer size (365 × 355 × 430 mm) and the build volume (200 × 200 × 210 mm) are published
-figures; **every other dimension is an estimate read off the photos** and is marked `[EST]` in `params.py`.
-The model is good for layout and for discussing the head, not yet for cutting parts.
+figures; **every other dimension is read off the photos**. Values marked `[FIT]` in `params.py` were measured on P2
+with a camera fitted to the enclosure corners and checked by overlaying the model on P1 and P2 (good to about
+±5–10 mm); values marked `[EST]` are plain estimates. The model is good for layout and renders, not for cutting parts.
+
+The GLB also carries the **Hefest print head** on the X carriage (`model/parts/hefest_head.glb`, see below);
+the STEP and STL hold the printer without the head.
 
 Photos referred to below:
 
@@ -22,33 +26,33 @@ Confidence: **clear** = plainly visible; **partial** = visible but size/position
 
 | Component | Seen in | Model part | Confidence / notes |
 | :--- | :--- | :--- | :--- |
-| Teal sheet-steel enclosure with chamfered vertical corners, open top | P1, P2 | `enclosure_shell` | Clear. Outer size from the published spec; pillar widths, chamfer and opening sizes estimated. Rear wall was not photographed — modelled plain. Bottom cover not modelled (tray is open, as in P3). |
-| Chamber floor (top of the electronics base) | P2 | `chamber_floor` | Clear. Height of the base (72 mm) estimated. |
-| Clear side panels with a diagonal upper-front corner | P1 | `side_window_left`, `side_window_right` | Right panel clear; left assumed identical. |
-| 20×4 character LCD | P2, P3 | `lcd_screen`, `lcd_controller_board` | Clear. Board size is the standard 2004 smart-controller PCB. |
-| Aluminium encoder knob | P1, P2 | `encoder_knob` | Clear. |
+| Teal sheet-steel enclosure with chamfered vertical corners, open top | P1, P2 | `enclosure_shell` | Clear. Outer size from the published spec. The crossbar above the front opening is about 32 mm high and flush with the rim. Rear wall was not photographed — modelled plain. Bottom cover not modelled (tray is open, as in P3). |
+| Chamber floor (top of the electronics base) | P1, P2 | `chamber_floor` | Clear. The base is about 120 mm high (measured on P2). |
+| Clear side panels with a diagonal upper-front corner | P1 | `side_window_left`, `side_window_right` | Right panel clear; left assumed identical. The opening starts about 90 mm behind the front face and reaches below the chamber floor. |
+| 20×4 character LCD | P2, P3 | `lcd_screen`, `lcd_controller_board` | Clear. Window position measured on P2; board size is the standard 2004 smart-controller PCB. |
+| Aluminium encoder knob | P1, P2 | `encoder_knob` | Clear. About 30 mm in diameter. |
 | Small toggle switch left of the LCD | P1, P2 | `front_toggle_switch` | Partial — function unknown. |
 
 ## Top frame, gantry and motion
 
 | Component | Seen in | Model part | Confidence / notes |
 | :--- | :--- | :--- | :--- |
-| Black top frame plate carrying the rails | P1, P2 | `top_frame_plate` | Partial — shape of the central opening estimated. |
+| Black top frame plate carrying the rails | P1, P2 | `top_frame_plate` | Partial. Open at the front; only a narrow strip is left at the rear, where the Z rods end. |
 | Y linear rails, one per side | P1, P2, P4 | `y_rail_left`, `y_rail_right` | Clear. Size assumed MGN12, length 300 mm. |
 | Y carriage blocks with red end seals | P1, P2 | `y_carriage_*`, `y_carriage_*_end_seals` | Clear. Assumed MGN12H. |
-| X-end aluminium plates (an upper and a lower plate each side) | P1, P2, P6 | `x_end_plate_*_lower`, `x_end_plate_*_upper` | Clear that they are double plates; outline simplified to a rounded rectangle. |
-| Idler pulleys between the X-end plates (two per side) | P2, P6 | `x_end_idlers_left`, `x_end_idlers_right` | Partial — count clear, positions estimated. |
+| Black stop blocks at the front ends of the Y rails | P2 | `y_rail_stop_*` | Partial — size estimated. |
+| X-end aluminium plates (an upper and a lower plate each side) | P1, P2, P6 | `x_end_plate_*_lower`, `x_end_plate_*_upper`, `x_end_plate_*_screws` | Clear that they are double plates; outer corners chamfered, six screws on top. Width (60 mm) measured on P2. |
+| Idler pulleys between the X-end plates (two per side) | P2, P6 | `x_end_idlers_left`, `x_end_idlers_right` | Partial — count clear; placed where the belt runs turn. |
 | X linear rail used as the X beam (unsupported between the plates) | P1, P2, P4, P5 | `x_rail` | Clear. Mounting holes face up; carriage assumed on top. |
 | X carriage block with red end seals | P1, P4 | `x_carriage`, `x_carriage_end_seals` | Partial — mostly hidden by the head. |
-| GT2 belts (white) | P1, P2, P4, P5 | `belts_gt2` | Clear that one run passes each side of the X rail and that belts run along both Y sides. Exact path, heights and offsets estimated. |
-| Front corner idlers on white printed brackets | P1, P2 | `front_corner_idler_*`, `front_idler_bracket_*` | Partial. |
+| GT2 belts, 6 mm, white | P1, P2, P4, P5 | `belts_gt2`, `belts_gt2_teeth` (GLB only) | Clear. Along X one run passes close in front of the rail (14.9 mm from its centre line) and one close behind it (18.5 mm), as the Hefest head expects; their top edge is level with the top of the rail. Along Y two runs per side, inboard of the rail (45 and 57 mm from the side, measured on P2). |
+| Front corner idlers on white printed blocks | P1, P2 | `front_corner_idler_*`, `front_idler_block_*` | Partial. |
 | X/Y stepper motors at the rear corners | P2 (right rear, dark block) | `xy_motor_*`, `xy_motor_pulley_*` | Inferred — bodies assumed NEMA17 hanging under the top plate. |
 | Endstop microswitch at the rear of the right rail | P2 | `y_endstop_switch` | Partial. No X endstop could be identified. |
 
-**Kinematics could not be determined from the photos.** The project document calls the machine CoreXY.
-What the photos show is two belt runs flanking the X rail in one plane and two idlers on each X-end,
-which also fits an H-bot layout. The model draws the belts as a single-plane loop
-(front corner idler → X-end → across → X-end → motor, each side) purely to show where belts occupy space.
+The project document calls the machine CoreXY. The photos show two belt runs flanking the X rail in one plane
+and two idlers on each X-end; the rear run is clamped in the head and the front run passes freely through it.
+The model draws each run as a straight belt between its pulleys, in one plane, to show where the belts are.
 
 ## Bed and Z axis
 
@@ -60,27 +64,25 @@ which also fits an H-bot layout. The model draws the belts as a single-plane loo
 | Screw in the centre front of the bed | P2 | `bed_centre_screw` | Clear. |
 | Black knob under the front of the bed | P2 | `bed_levelling_knob` | Partial — assumed to be a levelling knob. |
 | Cantilever bed support | P1 (through left opening) | `bed_support_arms` | Inferred shape. |
-| Two polished Z rods and a lead screw at the rear centre | P1, P2 | `z_rods`, `z_lead_screw`, `z_coupler` | Rods clear; screw partial. Diameters and spacing estimated. |
-| Z carriage with the teal "HERCULES" cover | P1, P2 | `z_carriage`, `z_carriage_cover_hercules` | Cover clear; carriage inside inferred. |
+| Two polished Z rods and a lead screw at the rear centre | P1, P2 | `z_rods`, `z_lead_screw`, `z_coupler` | Rods clear; screw partial. Rods about 110 mm apart with the lead screw between them (measured on P2). |
+| Z carriage with the teal "HERCULES" cover | P1, P2 | `z_carriage`, `z_carriage_cover_hercules` | Cover clear, about 160 mm wide, its bottom at bed level; carriage inside inferred. |
 | Z stepper motor (protrudes into the tray at the rear centre) | P3 | `z_motor` | Clear. |
 
-## Toolhead (currently fitted) — placeholder only in this model
+## Print head — the Hefest head (in the GLB)
 
-All of these are covered by the single envelope part `toolhead_placeholder`; the head itself is modelled separately.
+The photos still show the previous head (green breakout board standing at the rear, S2DW accelerometer on a
+printed arm, braided harness looping above the printer). The model shows the new **Hefest** head instead:
+`model/parts/hefest_head.glb`, built by `tools/head_glb.py` from the team's assembly with frame v2
+(`head/v2/`) and placed on the X carriage when `printer.py` writes the GLB.
 
-| Component | Seen in | Confidence / notes |
+| Component | Model part | Notes |
 | :--- | :--- | :--- |
-| Printed extruder body (K3D Minifeeder per the project document), black | P1, P2, P4, P6 | Clear. |
-| Round pancake stepper on the extruder (NEMA14 per the document) | P4, P5, P6 | Clear. |
-| Extruder tension screw with spring | P2 | Clear. |
-| Blue push-fit collet at the filament inlet | P2, P4, P6 | Clear. |
-| Hotend with heatsink, orange silicone sock on the heater block (CHC Pro per the document) | P1 | Partial — mostly hidden by the fan and duct. |
-| Hotend heatsink fan, axial, on the front | P2, P6 | Clear (3010 per the document). |
-| Part-cooling blower (5015 per the document) and printed duct | P1, P5 | Partial. |
-| Green breakout PCB with white JST connectors, standing vertically at the rear of the head | P2, P4, P5, P6 | Clear. |
-| Accelerometer board with USB-C on a printed arm (BTT ADXL345 S2DW per the document) | P2, P4, P5, P6 | Clear. |
-| Braided cable harness looping above the printer to the rear-right corner | P1, P2, P4 | Clear — modelled as `toolhead_cable_harness`. Route approximate. |
-| Clip/ring gathering the harness at the top of the loop | P1, P2 | Clear — not modelled. |
+| Frame v2 (EBB42 GEN2 on the side wall), belt cover, triangle, hotend mounts, duct | `head_frame_v2`, `head_belt_cover*`, `head_triangle`, `head_hotend_mount_*`, `head_duct*` | From the team's CAD; printed parts shown in dark grey. |
+| TriangleLab CHC Pro with Volcano nozzle | `head_chc_*`, `head_nozzle_volcano` | Nozzle tip 38.4 mm in front of the X-rail centre line, 69.8 mm below the head origin. |
+| K3D Minifeeder, NEMA14 pancake motor | `head_minifeeder`, `head_nema14` | |
+| 3010 hotend fan, 5015 part-cooling blower | `head_fans` | |
+| BIGTREETECH EBB42 GEN2 V1.0 | `head_ebb42_gen2_*` | Simplified board: PCB, XT30, connectors, heater terminal; on the left side wall of the head, XT30 up. |
+| Single 24 V + CAN cable from the XT30 to the rear-right corner | `toolhead_cable_can` | Route approximate. Hidden in the presentation renders. |
 
 ## Electronics tray (underside)
 
@@ -101,23 +103,21 @@ All of these are covered by the single envelope part `toolhead_placeholder`; the
 
 ## Measurements needed to replace the estimates
 
-Head-critical (these decide whether a head clears the belts):
+Head-critical:
 
-1. X rail: width and height (confirms MGN12), and whether the carriage rides on top of the rail or under it.
+1. X rail: width and height (confirms MGN12).
 2. X carriage block: length, width, mounting-hole pattern, and height of its mounting face above the rail.
-3. Belts along X: distance from the rail centre line to the front run and to the back run; height of the belt's lower and upper edges relative to the top of the rail; belt width.
-4. Which belt run(s) attach to the head, and where — this also settles CoreXY vs H-bot.
-5. X-end plates: inner edge to inner edge distance, and the height of the upper plate above the rail (the head must pass under or stop short of it).
-6. Vertical distance from the top of the X rail to the nozzle tip on the current head, and the nozzle's front/back offset from the rail centre.
-7. Height of the enclosure rim and of the black top plate relative to the X rail; size of the opening in the top plate.
+3. X-end plates: inner edge to inner edge distance, and the height of the upper plate above the rail (the head must pass under or stop short of it).
+4. Height of the enclosure rim and of the black top plate relative to the X rail; size of the opening in the top plate.
+5. Space beside the head on the board side at the end of X travel (the EBB42 GEN2 sits on the side wall).
 
 General:
 
-8. Y rail centre distance, rail length, and usable X/Y travel end to end.
-9. Bed plate size, its position relative to the front wall, and the top-of-bed height at Z = 0 and at full travel.
-10. Z rod diameter and spacing, lead screw diameter.
-11. Base (electronics tray) height, front opening and side window sizes.
-12. Mounting-hole positions on the tray plate for the mainboard and the spare standoffs (needed to place the SKR 3 EZ).
+6. Y rail centre distance, rail length, and usable X/Y travel end to end.
+7. Bed plate size, its position relative to the front wall, and the top-of-bed height at Z = 0 and at full travel.
+8. Z rod diameter and spacing, lead screw diameter.
+9. Base (electronics tray) height, front opening and side window sizes.
+10. Mounting-hole positions on the tray plate for the mainboard and the spare standoffs (needed to place the SKR 3 EZ).
 
 ## Re-running
 
@@ -129,5 +129,7 @@ pip install cadquery
 python model/printer.py
 ```
 
-Outputs go to `model/out/`: `hefest_printer.step`, `hefest_printer.glb`, `hefest_printer.stl`.
+Outputs go to `model/out/`: `hefest_printer.step`, `hefest_printer.glb` (with the Hefest head and the belt teeth), `hefest_printer.stl`.
+To rebuild the head mesh from the team's assembly (split into `.brep` files by assembly node):
+`python model/tools/head_glb.py <parts_dir> head/v2/out/frame_v2.step model/parts/hefest_head.glb`.
 The preview images in `model/out/renders/` are made with `model/tools/render.mjs` (see the comment at the top of that file).
