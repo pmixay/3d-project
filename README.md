@@ -13,25 +13,25 @@ All components, prices and order numbers are in one spreadsheet, [`Hefest_komple
 
 | Stage | What it covers | Total |
 | :--- | :--- | ---: |
-| Stage 1 | Hotend, extruder, power supply, part cooling, lighting | ≈ 8 600 ₽ |
-| Stage 2 | Mainboard with 5 drivers, toolhead board, bed probe, nozzle, nozzle cleaning, hotend fan, camera | ≈ 14 100 ₽ |
-| **Total** | | **≈ 22 700 ₽** |
+| Stage 1 | Hotend, extruder, power supply, part cooling, lighting | 8 602 ₽ |
+| Stage 2 | Mainboard with 5 drivers, toolhead board, bed probe, nozzle, nozzle cleaning, hotend fan, camera | 13 465 ₽ |
+| **Total** | | **22 067 ₽** |
 
-- **Stage 2:** 11 865 ₽ is what was actually paid (five orders of November 10, 2026, delivery November 22–24, plus the hotend fan). The camera is still to be bought; its price (about 2 200 ₽) is an estimate from AliExpress listings.
-- **Stage 1** purchase prices were not recorded. The power supply uses a retail price found on November 14, 2026; the other five prices are estimates, marked yellow in the spreadsheet, to be replaced with the real purchase prices.
-- The BTT Pi board and the new belts are listed in the spreadsheet but not counted in the totals until it is confirmed they were bought for the project.
+- **Stage 2:** 11 865 ₽ is what was actually paid (five orders of November 10, 2026, delivery November 22–24, plus the hotend fan). The camera is still to be bought, for 1 600 ₽.
+- **Stage 1:** the spreadsheet holds the actual purchase prices.
+- The BTT Pi board and the new belts are counted at zero cost.
 
 ## Team
 
-Team name: **«Печатники»**.
+Team name: **«Печатники»**. Captain: Курышев Андрей Валерьевич. All members study at Университетский лицей № 1523 предуниверситария НИЯУ МИФИ.
 
 | Member | Role |
 | :--- | :--- |
-| Еремей | Programmer and electronics: moved the mainboard and the BTT Pi v1.2 host from Marlin to Klipper, did the wiring and the soldering. |
-| Андрей | Design engineer, extruder developer: modelled the Hefest print head with its extruder; shares the mechanical work and the head assembly with Илья. |
-| Илья | Peripherals and sensors engineer: bed probe, nozzle cleaning system, cooling and lighting; shares the mechanical work with Андрей. |
-| Паша | AI print monitoring: the camera system that recognises print defects with machine learning. |
-| Пётр | Components and documentation: selecting and buying components, cost calculation, the project description and the presentation. |
+| Ляхов Еремей Константинович | Programmer and electronics: moved the mainboard and the BTT Pi v1.2 host from Marlin to Klipper, did the wiring and the soldering. |
+| Курышев Андрей Валерьевич (captain) | Design engineer, extruder developer: modelled the Hefest print head with its extruder; shares the mechanical work and the head assembly with Илья. |
+| Ворновский Илья Андреевич | Peripherals and sensors engineer: bed probe, nozzle cleaning system, cooling and lighting; shares the mechanical work with Андрей. |
+| Голубев Павел Александрович | AI print monitoring: the camera system that recognises print defects with machine learning. |
+| Кузнецов Пётр Алексеевич | Components and documentation: selecting and buying components, cost calculation, the project description and the presentation. |
 
 ## Repository contents
 
