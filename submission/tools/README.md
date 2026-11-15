@@ -10,6 +10,8 @@
 
 ## Как пересобрать
 
+`Hefest_golova_poyasnitelnaya_zapiska.pdf` — это `head/README.md` без раздела «Файлы», переведённый в PDF (pandoc → HTML → печать в Chromium).
+
 Презентация правится вручную в PowerPoint; нужны шрифты Benzin и Montserrat из папки `fonts/`. После правок пересохранить PDF.
 
 ```bash
