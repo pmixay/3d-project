@@ -1,16 +1,4 @@
-"""Public links used in the presentation and the description (main branch of the repository)."""
-BASE = "https://github.com/pmixay/3d-project"
-BLOB = BASE + "/blob/main"
-TREE = BASE + "/tree/main"
+"""Public link used in the presentation and the description: the project folder on Google Drive."""
+FOLDER = "https://drive.google.com/drive/folders/1C1j3JflbjfZlf3czxFTffnRvkmgPlF1L"
 
-LINKS = {
-    "repo": BASE,
-    "materials": TREE + "/submission",
-    "docx": BASE + "/raw/main/submission/Hefest_opisanie_proekta.docx",
-    "docx_page": BLOB + "/submission/Hefest_opisanie_proekta.docx",
-    "model": TREE + "/model",
-    "renders": TREE + "/model/out/renders",
-    "head": BLOB + "/head/README.md",
-    "spec": BLOB + "/README.md",
-    "diagrams": TREE + "/submission/materials",
-}
+LINKS = {"folder": FOLDER}
