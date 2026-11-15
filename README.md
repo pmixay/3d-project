@@ -23,10 +23,12 @@ All components, prices and order numbers are in one spreadsheet, [`Hefest_komple
 
 ## Team
 
+Team name: **«Печатники»**.
+
 | Member | Role |
 | :--- | :--- |
-| Еремей | Programmer and electronics: moved the mainboard and the BTT Pi v1.2 host from Marlin to Klipper, did the wiring on the board and found the pins for the connections, including the drivers. |
-| Андрей | Design engineer, extruder developer: modelled the Hefest print head with its extruder in KOMPAS-3D; shares the mechanical work and the head assembly with Илья. |
+| Еремей | Programmer and electronics: moved the mainboard and the BTT Pi v1.2 host from Marlin to Klipper, did the wiring and the soldering. |
+| Андрей | Design engineer, extruder developer: modelled the Hefest print head with its extruder; shares the mechanical work and the head assembly with Илья. |
 | Илья | Peripherals and sensors engineer: bed probe, nozzle cleaning system, cooling and lighting; shares the mechanical work with Андрей. |
 | Паша | AI print monitoring: the camera system that recognises print defects with machine learning. |
 | Пётр | Components and documentation: selecting and buying components, cost calculation, the project description and the presentation. |
@@ -38,7 +40,7 @@ All components, prices and order numbers are in one spreadsheet, [`Hefest_komple
 | `Hefest_komplektuyushchie.xlsx` | The single list of components with prices, status and order numbers, split into two stages, with totals (in Russian). |
 | `Hefest_Spec_and_Plan-v3.docx` | Upgrade plan (v3): architecture of the new boards and notes from photos of the build. |
 | `model/` | Parametric CadQuery model of the whole printer (`printer.py`, dimensions in `params.py`), exported to STEP / GLB / STL in `model/out/`, with renders and the list of components seen on the machine (`COMPONENTS.md`). Only the outer size and build volume are published figures; the rest is estimated from photos. |
-| `head/` | Review of the Hefest print head design, including a belt-clearance check and a frame proposal. |
+| `head/` | Explanatory note for the Hefest print head (in Russian): why each part and component is needed, the toolhead board on the side wall of the frame (frame v2) and the current budget of the head cable. |
 | `submission/` | Application for the "3D Profi" championship: presentation and project description (in Russian). |
 
 ---
@@ -81,7 +83,7 @@ Standoffs for the toolhead board are not bought: a team member already has them.
 
 ### 3.2. What the toolhead board replaces
 
-The `BTT EBB42` format (the GEN2 board is 40×45 mm with a 31×31 mm mounting pattern) was chosen over the elongated `EBB36` (51.5×38 mm) because it fits in the place of the stock green breakout board without touching the belts.
+The `BTT EBB42` format (the GEN2 board is 40×45 mm with a 31×31 mm mounting pattern) was chosen over the elongated `EBB36` (51.5×38 mm) because its compact square format fits on the side wall of the head frame.
 
 One toolhead board removes six old parts and problems:
 
@@ -135,7 +137,7 @@ A toolhead board with a single cable is the industry-standard architecture (Bamb
 - **Toolhead link.** The EBB42 GEN2 works over CAN or USB, selected by a jumper on the board; this plan uses CAN.
 - **CAN bus termination.** Enable the 120 Ω termination resistors at both ends of the line (the `120R` jumpers on the mainboard and on the toolhead board).
 - **Accelerometer orientation.** Set `axes_map` in the `[lis2dw]` section to match how the toolhead board is actually mounted.
-- **Mounting the toolhead board.** A team member already has the standoffs; the team makes a flat adapter plate with a 31×31 mm mounting square (4 × M3).
+- **Mounting the toolhead board.** On the side wall of the head frame, on four M3 heat-set inserts on the 31×31 mm pattern (frame v2, see [`head/README.md`](head/README.md)). The board is not mounted on top of the head.
 
 ### 4.2. Klipper stack
 
@@ -164,10 +166,10 @@ Creality lists it only for its own printers and pads. On arrival, confirm that i
 
 **Before the orders arrive (November 22–24):**
 
-1. Prepare the adapter plate for the EBB42 GEN2 (the standoffs are already on hand).
+1. Print frame v2 of the head ([`head/v2/out/frame_v2.stl`](head/v2/out/frame_v2.stl)) and fit the M3 heat-set inserts for the EBB42 GEN2.
 
 **To verify on the hardware:**
 
-- **Toolhead board orientation.** The plan assumed the EBB42 lies horizontally in place of the green breakout board, but photos of the current build show that board standing vertically at the rear of the toolhead. Check the fit and belt clearance before making the adapter plate; a vertical bracket may be needed.
+- **Toolhead board clearance.** Check that the board on the side wall of the head does not touch the X-axis end parts at the end of travel.
 - **SKR 3 EZ package.** Confirm on arrival that the kit includes the 5 `EZ2209` drivers.
-- **EBB42 GEN2 pin names.** Take them from BigTreeTech's [sample config for the EBB42 GEN2](https://github.com/bigtreetech/EBB/blob/master/EBB_GEN2/EBB42_GEN2/sample-bigtreetech-ebb42-gen2-v1.0.cfg) when writing `printer.cfg`. Board dimensions are in `head/README.md`.
+- **EBB42 GEN2 pin names.** Take them from BigTreeTech's [sample config for the EBB42 GEN2](https://github.com/bigtreetech/EBB/blob/master/EBB_GEN2/EBB42_GEN2/sample-bigtreetech-ebb42-gen2-v1.0.cfg) when writing `printer.cfg`.

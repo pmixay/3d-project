@@ -1,6 +1,6 @@
 """Frame v2 for the Hefest head: toolhead board on the side wall instead of on top.
 
-Starts from the Hefest frame as exported in commit 006a50f (src/hefest_frame_006a50f.step)
+Starts from the original Hefest frame (src/frame_original.step)
 and applies four changes, all in the Hefest assembly coordinates
 (origin = carriage centre, +Z along the X rail, +Y up, hotend on the -X side):
 
@@ -15,7 +15,7 @@ import os
 import cadquery as cq
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-SRC = os.path.join(HERE, "src", "hefest_frame_006a50f.step")
+SRC = os.path.join(HERE, "src", "frame_original.step")
 OUT = os.path.join(HERE, "out")
 
 # --- existing frame (measured from the STEP) ---------------------------------

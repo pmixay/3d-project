@@ -1,107 +1,87 @@
-# Print head (Hefest) — review of the current design
+# Печатная голова Hefest — пояснительная записка
 
-Source: [KAPACbik/Hefest, branch `Side-PCB-test`](https://github.com/KAPACbik/Hefest/tree/Side-PCB-test), commit `006a50f` (Nov 13, 2026). This folder holds the analysis only; the CAD files stay in that repository.
+Печатная голова Hefest разработана командой «Печатники» для принтера Hefest — пересобранного Imprinta Hercules H18. Голова ставится на каретку MGN12H рельса оси X и несёт всё, что участвует в печати: экструдер, хотенд, обдув, плату головы и датчик стола.
 
-## What is in the repository
+<p>
+<img src="../submission/materials/img/hefest_parts_front.png" alt="Печатные детали головы, вид спереди" width="45%">
+<img src="../submission/materials/img/hefest_parts_rear.png" alt="Печатные детали головы, вид сзади" width="45%">
+</p>
 
-The head is designed in KOMPAS-3D v23 (educational version). History: 12 commits, Nov 8–13, 2026; `main` stops at Nov 9 and all later work is on `Side-PCB-test`.
+*Печатные детали головы. Синий — рама, оранжевый — крышка ремня, красный — треугольник, зелёный и фиолетовый — крепления хотенда, жёлтый — воздуховод.*
 
-**`Сборка/` (assembly)**
+## 1. Требования к голове
 
-| File | What it is |
+1. **Ставится на штатную механику.** Голова крепится к каретке MGN12H рельса X четырьмя винтами M3; рельсы, моторы осей и стол Hercules остаются на месте.
+2. **Лёгкая и жёсткая.** Цель — скорость печати до 500 мм/с. Чем легче голова, тем быстрее её можно разгонять; чем она жёстче, тем меньше она раскачивается при разгоне и торможении.
+3. **Не мешает ремням.** Концы ремней закрепляются на голове, свободная ветвь проходит мимо, не касаясь деталей.
+4. **Под новую электронику.** Хотенд 24 В с нагревом до 300 °C, плата головы EBB42 GEN2 и один кабель от основной платы.
+5. **Плата головы — сбоку, а не сверху** (раздел 4).
+
+## 2. Печатные детали
+
+| Деталь | Зачем нужна |
 | :--- | :--- |
-| `Сборка башки.a3d` | The head assembly (KOMPAS native). The `.bak`, `.bak.bak` and `.$$$` copies next to it are editor backups, about 90 MB of the repository. |
-| `Hefest extruder.stp` | STEP export of the whole assembly with every part in position (added in `006a50f`). In this export the frame has a roof shelf with a toolhead board on top and the S2DW accelerometer on the side wall. |
-| `Рама.stp/.stl` | **Frame** — bolts on top of the MGN12H carriage, carries the extruder on a vertical plate, drops behind the rail to the belt clamp. 51×63×47 mm, 22.9 cm³. |
-| `Крышка для ремня.stp/.stl` | **Belt cover** — clamps the belt ends from above with 2 × M3. 14×24×47 mm. |
-| `Треугольник.stl` | **Triangle** — truss that passes under the X rail and ties the rear of the frame to the hotend mounts. |
-| `Крепление хотенда 1.stl`, `2.stl` | **Hotend mounts** — two clamp halves for the CHC Pro; the front one carries the 3010 fan. |
-| `Воздуховод.stp/.stl`, `Воздухан без углов.m3d` | **Part-cooling duct** from the 5015 blower, running under the rail to both sides of the nozzle. |
+| **Рама** | Основа головы. Крепится к каретке MGN12H и несёт вертикальную плиту экструдера, зажим ремней и плату головы. Остальные детали держатся на раме, поэтому усилия от разгона передаются на каретку кратчайшим путём. Экструдер K3D Minifeeder встроен в плиту рамы — отдельный корпус ему не нужен. |
+| **Крышка ремня** | Фиксирует концы ремней в зажиме на задней части рамы, крепится двумя винтами M3. Ремень держится без клея и стяжек; чтобы снять или перетянуть его, достаточно открутить два винта. |
+| **Треугольник** | Ферма под рельсом X: связывает заднюю часть рамы с креплениями хотенда. Хотенд вынесен вперёд и вниз от каретки, и без фермы этот вынос раскачивался бы при разгоне — на стенках детали появлялись бы волны. Треугольная форма даёт жёсткость при малой массе. Между треугольником, рамой и кареткой оставлен проход для свободной ветви ремня. |
+| **Крепления хотенда 1 и 2** | Две полуобоймы, которые зажимают радиатор хотенда CHC Pro и удерживают его вертикально. Передняя несёт вентилятор 3010, обдувающий радиатор. |
+| **Воздуховод** | Подводит воздух от вентилятора 5015 под рельсом X к соплу с двух сторон. Деталь охлаждается равномерно, поэтому хватает одного вентилятора вместо двух. |
 
-**`Компоненты/` (purchased parts and references):** 3010 fan, Artillery X4 Pro 5015 blower, BTT EBB42, BTT EBB36 Gen2 v1.1, BTT S2DW accelerometer, TriangleLab CHC Pro, E3D Volcano block, NEMA14 `14HR08-0654S`, MGN12H carriage, K3D Minifeeder mod 5A (Thingiverse 5773294), the stock green breakout board, duct tubes, a nut drawing.
+## 3. Покупные компоненты
 
-![Printed parts in assembly coordinates](img/hefest_printed_parts.png)
-
-Printed parts as exported: frame (blue), belt cover (orange), hotend mounts (green, purple), triangle (red), duct (yellow).
-
-## Design decisions
-
-- **The toolhead board does not go on top of the head.** A variant with a board on a shelf above the extruder motor was tried in the assembly and rejected.
-
-## Frame v2 — board on the side
-
-`v2/frame_v2.py` takes the Hefest frame from `006a50f` and produces `v2/out/frame_v2.step` / `.stl`. It is a proposal to print and try, not a finished part.
-
-![Frame v2 with the EBB42 GEN2 on the side wall](v2/img/frame_v2_iso_board.png)
-
-![Side view](v2/img/frame_v2_side.png)
-
-What changes relative to the Hefest frame:
-
-1. **Roof shelf removed.** Nothing sits on top of the head; the frame is 6 cm³ lighter (26.7 instead of 32.8 cm³).
-2. **Board on the −Z side wall,** XT30 at the top so the cable leaves upwards. The wall is extended into one flat plate behind the whole board.
-3. **Four bosses for M3 heat-set inserts** (Ø7 boss, Ø4.0 × 6 mm hole, 3.5 mm stand-off) on the GEN2's 31 × 31 mm pattern, at x = −14.75 / 16.25 and y = 27.44 / 58.44 in assembly coordinates. The board occupies x = −19.25…20.75, y = 23…68.
-4. **Carriage holes opened to 3.4 mm** for M3.
-
-Checked against every other part of the assembly export: no interference from the new wall, bosses or board envelope. The belt cover can still be lifted off its pins (7.5 mm of room under the extended wall).
-
-Not changed, and still open:
-
-- **Belt gap** — left as designed until the belt position is measured.
-- **1.7 mm under the carriage screw heads** — thickening it means moving the base plate, which is a decision for the frame's author.
-- **Accelerometer** — the S2DW board and its plate are left out, since the EBB42 GEN2 has its own accelerometer.
-- **Width** — the board and its connectors reach 13.7 mm beyond the frame on the −Z side, 14 mm above the top of the carriage block. Whether that clears the X-end at the end of travel has to be checked on the printer.
-
-## Geometry read from the STEP files
-
-Head coordinates: origin at the carriage centre, +Z along the X rail, +Y up, hotend on the −X side.
-
-- **Carriage interface:** 4 holes on a 20×20 mm pattern (MGN12H), centred at x = −0.5, z = 0. The frame plate sits on the block at y = 9.
-- **Belt clamp:** behind the rail, teardrop pockets at x = 15…21 with pins at z = ±10.5; the belt sits at y = −2…4. Both belt ends enter here, one from each side.
-- **Extruder plate:** vertical, 2.5 mm thick with side ribs, 47 mm wide.
-
-## Findings
-
-1. **The gap for the free front belt run is very tight.** By design the front belt run is not clamped: it passes through the gap between the frame, the triangle and the carriage block. That gap is 2.75 mm wide (x = −16.75…−14.0, the last being the face of the MGN12H block) and 10 mm tall (y = −1.1…8.75) along the whole length of the head.
-
-   ![Projection along the rail](img/belt_corridor.png)
-
-   White is free space along the whole head; the narrow white strip to the left of the dashed block is the gap. The red box is the free front run at the position the design assumes; the green box is the clamped rear run.
-
-   - **Sideways:** a GT2 belt is about 1.4 mm thick, so it has roughly 0.7 mm of clearance to the carriage block on one side and to the frame on the other, and only if it runs exactly 14.9 mm in front of the rail centre. The clamped run sits 18.5 mm behind the rail centre, so the design assumes the two runs are not symmetric about the rail.
-   - **Vertically:** the clamp holds the rear run at y = −2…4, with its top edge level with the top of the rail. A front run at the same height would overlap the top of the triangle by about 0.9 mm.
-   - A belt moves sideways when the head accelerates, so 0.7 mm per side is likely to rub. A slot of about 5 mm (1.5–2 mm per side) with the triangle top lowered to y ≤ −4 would be safe, if the measured belt position allows it.
-
-2. **Carriage screw holes.** The four holes are 2.7 mm with a 5.7 mm counterbore that leaves 1.7 mm of plastic under the screw head. M3 screws need 3.2–3.4 mm, and 1.7 mm is thin for the joint that carries the whole head.
-3. **The board model in the repository is the wrong generation.** It has the first-generation EBB42 and an EBB36 Gen2, but not the EBB42 GEN2 V1.0 that was ordered. The GEN2 is 5 mm longer and its hole pattern is off-centre — see the dimensions below and use the official STEP model.
-4. **The belt gap is the same in the latest assembly export** (`006a50f`): 2.75 mm wide, measured with the carriage block in place.
-
-## EBB42 GEN2 V1.0 dimensions
-
-Measured from BigTreeTech's official STEP model and checked against the dimension drawing on their wiki.
-
-| Item | Value |
+| Компонент | Зачем нужен |
 | :--- | :--- |
-| Board outline | 40 × 45 mm (45.8 mm including the XT30, which overhangs the top edge by 0.8 mm) |
-| Mounting holes | 4 × Ø3.1 mm (M3) on a 31 × 31 mm square |
-| Hole position | 4.5 mm from each long edge; 4.4 mm from the bottom edge, 9.6 mm from the top (XT30) edge — not centred along the 45 mm side |
-| XT30 (2+2) power/data connector | at the top edge, 13.4 mm wide × 12.7 mm deep, 16.3–29.7 mm from the left edge, 5.4 mm above the board; the plug goes in from beyond the top edge, in the plane of the board |
-| Height above the board | 8.6 mm at the heater screw terminal (right edge), 6–7 mm for the other connectors |
-| Below the board's top face | through-hole pins reach 3.8 mm; total model height 12.4 mm |
+| **Хотенд TriangleLab CHC Pro**<br>24 В, 115 Вт, до 300 °C | Плавит пластик. Керамический нагреватель быстро выходит на температуру и держит её при большом расходе пластика, что нужно для высоких скоростей. Нагрев до 300 °C (у штатного UniHOT — до 260 °C) открывает инженерные пластики. Штатный термистор NTC 100K подключается к плате головы напрямую, без усилителя. |
+| **Сопло TriangleLab Volcano NCB** | Биметаллическое сопло вместо латунного, которое быстро изнашивается; рассчитано на композиты — пластики с наполнителем. Удлинённый формат Volcano даёт длинную зону плавления, а значит, больший расход пластика. |
+| **Экструдер K3D Minifeeder + шестерни BMG**<br>редукция 5:1 | Подаёт пластик в хотенд. Экструдер прямой — стоит над хотендом, путь пластика от шестерён до сопла короткий, поэтому подача и откат точные, а Pressure Advance работает с малыми значениями. Редуктор позволяет лёгкому мотору развивать нужное усилие подачи. |
+| **Мотор NEMA14, 36 мм**<br>98 г | Привод экструдера. Плоский мотор NEMA14 легче NEMA17, а недостающий момент добирает редуктор 5:1. Каждый грамм, снятый с головы, позволяет поднять ускорения. |
+| **Плата головы BIGTREETECH EBB42 GEN2** | Собирает электронику головы в одном месте: драйвер мотора экструдера, акселерометр для Input Shaper, выходы нагревателя и вентиляторов, входы термистора и датчика стола. Вместо 12-жильного жгута к голове идёт один кабель: 24 В, GND и шина CAN. Выходы защищены от короткого замыкания, температуру платы контролирует Klipper. |
+| **Датчик стола BIQU MicroProbe V2** | Автоматическая калибровка стола. Стол накрыт стеклом 4 мм, сквозь которое индуктивные и вихретоковые датчики не видят металл, поэтому выбран контактный датчик: он касается стекла металлическим штоком. Масса 6 г, повторяемость 0,002 мм. |
+| **Вентилятор 5015**<br>радиальный, 24 В | Обдув детали через воздуховод. Радиальный вентилятор создаёт давление, которое нужно, чтобы прогнать воздух через воздуховод. При высокой скорости слой должен застыть до того, как на него ляжет следующий, — без сильного обдува нависания и мосты провисают. |
+| **Вентилятор 3010**<br>24 В | Охлаждает радиатор хотенда, чтобы пластик плавился только в зоне нагрева и не размягчался выше неё. Иначе в горле хотенда образуется пробка и подача останавливается. |
+| **Каретка MGN12H** | Штатная, остаётся от Hercules. Голова спроектирована под её крепёжный квадрат 20 × 20 мм, поэтому ось X не переделывается. |
+| **Винты и термовставки M3** | Латунные термовставки вплавляются в пластик и держат резьбу при многократной сборке лучше, чем резьба, нарезанная прямо в пластике. |
 
-Electronics, from the wiki and the official sample config: `STM32G0B1CBT6` MCU, on-board `TMC2209`, `LIS2DW` accelerometer, USB or CAN selected by a jumper, 24–28 V input, 120 W heater output, NTC or PT1000 thermistor input, two 2-pin fan ports plus one 3-pin with tachometer, probe port for MicroProbe / BLTouch / 24 V inductive.
+## 4. Плата головы на боковой стенке
 
-Sources: [STEP model](https://github.com/bigtreetech/EBB/tree/master/EBB_GEN2/EBB42_GEN2/CAD), [sample Klipper config](https://github.com/bigtreetech/EBB/blob/master/EBB_GEN2/EBB42_GEN2/sample-bigtreetech-ebb42-gen2-v1.0.cfg), [BTT wiki page](https://global.bttwiki.com/EBB42_GEN2.html).
+Плата EBB42 GEN2 крепится к боковой стенке рамы, а не сверху головы:
 
-The board thickness in the STEP model is not drawn realistically, so the clearance under the board should be checked on the real part.
+- **голова не становится выше,** а её центр масс остаётся ближе к каретке — меньше опрокидывающий момент на каретку при резком разгоне;
+- **верх головы свободен:** сверху в экструдер входит пластик, и к экструдеру остаётся доступ;
+- **разъём XT30 направлен вверх,** и кабель уходит от головы вверх по кратчайшему пути;
+- **рама легче:** полка под плату сверху больше не нужна — на 6 см³ меньше пластика.
 
-## Needed to finalise the head
+<p>
+<img src="v2/img/frame_v2_iso_board.png" alt="Рама v2 с платой EBB42 GEN2 на боковой стенке" width="45%">
+<img src="v2/img/frame_v2_side.png" alt="Рама v2, вид сбоку" width="40%">
+</p>
 
-- **Belt positions on the printer:** distance from the front face of the rail to the front belt run and from the rear face to the rear run, and the height of the belt's top edge relative to the top of the rail (both runs), and belt width. The design assumes 8.9 mm in front, 12.5 mm behind, and the top edge level with the rail top.
-- **Space beside the head on the −Z side:** the height of the tallest thing on the X-end (plate, idler bolt heads) above the top face of the carriage block. The board in frame v2 starts 14 mm above that face and sticks out 14 mm beyond the frame, plus wiring.
+Что изменено в раме (рама v2):
 
-## Tools
+1. Убрана полка сверху головы.
+2. Боковая стенка продлена в одну плоскую плиту под всю плату.
+3. Добавлены четыре бобышки под латунные термовставки M3 по крепёжному квадрату платы 31 × 31 мм. Высота бобышек 3,5 мм — выводы на обратной стороне платы не касаются стенки.
+4. Отверстия под винты каретки расширены до 3,4 мм — свободный проход винта M3.
 
-`v2/frame_v2.py` rebuilds frame v2 (needs CadQuery); all placement numbers are constants at the top.
+На 3D-модели проверено, что стенка, бобышки и плата ни с чем в сборке головы не пересекаются, а крышку ремня можно снять, не снимая платы. При сборке на принтере остаётся проверить, что плата не задевает узел оси X в крайнем положении головы.
 
-`tools/belt_corridor.py` projects any set of head STL files along the rail and reports how much of a given belt zone is blocked. The belt zone is a constant at the top of the script.
+## 5. Нагрузка на кабель головы
+
+Вся голова питается по одному кабелю 24 В через разъём XT30 платы EBB42 GEN2.
+
+| Потребитель | Ток при 24 В |
+| :--- | ---: |
+| Нагреватель CHC Pro во время печати (45–65 Вт) | ≈ 2,3 А |
+| Мотор экструдера NEMA14 | ≈ 0,35 А |
+| Вентиляторы 5015 и 3010 | ≈ 0,25 А |
+| **Итого во время печати** | **≈ 2,9 А** |
+| Пик при холодном старте: нагреватель 115 Вт, первые 10–15 с | 5,44 А |
+| Допустимый ток разъёма XT30 | 15 А |
+
+Запас по разъёму — больше чем в 5 раз в рабочем режиме. Потери в кабеле — менее 0,44 Вт, нагрев драйвера экструдера на плате — около 0,29 Вт.
+
+## 6. Файлы
+
+- **3D-модель головы** — сборка и детали в STEP и STL: [KAPACbik/Hefest](https://github.com/KAPACbik/Hefest/tree/Side-PCB-test).
+- **Рама v2 для печати** — [`v2/out/frame_v2.stl`](v2/out/frame_v2.stl), [`v2/out/frame_v2.step`](v2/out/frame_v2.step); габарит платы EBB42 GEN2 для проверки посадки — [`v2/out/ebb42_gen2_envelope.step`](v2/out/ebb42_gen2_envelope.step).
+- **Построение рамы v2** — [`v2/frame_v2.py`](v2/frame_v2.py) (CadQuery) строит раму v2 из исходной; размеры размещения платы заданы константами в начале файла.
