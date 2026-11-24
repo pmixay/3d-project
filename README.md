@@ -40,7 +40,7 @@ Team name: **«Печатники»**. Captain: Курышев Андрей Ва
 | `Hefest_komplektuyushchie.xlsx` | The single list of components with prices, status and order numbers, split into two stages, with totals (in Russian). |
 | `Hefest_Spec_and_Plan-v3.docx` | Upgrade plan (v3): architecture of the new boards and notes from photos of the build. |
 | `model/` | Parametric CadQuery model of the whole printer (`printer.py`, dimensions in `params.py`), exported to STEP / GLB / STL in `model/out/`, with renders and the list of components seen on the machine (`COMPONENTS.md`). The GLB carries the Hefest head on the X carriage. Only the outer size and build volume are published figures; the rest is measured on photos. |
-| `head/` | Explanatory note for the Hefest print head (in Russian): why each part and component is needed, the toolhead board on the side wall of the frame (frame v2) and the current budget of the head cable. |
+| `head/` | Explanatory note for the Hefest print head (in Russian): why each part and component is needed, the toolhead board on the side wall of the frame, the MicroProbe mount, the head cover and the current budget of the head cable. `head/v3/` holds the printable parts and the CadQuery scripts that build them. |
 | `submission/` | Application for the "3D Profi" championship: presentation and project description (in Russian). |
 
 ---
@@ -137,7 +137,7 @@ A toolhead board with a single cable is the industry-standard architecture (Bamb
 - **Toolhead link.** The EBB42 GEN2 works over CAN or USB, selected by a jumper on the board; this plan uses CAN.
 - **CAN bus termination.** Enable the 120 Ω termination resistors at both ends of the line (the `120R` jumpers on the mainboard and on the toolhead board).
 - **Accelerometer orientation.** Set `axes_map` in the `[lis2dw]` section to match how the toolhead board is actually mounted.
-- **Mounting the toolhead board.** On the side wall of the head frame, on four M3 heat-set inserts on the 31×31 mm pattern (frame v2, see [`head/README.md`](head/README.md)). The board is not mounted on top of the head.
+- **Mounting the toolhead board.** On the side wall of the head frame, on the 31×31 mm hole pattern (frame v3, see [`head/README.md`](head/README.md)). The board is not mounted on top of the head.
 
 ### 4.2. Klipper stack
 
@@ -166,7 +166,7 @@ Creality lists it only for its own printers and pads. On arrival, confirm that i
 
 **Before the orders arrive (November 22–24):**
 
-1. Print frame v2 of the head ([`head/v2/out/frame_v2.stl`](head/v2/out/frame_v2.stl)) and fit the M3 heat-set inserts for the EBB42 GEN2.
+1. Print the head parts from `head/v3/out/`: the frame with the cover boss (`frame_v3_cover.stl`), the front hotend mount with the MicroProbe seat (`hotend_mount_2_probe.stl`) and the head cover (`head_cover.stl`, top face on the bed, no supports); fit three M3 heat-set inserts for the cover screws.
 
 **To verify on the hardware:**
 

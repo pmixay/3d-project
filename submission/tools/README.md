@@ -8,7 +8,7 @@
 
 ## Как пересобрать
 
-`Hefest_golova_poyasnitelnaya_zapiska.pdf` - это `head/README.md` без раздела «Файлы», переведённый в PDF (pandoc → HTML → печать в Chromium) скриптом `make_head_pdf.mjs`.
+`Hefest_golova_poyasnitelnaya_zapiska.pdf` - это `head/README.md` без последнего раздела «Файлы», переведённый в PDF (pandoc → HTML → печать в Chromium) скриптом `make_head_pdf.mjs`.
 
 **Оформление текста:** в материалах заявки не используются длинное и среднее тире (только обычный дефис «-») и маркеры списков в виде точек: списки в описании нумерованные.
 
@@ -18,7 +18,9 @@
 cd submission/tools
 python3 make_docx.py      # описание проекта .docx
 node make_head_pdf.mjs    # пояснительная записка к голове .pdf (нужны pandoc и playwright)
-python3 cutout_bg.py in.jpg out.png preview.png   # убрать серый фон со скриншота из САПР (рендеры головы на слайде 5)
+python3 cutout_bg.py in.jpg out.png preview.png   # убрать серый фон со скриншота из САПР
 soffice --headless --convert-to pdf --outdir .. ../Hefest_prezentaciya.pptx   # PDF из презентации; шрифты из fonts/ должны быть установлены
+# рендеры головы: node render_head.mjs <голова.glb> head_views.json ../materials/img   (голова.glb: python3 ../../model/tools/head_glb.py <parts_dir> голова.glb --by-part)
+# схема крепления крышки: голова.glb с ключом --exploded, вид hefest_head_cover_mount, затем python3 head_cover_mount.py <рендер.png> ../materials/img/hefest_head_cover_mount.png
 # рендеры: node render_model.mjs ../../model/out/hefest_printer.glb <папка> front_iso right_iso gantry_close (нужен three@0.160.0)
 ```

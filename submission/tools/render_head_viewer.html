@@ -1,0 +1,57 @@
+<!doctype html><html><body style="margin:0;background:transparent">
+<script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script>
+<script type="module">
+// Viewer for the print head GLB (head coordinates, Y up, millimetres). Driven by render_head.mjs.
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+const r = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true, alpha: true });
+r.setPixelRatio(2); r.setSize(innerWidth, innerHeight); r.setClearColor(0x000000, 0);
+r.toneMapping = THREE.ACESFilmicToneMapping; r.toneMappingExposure = 1.05;
+r.outputColorSpace = THREE.SRGBColorSpace;
+document.body.appendChild(r.domElement);
+const scene = new THREE.Scene();
+scene.environment = new THREE.PMREMGenerator(r).fromScene(new RoomEnvironment(), 0.04).texture;
+scene.add(new THREE.HemisphereLight(0xffffff, 0x30363a, 0.5));
+const key = new THREE.DirectionalLight(0xfff6ea, 2.4); scene.add(key); scene.add(key.target);
+const fill = new THREE.DirectionalLight(0xbfe6ff, 0.8); scene.add(fill); scene.add(fill.target);
+const cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 1, 4000);
+const holder = new THREE.Group(); scene.add(holder);
+new GLTFLoader().load('/model.glb', g => {
+  const m = g.scene; holder.add(m);
+  holder.rotation.x = Math.PI / 2; holder.updateMatrixWorld(true);   // CadQuery writes (x, y, z) as (x, z, -y)
+  if (new THREE.Box3().setFromObject(holder).getSize(new THREE.Vector3()).length() < 5) { holder.scale.setScalar(1000); holder.updateMatrixWorld(true); }
+  m.traverse(o => {
+    if (!o.isMesh) return;
+    const c = o.material.color.clone(), l = c.clone().convertLinearToSRGB();
+    const grey = Math.max(l.r, l.g, l.b) - Math.min(l.r, l.g, l.b) < 0.04, v = (l.r + l.g + l.b) / 3;
+    const p = { color: c, side: THREE.DoubleSide };
+    o.material = grey && v > 0.6 ? new THREE.MeshStandardMaterial({ ...p, metalness: 0.65, roughness: 0.3, envMapIntensity: 1.1 })   // steel, aluminium
+      : Math.abs(l.r - 0.80) + Math.abs(l.g - 0.62) + Math.abs(l.b - 0.20) < 0.12 ? new THREE.MeshStandardMaterial({ ...p, metalness: 1, roughness: 0.3 })   // brass
+      : new THREE.MeshStandardMaterial({ ...p, metalness: 0.05, roughness: 0.55, envMapIntensity: 0.7 });   // plastic
+  });
+  // view: {dir: [x, y, z] from target to camera, target: [x, y, z], span: visible height in mm, up: [x, y, z], hide: regex, only: regex}
+  window.setView = v => {
+    const hide = v.hide ? new RegExp(v.hide) : null, only = v.only ? new RegExp(v.only) : null;
+    m.traverse(o => { if (!o.isMesh) return; let nm = ''; for (let n = o; n; n = n.parent) nm += ' ' + (n.name || '');
+      o.visible = !(hide && hide.test(nm)) && (!only || only.test(nm)); });
+    const t = new THREE.Vector3(...v.target), d = new THREE.Vector3(...v.dir).normalize();
+    const h = v.span / 2, w = h * innerWidth / innerHeight;
+    Object.assign(cam, { left: -w, right: w, top: h, bottom: -h }); cam.updateProjectionMatrix();
+    cam.up.set(...(v.up || [0, 1, 0])); cam.position.copy(t).addScaledVector(d, 1500); cam.lookAt(t); cam.updateMatrixWorld(true);
+    const right = new THREE.Vector3().setFromMatrixColumn(cam.matrixWorld, 0), up = new THREE.Vector3().setFromMatrixColumn(cam.matrixWorld, 1);
+    key.position.copy(t).addScaledVector(d, 600).addScaledVector(right, -500).addScaledVector(up, 700); key.target.position.copy(t);
+    fill.position.copy(t).addScaledVector(d, 300).addScaledVector(right, 700).addScaledVector(up, -100); fill.target.position.copy(t);
+    r.render(scene, cam);
+  };
+  // bounding box of what was drawn, in CSS pixels: [x0, y0, x1, y1]
+  window.drawnBox = () => {
+    const gl = r.getContext(), w = gl.drawingBufferWidth, h = gl.drawingBufferHeight, px = new Uint8Array(w * h * 4);
+    gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, px);
+    let x0 = w, y0 = h, x1 = -1, y1 = -1;
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (px[(y * w + x) * 4 + 3] > 8) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+    const k = innerWidth / w; return [x0 * k, (h - 1 - y1) * k, (x1 + 1) * k, (h - y0) * k];
+  };
+  window.ready = true;
+});
+</script></body></html>

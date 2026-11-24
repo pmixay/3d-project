@@ -17,7 +17,9 @@
 **Печатная голова Hefest (собственная разработка команды)**
 
 - [Пояснительная записка: зачем нужна каждая деталь и каждый компонент](../head/README.md)
-- Рендеры головы в сборке: [со стороны платы](materials/img/hefest_head_board.png) и [со стороны экструдера](materials/img/hefest_head_extruder.png)
+- Рендеры головы в сборке: [со стороны платы, без крышки](materials/img/hefest_head_board.png) и [со стороны экструдера, с крышкой](materials/img/hefest_head_extruder.png)
+- [Датчик стола MicroProbe под креплением хотенда](materials/img/hefest_head_probe.png)
+- Крышка головы с названием принтера: [голова с крышкой](materials/img/hefest_head_cover.png), [голова без крышки](materials/img/hefest_head_nocover.png), [как крепится крышка](materials/img/hefest_head_cover_mount.png)
 - [Печатные детали - вид спереди](materials/img/hefest_parts_front.png) и [вид сзади](materials/img/hefest_parts_rear.png)
 
 **Рендеры принтера**

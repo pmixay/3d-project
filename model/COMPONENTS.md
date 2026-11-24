@@ -72,16 +72,18 @@ The model draws each run as a straight belt between its pulleys, in one plane, t
 
 The photos still show the previous head (green breakout board standing at the rear, S2DW accelerometer on a
 printed arm, braided harness looping above the printer). The model shows the new **Hefest** head instead:
-`model/parts/hefest_head.glb`, built by `tools/head_glb.py` from the team's assembly with frame v2
-(`head/v2/`) and placed on the X carriage when `printer.py` writes the GLB.
+`model/parts/hefest_head.glb`, built by `tools/head_glb.py` from the team's assembly with the v3 parts
+(`head/v3/`: frame with the cover boss, front hotend mount with the MicroProbe seat, head cover) and placed on the X carriage when `printer.py` writes the GLB.
 
 | Component | Model part | Notes |
 | :--- | :--- | :--- |
-| Frame v2 (EBB42 GEN2 on the side wall), belt cover, triangle, hotend mounts, duct | `head_frame_v2`, `head_belt_cover*`, `head_triangle`, `head_hotend_mount_*`, `head_duct*` | From the team's CAD; printed parts shown in dark grey. |
+| Frame v3 (EBB42 GEN2 on the side wall), belt cover, triangle, hotend mounts, duct | `head_frame_v3`, `head_belt_cover`, `head_triangle`, `head_hotend_mount_*`, `head_duct` | From the team's CAD; printed parts shown in dark grey. |
 | TriangleLab CHC Pro with Volcano nozzle | `head_chc_*`, `head_nozzle_volcano` | Nozzle tip 38.4 mm in front of the X-rail centre line, 69.8 mm below the head origin. |
 | K3D Minifeeder, NEMA14 pancake motor | `head_minifeeder`, `head_nema14` | |
 | 3010 hotend fan, 5015 part-cooling blower | `head_fans` | |
-| BIGTREETECH EBB42 GEN2 V1.0 | `head_ebb42_gen2_*` | Simplified board: PCB, XT30, connectors, heater terminal; on the left side wall of the head, XT30 up. |
+| BIGTREETECH EBB42 GEN2 V1.0 | `head_ebb42_gen2_*` | The board from the team's assembly; on the left side wall of the head, XT30 up. |
+| BIQU MicroProbe V2 | `head_microprobe` | Official mockup, pin extended; under the front hotend mount, shown in orange. |
+| Head cover with the printer name | `head_cover`, `head_cover_screws`, `head_inserts_cover` | One shell over the front and top of the head, on three M3 screws of its own. |
 | Single 24 V + CAN cable from the XT30 to the rear-right corner | `toolhead_cable_can` | Route approximate. Hidden in the presentation renders. |
 
 ## Electronics tray (underside)
@@ -131,5 +133,5 @@ python model/printer.py
 
 Outputs go to `model/out/`: `hefest_printer.step`, `hefest_printer.glb` (with the Hefest head and the belt teeth), `hefest_printer.stl`.
 To rebuild the head mesh from the team's assembly (split into `.brep` files by assembly node):
-`python model/tools/head_glb.py <parts_dir> head/v2/out/frame_v2.step model/parts/hefest_head.glb`.
+`python model/tools/head_glb.py <parts_dir> model/parts/hefest_head.glb` (`<parts_dir>` is the team's assembly STEP split by `model/tools/split_assy.py`).
 The preview images in `model/out/renders/` are made with `model/tools/render.mjs` (see the comment at the top of that file).
