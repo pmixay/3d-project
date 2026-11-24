@@ -106,11 +106,52 @@ Frames: 17 326 (3 306 after a spaghetti onset; frames after a layer shift are ex
 
 At the warning level of 0.38, 0.73 % of normal frames score as failure. This is what the naive baseline turns into false alarms and what the temporal engine absorbs.
 
-ROBUSTNESS_SECTION
+## 5b. Robustness to camera problems
+
+Synthetic degradations applied to the **real** recorded frames, followed by a full new network run (`tools/evaluate.py --perturb`). The window covers 10 min before to 15 min after each onset, and the first 25 min of the normal prints (2.25 h of normal printing in total). The interval is 6 s.
+
+| Condition (applied to every frame) | Detected | Latency, s | False alarms | Frames not sent to the network | Max score after onset (per print) |
+| :--- | :---: | :--- | ---: | ---: | :--- |
+| none (reference for this window) | 3/3 | 61, 108, 193 | 0 | 0 | 3.32, 2.38, 1.63 |
+| **dark**: gamma 1.8, gain 0.45 (lights off) | 2/3 | 97, 171 | 0 | 1833 of 2250 | 2.65, 0.00, 2.03 |
+| **noise**: Gaussian σ = 18 (cheap sensor, dim light) | 2/3 | 108, 200 | **3** | 0 | 3.72, 2.25, 1.55 |
+| **motion blur**: 21 px horizontal | 3/3 | 146, 253, 331 | 0 | 0 | 1.40, 0.95, 0.48 |
+| **partial occlusion**: left third covered | 3/3 | 56, 294, 193 | 0 | 0 | 3.31, 0.61, 1.66 |
+
+- **Darkness** is handled by refusing to guess. Darkened frames below the brightness floor are not analysed (1833 of 2250). In the live service this raises a *"Image quality poor"* incident after 20 s; the offline replay does not simulate camera incidents. The one "missed" print is a print whose every frame was refused. Where frames stayed just above the floor, spaghetti was still detected. No false alarms.
+- **Sensor noise is the weak point.** The network starts to see "failure" in grain on the busy camera-1 view: 3 false alarms, and one failure counted as missed because a false-alarm incident was already open and critical before the onset. Denoising before inference was tested and made scores on normal prints *higher* (mean p on 20 normal frames: clean 0.19, noisy 0.45, noisy + Gaussian/median 5×5 denoise 0.79/0.57; a one-off check, not a scripted result), so it was rejected. The response instead: the validator measures noise (Immerkær σ; clean frames ≤ 2.9, noisy ≥ 5.8 on these recordings: 0/340 clean frames flagged, 87/87 noisy flagged, `tools/noise_check.py`). A noisy camera raises an image-quality incident that tells the operator to fix the lighting. **Practical rule: light the bed (the planned 24 V LED strip) and do not rely on night vision.**
+- **Motion blur on every frame** lowers the scores 2–4×, but all failures are still detected, 1–2.5 minutes later than normal. In real use only some frames are blurred, and those are skipped relative to the camera's own sharpness history (§ 3: 0.0–0.2 % skipped on the real recordings).
+- **Covering a third of the view** delays detection only when the spaghetti grows in the covered part (camera 2: 294 s). Choose the camera position so the bed and nozzle area is fully visible; the ROI editor helps check this.
+
 
 ## 6. Performance
 
-HARDWARE_TABLES
+Host: cloud VM, Intel(R) Xeon(R) Processor @ 2.10GHz, 4 logical cores, 16087 MB RAM, x86_64, ONNX Runtime 1.29.0, OpenCV 5.1.0
+
+| Model | Backend | Threads | Median, ms | p95, ms | Load, s | Process RAM, MB |
+| :--- | :--- | ---: | ---: | ---: | ---: | ---: |
+| obico-failure-5a6b1be1fa.onnx | onnxruntime | 1 | 205.5 | 238.6 | 0.73 | 434 |
+| obico-failure-5a6b1be1fa.onnx | onnxruntime | 2 | 111.2 | 147.8 | 0.8 | 418 |
+| obico-failure-5a6b1be1fa.onnx | onnxruntime | 4 | 59.4 | 73.3 | 0.78 | 419 |
+| obico-failure-int8-qdq.onnx | onnxruntime | 1 | 87.5 | 112.1 | 0.2 | 269 |
+| obico-failure-int8-qdq.onnx | onnxruntime | 2 | 49.6 | 52.5 | 0.23 | 269 |
+| obico-failure-int8-qdq.onnx | onnxruntime | 4 | 32.6 | 41.9 | 0.24 | 268 |
+| obico-failure-int8-dynamic.onnx | onnxruntime | 1 | 247.8 | 253.7 | 0.11 | 275 |
+| obico-failure-int8-dynamic.onnx | onnxruntime | 2 | 143.3 | 171.4 | 0.15 | 275 |
+| obico-failure-int8-dynamic.onnx | onnxruntime | 4 | 93.5 | 120.1 | 0.16 | 275 |
+| obico-failure-5a6b1be1fa.onnx | opencv | 4 | 119.4 | 151.4 | 0.41 | 343 |
+
+| Camera frame | Full analysis step, ms | of which inference, ms | Validation + resize + decision, ms |
+| :--- | ---: | ---: | ---: |
+| 640x360 | 72.7 | 69.2 | 3.5 |
+| 1280x720 | 65.5 | 62.2 | 3.3 |
+| 1920x1080 | 71.4 | 67.3 | 4.1 |
+
+| Interval, s | Analyses | Process CPU, % of one core | Process CPU, % of machine | System CPU, % | Peak RAM, MB |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 1.0 | 60 | 42.1 | 10.5 | 10.8 | 447 |
+| 3.0 | 20 | 13.3 | 3.3 | 3.7 | 447 |
+| 10.0 | 6 | 4.4 | 1.1 | 1.3 | 447 |
 
 **Reading the tables.**
 - One analysis costs **60 ms (4 threads) to 206 ms (1 thread)** with the FP32 model in ONNX Runtime on this CPU. OpenCV DNN is 2× slower than ONNX Runtime on the same model, so ONNX Runtime is the default.

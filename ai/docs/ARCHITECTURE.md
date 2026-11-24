@@ -12,7 +12,7 @@ flowchart LR
     CAM -.->|B: USB| CN
     CN -.->|HTTP snapshot / MJPEG| ACQ
     subgraph AI["Inference computer: Hercules AI (this project)"]
-        ACQ[Camera acquisition<br/>thread, 1-frame buffer,<br/>reconnect] --> VAL[Frame validation<br/>dark, blur, duplicate,<br/>frozen, obstructed]
+        ACQ[Camera acquisition<br/>thread, 1-frame buffer,<br/>reconnect] --> VAL[Frame validation<br/>dark, blur, noise, duplicate,<br/>frozen, obstructed]
         VAL --> PRE[Preprocessing<br/>ROI, resize 416, RGB]
         PRE --> NN[Inference<br/>Obico YOLOv2, ONNX Runtime]
         NN --> TMP[Temporal engine<br/>time-normalised EWM,<br/>baseline, evidence gate]
@@ -61,6 +61,8 @@ Other candidates we checked: PrintGuard (GPL-2.0, ShuffleNet prototypes) detecte
 **Bounded single-frame buffer.** The camera thread overwrites one slot. The analyser always takes the newest frame, so slow inference never builds a backlog and the memory used does not grow. Frames that are never analysed are counted, not queued.
 
 **Skip work that cannot help.** Unusable frames (dark, covered) are not sent to the network. Unchanged frames reuse the previous result. Motion-blurred frames, judged relative to this camera's own running sharpness, are skipped, at most 5 in a row so the monitor can never be starved.
+
+**Measure image noise, do not denoise.** Synthetic sensor noise (σ = 18, a cheap camera in dim light) raised the network's score on normal prints from ≤ 0.23 to 0.56–0.70 and caused false alarms (EVALUATION § 5b). Light denoising (Gaussian/median 5×5) made it *worse*: the network reacts to smoothed texture. So the validator estimates the noise level (Immerkær's estimator: clean frames σ ≤ 2.9, noisy ≥ 5.8 on the evaluation data) and raises an image-quality incident ("improve lighting"), instead of silently degrading the image.
 
 **Camera health is a first-class failure.** A blind monitor is worse than none, because people trust it. Offline, stalled, frozen (bit-identical frames), obstructed and unusable lighting each open their own incident after a persistence time.
 

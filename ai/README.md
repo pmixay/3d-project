@@ -18,7 +18,7 @@ Everything runs locally: no cloud service, account or subscription is needed.
 | :--- | :--- | :--- |
 | Spaghetti / filament mess / extrusion into the air | **Supported** | 3/3 recorded spaghetti failures detected, 1–4 min after the first loose strand; 0 false alarms in 5.4 h of normal printing (one public dataset, another printer; 95 % upper bound 0.56 false alarms/h) ([EVALUATION](docs/EVALUATION.md)) |
 | Camera offline / stream unavailable / stalled | **Supported** | automated tests (USB, MJPEG, snapshot, reconnect) |
-| Frozen image, covered lens, unusable lighting | **Supported** | automated tests on synthetic frames |
+| Frozen image, covered lens, unusable lighting, heavy sensor noise | **Supported** | automated tests; noise flag: 0/340 clean vs 87/87 noisy real frames flagged |
 | Part detached from the bed | Partly: only once the loose part produces visible mess | not separately validated, no labelled data |
 | Layer shift, warping, under-extrusion, first-layer defects | **Not supported** | 0/3 recorded layer shifts alerted (max. score 0.30 < warning 0.38); the network was not trained for these classes (see EVALUATION) |
 
@@ -97,13 +97,15 @@ This is not recommended and has **not been measured** yet: we had no access to t
 
 **Safety procedure for automatic pausing.** Start with `notify`. Change to `auto` only after several supervised prints on *your* printer and camera without false alarms. The AI never resumes a print. If this service stops, the printer simply carries on under Klipper's own protections: thermal runaway, heater limits and emergency stop do not depend on it.
 
+**Network security.** The dashboard is meant for the workshop LAN. Anyone who can reach port 8090 can see the camera and, unless `web.auth_token` is set, change settings or press Pause. On a shared network, set `auth_token` (state-changing requests then need the `X-Hercules-Token` header; the dashboard asks for it once). Never expose the port to the internet. The service needs only *outgoing* access to Moonraker and the camera.
+
 ## Repository layout
 
 ```
 ai/
   hercules/            the application (Python package)
     camera.py          USB / MJPEG / snapshot / video / frame-folder sources, reconnect, bounded buffer
-    quality.py         frame validation: dark, overexposed, blur, duplicate, frozen, obstructed
+    quality.py         frame validation: dark, overexposed, noise, blur, duplicate, frozen, obstructed
     detector.py        ONNX Runtime / OpenCV DNN wrapper for the Obico model, ROI, ignore zones
     temporal.py        time-normalised decision engine, evidence gate, hysteresis
     pipeline.py        Analyzer: the single code path for live and offline runs

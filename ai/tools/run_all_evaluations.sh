@@ -31,7 +31,10 @@ $PY tools/evaluate.py --intervals 6 --window 600 900 --out $R/eval_perturb_none.
 # INT8 model variant
 if [ -f models/obico-failure-int8-qdq.onnx ]; then
   $PY tools/score_sessions.py data/zenodo_fffqc/test_* --model models/obico-failure-int8-qdq.onnx --cache data/cache_int8
-  $PY tools/evaluate.py --cache data/cache_int8 --intervals 3 --out $R/eval_int8.json
+  $PY tools/evaluate.py --cache data/cache_int8 --intervals 3 12 --out $R/eval_int8.json
 fi
 # performance on this host
 $PY tools/benchmark.py --frames data/zenodo_fffqc/test_extrusion_error_print_camera1 --out "$R/benchmark_$(hostname).json"
+$PY tools/noise_check.py
+# 40-minute soak test of the live service
+$PY tools/soak.py --source data/zenodo_fffqc/test_no_error_print_camera2 --minutes 40 --interval 1 --speed 4 --sample 60 --out $R/soak_40min.json

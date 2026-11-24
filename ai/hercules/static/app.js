@@ -27,6 +27,7 @@ function fmtDur(s) {
   s = Math.round(s); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), sec = s % 60;
   return (h ? h + ":" + String(m).padStart(2, "0") : m) + ":" + String(sec).padStart(2, "0");
 }
+const esc = (v) => String(v == null ? "" : v).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const fmt = (v, d = 2) => (v == null || isNaN(v)) ? "—" : Number(v).toFixed(d);
 const tstr = (t) => t ? new Date(t * 1000).toLocaleString() : "—";
 function pill(id, cls, text) { const el = $(id); el.className = "pill " + cls; el.textContent = text; }
@@ -123,15 +124,16 @@ function renderIncidents(list) {
   $("inc-count").textContent = list.length ? `${list.length} shown` : "";
   if (!list.length) { tb.innerHTML = '<tr><td colspan="9" class="muted">no incidents yet</td></tr>'; }
   else tb.innerHTML = list.map(i => {
+    const id = Number(i.id);
     const img = i.evidence.find(f => f.includes("annotated"));
-    const thumb = img ? `<a href="/incidents/${i.id}/${img}" target="_blank"><img loading="lazy" src="/incidents/${i.id}/${img}" alt="evidence"></a>` : "";
+    const thumb = img ? `<a href="/incidents/${id}/${encodeURIComponent(img)}" target="_blank"><img loading="lazy" src="/incidents/${id}/${encodeURIComponent(img)}" alt="evidence"></a>` : "";
     const actions = i.status === "open"
-      ? `<button class="btn small" data-dismiss="${i.id}">False alarm</button>` : "";
-    return `<tr><td>${thumb}</td><td class="mono">${i.id}</td><td>${i.label}</td>
-      <td><span class="tag ${i.severity}">${i.severity}</span></td><td><span class="tag ${i.status}">${i.status}</span></td>
+      ? `<button class="btn small" data-dismiss="${id}">False alarm</button>` : "";
+    return `<tr><td>${thumb}</td><td class="mono">${id}</td><td>${esc(i.label)}</td>
+      <td><span class="tag ${esc(i.severity)}">${esc(i.severity)}</span></td><td><span class="tag ${esc(i.status)}">${esc(i.status)}</span></td>
       <td class="mono">${tstr(i.started_at)}</td><td class="mono">${fmt(i.peak_score)}</td>
-      <td title="${(i.action_detail || "").replace(/"/g, "&quot;")}">${i.action.replace(/_/g, " ")}</td>
-      <td>${actions} <a class="btn small ghost" href="/incidents/${i.id}/report.html" target="_blank">Report</a></td></tr>`;
+      <td title="${esc(i.action_detail)}">${esc(i.action.replace(/_/g, " "))}</td>
+      <td>${actions} <a class="btn small ghost" href="/incidents/${id}/report.html" target="_blank">Report</a></td></tr>`;
   }).join("");
   // banner for the open failure incident (or newest open camera incident)
   const open = list.find(i => i.status === "open" && i.category === "failure") || list.find(i => i.status === "open");
@@ -157,7 +159,7 @@ function fillSettings(s) {
     if (el.type === "checkbox") el.checked = !!v; else el.value = v;
   }
   $("cats").innerHTML = '<div class="muted" style="font-size:12px;margin-bottom:4px">Enabled detection categories</div>' +
-    s.categories.map(c => `<label class="chk"><input type="checkbox" data-cat="${c}" ${s.values.decision.enabled_categories.includes(c) ? "checked" : ""}>${c.replace(/_/g, " ")}</label>`).join("");
+    s.categories.map(c => `<label class="chk"><input type="checkbox" data-cat="${esc(c)}" ${s.values.decision.enabled_categories.includes(c) ? "checked" : ""}>${esc(c.replace(/_/g, " "))}</label>`).join("");
   roi = s.values.pipeline.roi.slice(); drawRoi();
 }
 function collectSettings() {

@@ -1,0 +1,43 @@
+{
+ "threshold": 4.0,
+ "sessions": {
+  "test_extrusion_error_print_camera1": {
+   "clean_max": 1.86,
+   "noisy_min": 6.05
+  },
+  "test_extrusion_error_print_camera2": {
+   "clean_max": 2.17,
+   "noisy_min": 6.19
+  },
+  "test_extrusion_error_print_camera3": {
+   "clean_max": 2.91,
+   "noisy_min": 6.51
+  },
+  "test_layershift_error_print_camera1": {
+   "clean_max": 1.57,
+   "noisy_min": 5.93
+  },
+  "test_layershift_error_print_camera2": {
+   "clean_max": 2.55,
+   "noisy_min": 6.12
+  },
+  "test_layershift_error_print_camera3": {
+   "clean_max": 1.84,
+   "noisy_min": 5.83
+  },
+  "test_no_error_print_camera1": {
+   "clean_max": 1.53,
+   "noisy_min": 5.89
+  },
+  "test_no_error_print_camera2": {
+   "clean_max": 2.7,
+   "noisy_min": 6.26
+  },
+  "test_no_error_print_camera3": {
+   "clean_max": 1.9,
+   "noisy_min": 5.76
+  }
+ },
+ "clean_flagged": "0/340",
+ "noisy_flagged": "87/87"
+}
