@@ -68,7 +68,7 @@ Other candidates we checked: PrintGuard (GPL-2.0, ShuffleNet prototypes) detecte
 
 **Printer integration through documented endpoints only.** Moonraker is polled (`/printer/objects/query`) instead of using a websocket subscription. Polling is stateless and survives Moonraker and Klipper restarts without resubscribe logic, and the print state changes on a scale of seconds. A pause is sent with `/printer/print/pause` and **verified** by reading `print_stats.state == "paused"`. The client has no resume, cancel, temperature or motion method at all. If Moonraker is unreachable, monitoring continues and alerts still appear in the dashboard; only the pause is impossible, and the dashboard says so.
 
-**Three pause policies.** `notify` (default) → `confirm` (a person presses Pause in the dashboard) → `auto`. Automatic pausing is off until detection has been validated on our own printer.
+**Three pause policies.** `auto` (default: pause and verify) → `confirm` (a person presses Pause in the dashboard) → `notify` (alert only). A false alarm under `auto` costs a paused print that the operator resumes; a missed failure costs the print and possibly the hotend, so pausing is the default. Switch to `confirm` or `notify` if a camera view produces false alarms.
 
 **Separate inference computer.** A Klipper host has to answer the MCU in real time. Measured CPU load is in EVALUATION. The service unit runs at `Nice=10` and `CPUWeight=20` with a memory cap, so even co-located it yields to Klipper. The recommended setup still keeps the network off the BTT Pi.
 

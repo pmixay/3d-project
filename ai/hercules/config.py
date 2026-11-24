@@ -92,10 +92,10 @@ class DecisionCfg:
 
 @dc.dataclass
 class ActionsCfg:
-    # notify : alert only (default; start here until detection is validated on your printer)
+    # auto   : critical incidents pause the print through Moonraker, verified via print_stats (default)
     # confirm: critical incidents wait for a person to press "Pause" in the dashboard
-    # auto   : critical incidents pause the print through Moonraker, verified via print_stats
-    pause_policy: str = "notify"
+    # notify : alert only, never pauses
+    pause_policy: str = "auto"
     pause_on_camera_loss: bool = False
     gcode_notify: bool = True     # show a message on the printer display (M117)
     notify_gcode: str = "M117 {text}"   # e.g. 'RESPOND TYPE=error MSG="{text}"' if [respond] is enabled

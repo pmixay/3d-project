@@ -58,7 +58,7 @@ def test_auto_pause_flow(tmp_path, session_dir, mock_moonraker):
 def test_notify_policy_never_pauses(tmp_path, session_dir, mock_moonraker):
     srv, pr = mock_moonraker
     requests.post(srv.url + "/mock/start")
-    mon = make(tmp_path, session_dir, srv.url)          # default policy: notify
+    mon = make(tmp_path, session_dir, srv.url, actions__pause_policy="notify")
     mon.start()
     try:
         assert wait(lambda: any(i["severity"] == "critical" for i in mon.incidents.list()))
@@ -98,7 +98,7 @@ def test_confirm_policy_and_dashboard_api(tmp_path, session_dir, mock_moonraker)
 def test_dismiss_false_alarm(tmp_path, session_dir, mock_moonraker):
     srv, pr = mock_moonraker
     requests.post(srv.url + "/mock/start")
-    mon = make(tmp_path, session_dir, srv.url)
+    mon = make(tmp_path, session_dir, srv.url, actions__pause_policy="notify")
     app = create_app(mon).test_client()
     mon.start()
     try:

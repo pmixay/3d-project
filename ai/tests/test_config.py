@@ -36,6 +36,10 @@ def test_runtime_edit_rejections(tmp_path):
     assert cfg.pipeline.roi == [0.0, 0.0, 1.0, 1.0]               # unchanged after failures
 
 
+def test_auto_pause_is_the_default():
+    assert load(None, env={}, use_overrides=False).actions.pause_policy == "auto"
+
+
 def test_invalid_file_value(tmp_path):
     toml = tmp_path / "c.toml"
     toml.write_text("[pipeline]\nmonitor_when = 'sometimes'\n")

@@ -47,7 +47,7 @@ warmup_s = 60.0
 clear_hold_s = 120.0
 
 [actions]
-pause_policy = "notify"      # notify | confirm | auto  (keep "notify" until validated on your printer)
+pause_policy = "auto"        # auto (pause, verified) | confirm (dashboard button) | notify (alert only)
 pause_on_camera_loss = false
 gcode_notify = true
 notify_gcode = "M117 {text}"

@@ -42,4 +42,4 @@ Set `moonraker.url` to the BTT Pi, `pause_policy = "confirm"`, and point the cam
 1. **We measured instead of assuming:** session-level evaluation on complete recorded prints, false alarms per printing hour, detection latency from the first visible strand, and a sweep of the inference interval.
 2. **What we built ourselves:** the decision engine (time-normalised, evidence gate, frozen baseline, hysteresis), camera health monitoring, verified pause, the mock printer, the dashboard, and the evaluation and benchmark tools. What we reused: the Obico pretrained network and its published thresholds (ARCHITECTURE § 4).
 3. **Honesty about limits:** layer shift is not detected, there are no measurements on the BTT Pi yet, and the dataset has one printer and one filament. All of this is in the next-steps list.
-4. **Safety:** default `notify`; the AI can only pause; Klipper's protections are independent of it.
+4. **Safety:** the AI can only pause (default `auto`, verified), never resume; Klipper's protections are independent of it.

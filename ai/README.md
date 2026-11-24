@@ -93,9 +93,9 @@ This is not recommended and has **not been measured** yet: we had no access to t
 | `pipeline.roi` | full frame | `[x0,y0,x1,y1]` 0..1: boxes outside are ignored (set it in the dashboard by dragging) |
 | `decision.warn_threshold` | 0.38 | warning level of the decision score (critical = × `critical_factor` 1.75) |
 | `decision.min_positive_frames` | 3 | evidence gate: frames with p ≥ 0.2 within 120 s needed to alert |
-| `actions.pause_policy` | **notify** | `notify` (alert only) → `confirm` (dashboard button) → `auto` (pause, verified) |
+| `actions.pause_policy` | **auto** | `auto` (pause, verified) / `confirm` (dashboard button) / `notify` (alert only) |
 
-**Safety procedure for automatic pausing.** Start with `notify`. Change to `auto` only after several supervised prints on *your* printer and camera without false alarms. The AI never resumes a print. If this service stops, the printer simply carries on under Klipper's own protections: thermal runaway, heater limits and emergency stop do not depend on it.
+**Automatic pausing is on by default.** On a confirmed failure the print is paused through Moonraker and the pause is verified. The detection numbers come from another printer, so watch the first prints on yours: a false alarm only pauses the print, and you resume it from Mainsail. If false alarms occur, switch to `confirm` or `notify` in the dashboard and record the session for evaluation. The AI never resumes a print. If this service stops, the printer simply carries on under Klipper's own protections: thermal runaway, heater limits and emergency stop do not depend on it.
 
 **Network security.** The dashboard is meant for the workshop LAN. Anyone who can reach port 8090 can see the camera and, unless `web.auth_token` is set, change settings or press Pause. On a shared network, set `auth_token` (state-changing requests then need the `X-Hercules-Token` header; the dashboard asks for it once). Never expose the port to the internet. The service needs only *outgoing* access to Moonraker and the camera.
 
