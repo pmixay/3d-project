@@ -42,6 +42,7 @@ Team name: **«Печатники»**. Captain: Курышев Андрей Ва
 | `model/` | Parametric CadQuery model of the whole printer (`printer.py`, dimensions in `params.py`), exported to STEP / GLB / STL in `model/out/`, with renders and the list of components seen on the machine (`COMPONENTS.md`). The GLB carries the Hefest head on the X carriage. Only the outer size and build volume are published figures; the rest is measured on photos. |
 | `head/` | Explanatory note for the Hefest print head (in Russian): why each part and component is needed, the toolhead board on the side wall of the frame, the MicroProbe mount, the head cover and the current budget of the head cable. `head/v3/` holds the printable parts and the CadQuery scripts that build them. |
 | `submission/` | Application for the "3D Profi" championship: presentation and project description (in Russian). |
+| `ai/` | **Hercules AI** — the camera subsystem: print failure detection with a pretrained neural network, our temporal decision engine, Moonraker integration (verified pause), local web dashboard, evaluation on recorded prints. See [`ai/README.md`](ai/README.md). |
 
 ---
 
@@ -147,18 +148,18 @@ With the new mainboard and toolhead board the electronics are no longer the bott
 2. **`klipper_tmc_autotune`** — automatic calculation of TMC2209 registers and current tables for 24 V and the specific motors (less noise and heat, no VFA at 80–160 mm/s).
 3. **Nozzle auto-cleaning and adaptive bed mesh (`Adaptive Bed Mesh` + `KAMP`)** — the `START_PRINT` macro heats the nozzle to 150 °C (so filament does not ooze), wipes it on the silicone brush at the edge of the bed, measures the Z-offset precisely, and meshes the glass with the MicroProbe only within the footprint of the printed part (`BED_MESH_CALIBRATE ADAPTIVE=1`).
 4. **Extrusion tuning in `OrcaSlicer`** — a short `smooth_time: 0.02` and Adaptive Pressure Advance (for the short `K3D Minifeeder` + `CHC Pro` path, PA values around 0.015–0.035 are expected).
-5. **Camera with machine-learning defect detection (`Crowsnest` + `Obico`)** — a webcam watches the print and pauses it when a defect is detected, such as a part detaching from the glass or "spaghetti".
+5. **Camera with machine-learning defect detection ([`ai/`](ai/README.md))** — a webcam watches the print; our own pipeline runs the pretrained Obico failure network locally, confirms failures over time and notifies or pauses the print through Moonraker. Measured results and limits (what it does and does not detect) are in [`ai/docs/EVALUATION.md`](ai/docs/EVALUATION.md).
 
 ### 4.3. Camera for defect detection
 
-The camera feeds Obico, which recognises print defects and pauses the print. The pick is the **Creality Nebula Camera**, to be bought on AliExpress:
+The camera feeds the Hercules AI monitor ([`ai/`](ai/README.md)), which recognises print failures and can pause the print. It runs on a separate computer; the camera can be on that computer or on the BTT Pi under Crowsnest. The pick is the **Creality Nebula Camera**, to be bought on AliExpress:
 
 - **USB, 1920×1080:** plugs into a USB port of the BTT host; no camera connector on the board is needed.
 - **Manual focus:** it can be set once for the 25–30 cm distance to the bed and does not hunt while the head moves.
 - **95° horizontal field of view:** covers the whole 200 × 200 mm bed from a top corner of the enclosure.
 - **Made for 3D printers:** compact (55 × 40 × 35 mm), with its own mount and infrared night vision.
 
-Creality lists it only for its own printers and pads. On arrival, confirm that it shows up as a standard USB webcam under Crowsnest (`v4l2-ctl --list-formats-ext`). If it does not, the fallback is a Logitech C270, which is documented as working with Klipper but has a narrower view and 720p.
+Creality lists it only for its own printers and pads, and public reports on generic Linux hosts conflict, so its compatibility is **unverified**. On arrival, run the acceptance test in [`ai/docs/RESEARCH.md`](ai/docs/RESEARCH.md#4-camera-creality-nebula-camera--compatibility-is-unverified). If it does not show up as a standard UVC webcam, the fallback is a Logitech C270, which is documented as working with Klipper but has a narrower view and 720p.
 
 ---
 

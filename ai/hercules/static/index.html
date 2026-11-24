@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hercules Monitor</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23f0a020'/%3E%3Cpath d='M4 3v10M12 3v10M4 8h8' stroke='%23111' stroke-width='2'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand"><span class="logo">H</span><div><b>HERCULES</b><small>AI print monitor</small></div></div>
+  <div class="pills">
+    <span class="pill" id="pill-mon">monitor</span>
+    <span class="pill" id="pill-cam">camera</span>
+    <span class="pill" id="pill-printer">printer</span>
+    <span class="pill" id="pill-model">model</span>
+  </div>
+  <label class="switch" title="Master switch for AI monitoring"><input type="checkbox" id="mon-enabled" checked><span>Monitoring</span></label>
+</header>
+
+<div id="alert" class="alert hidden">
+  <div><b id="alert-title"></b><span id="alert-text"></span></div>
+  <div class="alert-actions">
+    <button class="btn danger" id="alert-pause">Pause print</button>
+    <button class="btn" id="alert-dismiss">False alarm</button>
+    <a class="btn ghost" id="alert-report" target="_blank">Report</a>
+  </div>
+</div>
+
+<main class="grid">
+  <section class="panel feed">
+    <div class="panel-h"><h2>Live camera</h2><span class="muted mono" id="feed-meta">—</span></div>
+    <div class="feed-wrap"><img id="feed" alt="live camera feed with detection overlay"><div id="feed-off" class="feed-off hidden">no video</div></div>
+    <div class="panel-h sub"><h2>Decision score</h2><span class="muted mono" id="chart-meta">last 30 min</span></div>
+    <canvas id="chart" height="150"></canvas>
+    <div class="legend"><span><i class="sw score"></i>decision score</span><span><i class="sw p"></i>frame score p</span><span><i class="sw warn"></i>warning</span><span><i class="sw crit"></i>critical</span></div>
+  </section>
+
+  <section class="side">
+    <div class="panel">
+      <div class="panel-h"><h2>Detection</h2><span class="muted mono" id="det-age">—</span></div>
+      <div class="level" id="level">—</div>
+      <div class="kv">
+        <div><span>Failure type</span><b id="d-type">—</b></div>
+        <div><span>Decision score</span><b class="mono" id="d-score">—</b></div>
+        <div><span>Frame score p</span><b class="mono" id="d-p">—</b></div>
+        <div><span>Max box confidence</span><b class="mono" id="d-conf">—</b></div>
+        <div><span>Positive frames (window)</span><b class="mono" id="d-ev">—</b></div>
+        <div><span>Frame check</span><b id="d-q">—</b></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-h"><h2>Printer</h2><button class="btn small danger" id="btn-pause" title="Send PAUSE through Moonraker">Pause</button></div>
+      <div class="kv">
+        <div><span>State</span><b id="p-state">—</b></div>
+        <div><span>File</span><b id="p-file" class="ellipsis">—</b></div>
+        <div><span>Elapsed</span><b class="mono" id="p-time">—</b></div>
+        <div><span>Layer</span><b class="mono" id="p-layer">—</b></div>
+      </div>
+      <div class="bar"><div id="p-bar"></div></div><div class="muted mono right" id="p-prog">—</div>
+    </div>
+    <div class="panel">
+      <div class="panel-h"><h2>System</h2><span class="muted mono" id="s-backend">—</span></div>
+      <div class="kv">
+        <div><span>CPU system / process</span><b class="mono" id="s-cpu">—</b></div>
+        <div><span>RAM system / process</span><b class="mono" id="s-ram">—</b></div>
+        <div><span>CPU temperature</span><b class="mono" id="s-temp">—</b></div>
+        <div><span>Inference latency mean / p95</span><b class="mono" id="s-lat">—</b></div>
+        <div><span>Inferences per minute</span><b class="mono" id="s-rate">—</b></div>
+        <div><span>Camera FPS / resolution</span><b class="mono" id="s-cam">—</b></div>
+        <div><span>Skipped (dup / blur / unusable)</span><b class="mono" id="s-skip">—</b></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel wide">
+    <div class="panel-h"><h2>Incidents</h2><span class="muted" id="inc-count"></span></div>
+    <div class="table-wrap"><table class="inc">
+      <thead><tr><th></th><th>#</th><th>Type</th><th>Severity</th><th>Status</th><th>Started</th><th>Peak</th><th>Action</th><th></th></tr></thead>
+      <tbody id="inc-body"><tr><td colspan="9" class="muted">no incidents yet</td></tr></tbody>
+    </table></div>
+  </section>
+
+  <section class="panel wide">
+    <div class="panel-h"><h2>Settings</h2><span class="muted" id="set-msg"></span></div>
+    <form id="settings" class="settings">
+      <fieldset><legend>Camera</legend>
+        <label>Source<input name="camera.source" placeholder="csi, /dev/video0, http://…/?action=stream, file"></label>
+        <label>Average frames (noisy camera)<input name="camera.average_frames" type="number" min="1" max="16"></label>
+        <div class="row">
+          <label>Width<input name="camera.width" type="number" min="160" max="3840"></label>
+          <label>Height<input name="camera.height" type="number" min="120" max="2160"></label>
+          <label>FPS<input name="camera.fps" type="number" min="1" max="60"></label>
+        </div>
+        <div class="row">
+          <label>Replay speed<input name="camera.replay_speed" type="number" step="0.5" min="0"></label>
+          <label class="chk"><input name="camera.loop" type="checkbox">Loop replay</label>
+        </div>
+      </fieldset>
+      <fieldset><legend>Analysis</legend>
+        <label>Inference interval, s<input name="pipeline.interval_s" type="number" step="0.5" min="0.1"></label>
+        <label>Monitor when<select name="pipeline.monitor_when"><option value="printing">printer is printing</option><option value="always">always (demo / no printer)</option></select></label>
+        <label>ROI handling<select name="pipeline.roi_mode"><option value="crop">crop: only the ROI goes to the network</option><option value="filter">filter: full frame, ignore boxes outside</option></select></label>
+        <label>Box confidence floor<input name="detector.box_threshold" type="number" step="0.01" min="0.01" max="0.99"></label>
+        <label class="chk"><input name="pipeline.skip_duplicates" type="checkbox">Skip unchanged frames</label>
+        <label class="chk"><input name="pipeline.skip_blurred" type="checkbox">Skip motion-blurred frames</label>
+      </fieldset>
+      <fieldset><legend>Decision</legend>
+        <label>Warning threshold<input name="decision.warn_threshold" type="number" step="0.01" min="0.05"></label>
+        <label>Critical factor (× warning)<input name="decision.critical_factor" type="number" step="0.05" min="1"></label>
+        <label>Min positive frames<input name="decision.min_positive_frames" type="number" min="1" max="50"></label>
+        <label>Smoothing time constant, s<input name="decision.ewm_tau_s" type="number" min="1"></label>
+        <label>Warm-up, s<input name="decision.warmup_s" type="number" min="0"></label>
+      </fieldset>
+      <fieldset><legend>Actions &amp; categories</legend>
+        <label>On critical failure<select name="actions.pause_policy">
+          <option value="notify">notify only</option><option value="confirm">ask for confirmation</option><option value="auto">pause automatically</option></select></label>
+        <label class="chk"><input name="actions.pause_on_camera_loss" type="checkbox">Pause when camera is lost</label>
+        <label class="chk"><input name="actions.gcode_notify" type="checkbox">Message on printer display</label>
+        <div id="cats" class="cats"></div>
+      </fieldset>
+      <fieldset class="roi-set"><legend>Region of interest</legend>
+        <p class="muted">Drag on the image to set the ROI (build plate + print). Boxes outside it are ignored.</p>
+        <div class="roi-wrap"><img id="roi-img" alt="snapshot for ROI selection"><div id="roi-box"></div></div>
+        <div class="row"><span class="mono muted" id="roi-val"></span><button type="button" class="btn small" id="roi-reset">Full frame</button></div>
+      </fieldset>
+      <div class="actions"><button class="btn primary" type="submit">Save settings</button></div>
+    </form>
+  </section>
+</main>
+<footer class="muted">Detector: Obico pretrained failure model (third-party). Pipeline, decision engine, Moonraker integration and dashboard: Hercules team.</footer>
+<script src="/static/app.js"></script>
+</body>
+</html>

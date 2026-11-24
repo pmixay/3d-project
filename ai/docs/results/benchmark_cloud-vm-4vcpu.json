@@ -1,0 +1,196 @@
+{
+ "host": {
+  "cpu": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+  "machine": "x86_64",
+  "cores": 4,
+  "ram_mb": 16087,
+  "os": "Linux-6.18.44-fc-v819-x86_64-with-glibc2.39",
+  "python": "3.13.18",
+  "onnxruntime": "1.29.0",
+  "opencv": "5.1.0",
+  "ort_providers": [
+   "AzureExecutionProvider",
+   "CPUExecutionProvider"
+  ]
+ },
+ "time": "2026-11-24 16:54:25",
+ "frames_dir": "data/zenodo_fffqc/test_extrusion_error_print_camera1",
+ "model": [
+  {
+   "load_s": 0.73,
+   "median_ms": 205.5,
+   "p95_ms": 238.6,
+   "rss_mb": 434,
+   "rss_model_mb": 382,
+   "providers": [
+    "CPUExecutionProvider"
+   ],
+   "model": "obico-failure-5a6b1be1fa.onnx",
+   "backend": "onnxruntime",
+   "threads": 1
+  },
+  {
+   "load_s": 0.8,
+   "median_ms": 111.2,
+   "p95_ms": 147.8,
+   "rss_mb": 418,
+   "rss_model_mb": 366,
+   "providers": [
+    "CPUExecutionProvider"
+   ],
+   "model": "obico-failure-5a6b1be1fa.onnx",
+   "backend": "onnxruntime",
+   "threads": 2
+  },
+  {
+   "load_s": 0.78,
+   "median_ms": 59.4,
+   "p95_ms": 73.3,
+   "rss_mb": 419,
+   "rss_model_mb": 366,
+   "providers": [
+    "CPUExecutionProvider"
+   ],
+   "model": "obico-failure-5a6b1be1fa.onnx",
+   "backend": "onnxruntime",
+   "threads": 4
+  },
+  {
+   "load_s": 0.2,
+   "median_ms": 87.5,
+   "p95_ms": 112.1,
+   "rss_mb": 269,
+   "rss_model_mb": 217,
+   "providers": [
+    "CPUExecutionProvider"
+   ],
+   "model": "obico-failure-int8-qdq.onnx",
+   "backend": "onnxruntime",
+   "threads": 1
+  },
+  {
+   "load_s": 0.23,
+   "median_ms": 49.6,
+   "p95_ms": 52.5,
+   "rss_mb": 269,
+   "rss_model_mb": 217,
+   "providers": [
+    "CPUExecutionProvider"
+   ],
+   "model": "obico-failure-int8-qdq.onnx",
+   "backend": "onnxruntime",
+   "threads": 2
+  },
+  {
+   "load_s": 0.24,
+   "median_ms": 32.6,
+   "p95_ms": 41.9,
+   "rss_mb": 268,
+   "rss_model_mb": 216,
+   "providers": [
+    "CPUExecutionProvider"
+   ],
+   "model": "obico-failure-int8-qdq.onnx",
+   "backend": "onnxruntime",
+   "threads": 4
+  },
+  {
+   "load_s": 0.11,
+   "median_ms": 247.8,
+   "p95_ms": 253.7,
+   "rss_mb": 275,
+   "rss_model_mb": 222,
+   "providers": [
+    "CPUExecutionProvider"
+   ],
+   "model": "obico-failure-int8-dynamic.onnx",
+   "backend": "onnxruntime",
+   "threads": 1
+  },
+  {
+   "load_s": 0.15,
+   "median_ms": 143.3,
+   "p95_ms": 171.4,
+   "rss_mb": 275,
+   "rss_model_mb": 223,
+   "providers": [
+    "CPUExecutionProvider"
+   ],
+   "model": "obico-failure-int8-dynamic.onnx",
+   "backend": "onnxruntime",
+   "threads": 2
+  },
+  {
+   "load_s": 0.16,
+   "median_ms": 93.5,
+   "p95_ms": 120.1,
+   "rss_mb": 275,
+   "rss_model_mb": 223,
+   "providers": [
+    "CPUExecutionProvider"
+   ],
+   "model": "obico-failure-int8-dynamic.onnx",
+   "backend": "onnxruntime",
+   "threads": 4
+  },
+  {
+   "load_s": 0.41,
+   "median_ms": 119.4,
+   "p95_ms": 151.4,
+   "rss_mb": 343,
+   "rss_model_mb": 290,
+   "providers": [
+    "opencv-dnn-cpu"
+   ],
+   "model": "obico-failure-5a6b1be1fa.onnx",
+   "backend": "opencv",
+   "threads": 4
+  }
+ ],
+ "resolution": [
+  {
+   "resolution": "640x360",
+   "step_median_ms": 72.7,
+   "inference_median_ms": 69.2,
+   "overhead_median_ms": 3.5
+  },
+  {
+   "resolution": "1280x720",
+   "step_median_ms": 65.5,
+   "inference_median_ms": 62.2,
+   "overhead_median_ms": 3.3
+  },
+  {
+   "resolution": "1920x1080",
+   "step_median_ms": 71.4,
+   "inference_median_ms": 67.3,
+   "overhead_median_ms": 4.1
+  }
+ ],
+ "sustained": [
+  {
+   "interval_s": 1.0,
+   "analyses": 60,
+   "process_cpu_pct_of_one_core": 42.1,
+   "system_cpu_pct": 10.8,
+   "process_cpu_pct_of_machine": 10.5,
+   "peak_rss_mb": 447
+  },
+  {
+   "interval_s": 3.0,
+   "analyses": 20,
+   "process_cpu_pct_of_one_core": 13.3,
+   "system_cpu_pct": 3.7,
+   "process_cpu_pct_of_machine": 3.3,
+   "peak_rss_mb": 447
+  },
+  {
+   "interval_s": 10.0,
+   "analyses": 6,
+   "process_cpu_pct_of_one_core": 4.4,
+   "system_cpu_pct": 1.3,
+   "process_cpu_pct_of_machine": 1.1,
+   "peak_rss_mb": 447
+  }
+ ]
+}

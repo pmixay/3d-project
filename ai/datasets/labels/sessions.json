@@ -1,0 +1,24 @@
+{
+  "dataset": "Quality Control in Additive Manufacturing: Image Dataset for Defect Detection in Fused Filament Fabrication",
+  "source": "https://zenodo.org/records/18628777 (test_data.zip, full_res)",
+  "license": "CC-BY-4.0 (frames are downloaded by datasets/fetch_zenodo_fffqc.py, not redistributed)",
+  "printer": "Original Prusa i3 MK3-type printer, red PLA, three fixed side cameras; each camera folder is one separate print (~50 min, ~1.4 s per frame)",
+  "labelled_by": "Hercules team, by visual inspection of contact sheets (tools/contact_sheet.py). onset_index = first frame with loose strands / visible shift; obvious_index = defect unmistakable to a casual viewer. The dataset itself only labels the whole print.",
+  "sessions": {
+    "test_no_error_print_camera1": {"kind": "normal"},
+    "test_no_error_print_camera2": {"kind": "normal"},
+    "test_no_error_print_camera3": {"kind": "normal"},
+    "test_extrusion_error_print_camera1": {"kind": "spaghetti", "onset_index": 1280, "obvious_index": 1330,
+      "note": "second (lattice) object behind the block turns into loose strands; spreads over the bed to the end of the print"},
+    "test_extrusion_error_print_camera2": {"kind": "spaghetti", "onset_index": 1200, "obvious_index": 1265,
+      "note": "strands above/left of the block, grows into a large tangle"},
+    "test_extrusion_error_print_camera3": {"kind": "spaghetti", "onset_index": 1220, "obvious_index": 1285,
+      "note": "strands on top of the block, grows into a tangle to the right"},
+    "test_layershift_error_print_camera1": {"kind": "layer_shift", "onset_index": 1295,
+      "note": "step at the base of the block after a horizontal shift; small in the image"},
+    "test_layershift_error_print_camera2": {"kind": "layer_shift", "onset_index": 1290,
+      "note": "offset step in the upper part of the block; subtle at this distance"},
+    "test_layershift_error_print_camera3": {"kind": "layer_shift", "onset_index": 1300,
+      "note": "step on the right side of the block; subtle, darker scene"}
+  }
+}
