@@ -37,6 +37,7 @@ def test_auto_pause_flow(tmp_path, session_dir, mock_moonraker):
     mon.start()
     try:
         assert wait(lambda: pr.state == "paused")
+        assert wait(lambda: any(i["action"] == "paused" for i in mon.incidents.list()))
         inc = mon.incidents.list()
         fail = [i for i in inc if i["category"] == "failure"]
         assert len(fail) == 1                                  # one incident, no repeats
@@ -44,7 +45,7 @@ def test_auto_pause_flow(tmp_path, session_dir, mock_moonraker):
         assert i["severity"] == "critical" and i["action"] == "paused" and "verified" in i["action_detail"]
         assert i["printer"]["filename"] == "part.gcode"
         assert "start_annotated.jpg" in i["evidence"]
-        assert (tmp_path / "state" / "incidents" / str(i["id"]) / "report.html").exists()
+        assert wait(lambda: (tmp_path / "state" / "incidents" / str(i["id"]) / "report.html").exists())
         # notification reached the printer display, and nothing ever resumed the print
         kinds = [e["kind"] for e in pr.log]
         assert "gcode" in kinds and "resume" not in kinds and kinds.count("pause") == 1
@@ -157,6 +158,15 @@ def test_printer_link_loss_keeps_monitoring(tmp_path, session_dir, mock_moonrake
 
 def test_camera_offline_incident(tmp_path, mock_moonraker):
     srv, pr = mock_moonraker
+    idle = make(tmp_path / "idle", "http://127.0.0.1:9/stream", srv.url, decision__camera_alert_after_s="0.5",
+                camera__reconnect_max_s="0.5")
+    idle.start()
+    try:
+        time.sleep(2.0)
+        assert "camera_offline" not in idle.cam_incidents     # printer idle: no alert
+    finally:
+        idle.stop()
+    requests.post(srv.url + "/mock/start")
     mon = make(tmp_path, "http://127.0.0.1:9/stream", srv.url, decision__camera_alert_after_s="0.5",
                camera__reconnect_max_s="0.5")
     mon.start()
@@ -166,3 +176,21 @@ def test_camera_offline_incident(tmp_path, mock_moonraker):
         assert inc["category"] == "camera_offline" and inc["status"] == "open"
     finally:
         mon.stop()
+
+
+def test_reconnect_keeps_evidence_but_new_print_resets(tmp_path, session_dir, mock_moonraker):
+    srv, pr = mock_moonraker
+    mon = make(tmp_path, session_dir, srv.url)
+    tr = mon.analyzer.tracker
+    mon._printer_changed("standby", "printing", {"filename": "a.gcode", "print_duration": 0})
+    tr.ewm = 0.9
+    mon._printer_changed("printing", "disconnected", {"state": "disconnected"})
+    mon._printer_changed("disconnected", "printing", {"filename": "a.gcode", "print_duration": 120})
+    assert mon.analyzer.tracker.ewm == 0.9          # network blip: same print, evidence kept
+    mon._printer_changed("printing", "paused", {"filename": "a.gcode", "print_duration": 130})
+    mon._printer_changed("paused", "printing", {"filename": "a.gcode", "print_duration": 130})
+    assert mon.analyzer.tracker.ewm == 0.9          # resume: kept
+    mon._printer_changed("printing", "complete", {"filename": "a.gcode"})
+    mon.analyzer.tracker.ewm = 0.5
+    mon._printer_changed("complete", "printing", {"filename": "b.gcode", "print_duration": 0})
+    assert mon.analyzer.tracker.ewm == 0.0          # a new print starts clean

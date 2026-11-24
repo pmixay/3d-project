@@ -41,13 +41,99 @@ class CachedDetector:
     backend, providers, load_s = "cache", ["cache"], 0.0
 
 
+class ObicoTracker:
+    """Baseline: Obico's original decision scheme, transcribed from
+    obico-server backend/lib/prediction.py + settings.py (frame-count based).
+    Used only for comparison; returns objects with the fields simulate() reads."""
+    P = dict(EWM_SPAN=12, ROLLING_WIN_SHORT=310, ROLLING_WIN_LONG=7200, THRESHOLD_LOW=0.38,
+             THRESHOLD_HIGH=0.78, INIT_SAFE_FRAME_NUM=30, ROLLING_MEAN_SHORT_MULTIPLE=3.8, ESCALATING_FACTOR=1.75)
+
+    def __init__(self):
+        self.ewm = self.short = self.long = 0.0
+        self.n = 0
+        self.state = "ok"
+
+    def _failing(self, factor):
+        P = self.P
+        if self.n < P["INIT_SAFE_FRAME_NUM"]:
+            return False
+        adj = (self.ewm - self.long) / factor
+        if adj < P["THRESHOLD_LOW"]:
+            return False
+        if adj > P["THRESHOLD_HIGH"]:
+            return True
+        return adj > (self.short - self.long) * P["ROLLING_MEAN_SHORT_MULTIPLE"]
+
+    def update(self, t, p):
+        P = self.P
+        a = 2 / (P["EWM_SPAN"] + 1)
+        self.n += 1
+        self.ewm = p * a + self.ewm * (1 - a)
+        self.short += (p - self.short) / (P["ROLLING_WIN_SHORT"] if P["ROLLING_WIN_SHORT"] <= self.n else self.n + 1)
+        self.long += (p - self.long) / (P["ROLLING_WIN_LONG"] if P["ROLLING_WIN_LONG"] <= self.n else self.n + 1)
+        lvl = "critical" if self._failing(P["ESCALATING_FACTOR"]) else "warning" if self._failing(1) else "ok"
+        return _transition(self, t, p, self.ewm - self.long, lvl)
+
+
+class NaiveTracker:
+    """Baseline: alert whenever a single frame has p >= thr (what a simple script would do).
+    An alert 'episode' ends after 120 s without a positive frame."""
+    def __init__(self, thr=0.38, crit=0.665):
+        self.thr, self.crit, self.state, self.last_pos = thr, crit, "ok", -1e9
+
+    def update(self, t, p):
+        lvl = "critical" if p >= self.crit else "warning" if p >= self.thr else "ok"
+        if lvl != "ok":
+            self.last_pos = t
+        elif t - self.last_pos < 120:
+            lvl = self.state if self.state != "ok" else "ok"
+        return _transition(self, t, p, p, lvl, sticky=t - self.last_pos < 120)
+
+
+def _transition(tr, t, p, score, lvl, sticky=None):
+    import types
+    order = ("ok", "warning", "critical")
+    ev = None
+    if lvl != "ok" and order.index(lvl) > order.index(tr.state):
+        ev = "open" if tr.state == "ok" else "escalate"
+        tr.state = lvl
+    elif tr.state != "ok" and lvl == "ok" and not sticky:
+        tr.state = "ok"
+        ev = "close"
+    return types.SimpleNamespace(t=t, p=p, score=score, level=lvl, event=ev)
+
+
+def perturb(img, kind):
+    """Synthetic camera problems applied to real frames (robustness tests)."""
+    import numpy as np
+    if kind == "dark":            # lights off / evening: gamma + gain down
+        return np.clip(((img / 255.0) ** 1.8) * 255 * 0.45, 0, 255).astype("uint8")
+    if kind == "blur":            # horizontal motion blur, 21 px at 960 px width
+        k = np.zeros((1, 21), np.float32)
+        k[0, :] = 1 / 21
+        return cv2.filter2D(img, -1, k)
+    if kind == "occlusion":       # a third of the frame covered from the left (cable, hand, tape)
+        out = img.copy()
+        out[:, : img.shape[1] // 3] = (40, 40, 40)
+        return out
+    if kind == "noise":           # cheap sensor in low light
+        rng = np.random.default_rng(0)
+        return np.clip(img.astype(np.int16) + rng.normal(0, 18, img.shape), 0, 255).astype("uint8")
+    raise ValueError(kind)
+
+
 def load_cache(path):
     with open(path) as f:
         return [json.loads(line) for line in f]
 
 
-def simulate(cfg: Config, session_dir: str, rows: list, interval: float, read_images=True):
-    an = Analyzer(cfg, detector=CachedDetector())
+def simulate(cfg: Config, session_dir: str, rows: list, interval: float, read_images=True,
+             engine: str = "hercules", perturbation: str | None = None, detector=None):
+    an = Analyzer(cfg, detector=detector or CachedDetector())
+    if engine == "obico":
+        an.tracker = ObicoTracker()
+    elif engine == "naive":
+        an.tracker = NaiveTracker(cfg.decision.warn_threshold, cfg.decision.warn_threshold * cfg.decision.critical_factor)
     pc = cfg.pipeline
     thr = cfg.detector.box_threshold
     alerts, trace = [], []
@@ -68,10 +154,14 @@ def simulate(cfg: Config, session_dir: str, rows: list, interval: float, read_im
                 blank = (rng.random((r["h"], r["w"], 3)) * 255).astype("uint8")
             img = blank.copy()
             img[0, 0, 0] = len(trace) % 255  # make consecutive frames differ
-        boxes = [Box(*b) for b in r["boxes"] if b[4] > thr]
+        if perturbation:
+            img = perturb(img, perturbation)
+            det_fn = None                      # perturbed frames need a real network run
+        else:
+            boxes = [Box(*b) for b in r["boxes"] if b[4] > thr]
 
-        def det_fn(_img, boxes=boxes, r=r):
-            return score_boxes(boxes, r["w"], r["h"], pc, r["ms"])
+            def det_fn(_img, boxes=boxes, r=r):
+                return score_boxes(boxes, r["w"], r["h"], pc, r["ms"])
         res = an.step(img, r["t"], det_fn)
         a = res.assessment
         trace.append((r["t"], None if a is None else round(a.score, 4), None if res.detection is None
@@ -89,7 +179,8 @@ def onset_time(rows, index):
     return None
 
 
-def evaluate(cfg, labels, data_dir, cache_dir, interval, read_images=True, sessions=None):
+def evaluate(cfg, labels, data_dir, cache_dir, interval, read_images=True, sessions=None,
+             engine="hercules", perturbation=None, detector=None, window=None):
     per = {}
     normal_s, fa = 0.0, 0
     for name, lab in labels["sessions"].items():
@@ -100,7 +191,14 @@ def evaluate(cfg, labels, data_dir, cache_dir, interval, read_images=True, sessi
             print("missing cache", cpath, file=sys.stderr)
             continue
         rows = load_cache(cpath)
-        alerts, trace = simulate(cfg, os.path.join(data_dir, name), rows, interval, read_images)
+        if window is not None:
+            # robustness runs: only the frames from `window[0]` s before the onset (or the
+            # same span from the start of a normal print) up to `window[1]` s after it
+            on = onset_time(rows, lab["onset_index"]) if lab.get("onset_index") is not None else None
+            anchor = on if on is not None else rows[0]["t"] + window[0]
+            rows = [r for r in rows if anchor - window[0] <= r["t"] <= anchor + window[1]]
+        alerts, trace = simulate(cfg, os.path.join(data_dir, name), rows, interval, read_images,
+                                 engine, perturbation, detector)
         t_end = rows[-1]["t"]
         onset = onset_time(rows, lab["onset_index"]) if lab.get("onset_index") is not None else None
         normal_end = onset if onset is not None else t_end
@@ -135,7 +233,7 @@ def evaluate(cfg, labels, data_dir, cache_dir, interval, read_images=True, sessi
     f1 = 2 * prec * rec / (prec + rec) if prec and rec else (0.0 if prec is not None and rec is not None else None)
     lats = [v["latency_s"] for v in tgt if v["latency_s"] is not None]
     return {
-        "interval_s": interval,
+        "interval_s": interval, "engine": engine, "perturbation": perturbation,
         "sessions": per,
         "summary": {
             "target_sessions": len(tgt), "detected": tp, "missed": fn,
@@ -196,6 +294,13 @@ def main():
     ap.add_argument("--intervals", type=float, nargs="+", default=[3.0])
     ap.add_argument("--set", action="append", default=[], help="override, e.g. decision.warn_threshold=0.5")
     ap.add_argument("--no-images", action="store_true", help="skip frame validation (faster sweeps)")
+    ap.add_argument("--engine", choices=["hercules", "obico", "naive"], default="hercules",
+                    help="decision engine: ours, Obico's original frame-count scheme, or a per-frame threshold")
+    ap.add_argument("--perturb", choices=["dark", "blur", "occlusion", "noise"],
+                    help="apply a synthetic camera problem and re-run the network (slow)")
+    ap.add_argument("--window", type=float, nargs=2, metavar=("BEFORE_S", "AFTER_S"),
+                    help="evaluate only this span around the onset (for --perturb runs)")
+    ap.add_argument("--sessions", nargs="*", help="only these session names")
     ap.add_argument("--out", help="write JSON results here")
     a = ap.parse_args()
     labels = json.load(open(a.labels))
@@ -206,10 +311,16 @@ def main():
         sub = getattr(cfg, sec)
         cur = getattr(sub, key)
         setattr(sub, key, json.loads(v) if isinstance(cur, list) else type(cur)(v) if not isinstance(cur, bool) else v.lower() == "true")
-    results = {"config": cfg.to_dict(), "runs": [], "frame_level": frame_metrics(
+    results = {"config": cfg.to_dict(), "engine": a.engine, "perturbation": a.perturb, "window": a.window,
+               "runs": [], "frame_level": frame_metrics(
         labels, a.cache, box_threshold=cfg.detector.box_threshold, roi=cfg.pipeline.roi)}
+    det = None
+    if a.perturb:
+        from hercules.detector import Detector
+        det = Detector(cfg.detector)
     for iv in a.intervals:
-        r = evaluate(copy.deepcopy(cfg), labels, a.data, a.cache, iv, not a.no_images)
+        r = evaluate(copy.deepcopy(cfg), labels, a.data, a.cache, iv, not a.no_images, a.sessions,
+                     a.engine, a.perturb, det, a.window)
         results["runs"].append(r)
         s = r["summary"]
         print(f"interval {iv:>5.1f}s  detected {s['detected']}/{s['target_sessions']}  "

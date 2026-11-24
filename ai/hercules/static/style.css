@@ -66,3 +66,5 @@ legend{color:#aeb6bf;font-size:12px;text-transform:uppercase;letter-spacing:.06e
 .actions{grid-column:1/-1;display:flex;justify-content:flex-end}
 footer{padding:4px 16px 20px;font-size:12px}
 @media (max-width:900px){.grid{grid-template-columns:1fr}.roi-set{grid-column:auto}.top{gap:8px}.pills{order:3;flex-basis:100%}}
+.panel-h h2{white-space:nowrap}
+.panel-h>.muted{font-size:12px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

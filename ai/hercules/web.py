@@ -86,7 +86,12 @@ def create_app(mon: Monitor) -> Flask:
         if not re.fullmatch(r"[\w\-]+\.(jpg|html|json)", name):
             abort(404)
         d = mon.incidents.evidence_dir(iid)
-        if name == "report.html" and not os.path.exists(os.path.join(d, name)):
+        if name in ("report.html", "report.json"):
+            inc = mon.incidents.get(iid)
+            if inc is None:
+                abort(404)
+            if inc["status"] == "open" and iid == mon.failure_incident:
+                mon.refresh_timeline(iid)      # an open incident's report shows the latest data
             mon.incidents.write_report(iid)
         return send_from_directory(os.path.abspath(d), name)
 

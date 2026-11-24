@@ -44,6 +44,8 @@ class Monitor:
         self.cam_conds = {c: Persistent(cfg.decision.camera_alert_after_s) for c in CAMERA_CATEGORIES}
         self.cam_conds["camera_frozen"] = Persistent(cfg.pipeline.frozen_after_s)
         self._last_seq = 0
+        self._print_file: str | None = None
+        self._print_duration = 0.0
         self._stop = threading.Event()
         self._lock = threading.RLock()
         self._thread: threading.Thread | None = None
@@ -90,13 +92,25 @@ class Monitor:
 
     def _printer_changed(self, old, new, status):
         log.info("printer state %s -> %s", old, new)
-        if new == "printing" and old != "paused":
-            with self._lock:
-                self.analyzer.reset()
-            log.info("new print detected (%s): decision state reset", status.get("filename"))
-        if new in ("complete", "cancelled", "standby", "error") and self.failure_incident:
-            self._close_failure("print ended")
-        if new in ("complete", "cancelled", "standby", "error"):
+        ended = ("complete", "cancelled", "standby", "error")
+        if new == "printing":
+            same_print = (status.get("filename") == self._print_file
+                          and (status.get("print_duration") or 0) >= self._print_duration - 1)
+            # resume after pause, or the printer link came back during the same print:
+            # keep the evidence collected so far
+            if old == "paused" or (old in ("disconnected", "unknown", None) and same_print and self._print_file):
+                log.info("print continues (%s): decision state kept", status.get("filename"))
+            else:
+                with self._lock:
+                    self.analyzer.reset()
+                log.info("new print detected (%s): decision state reset", status.get("filename"))
+        if new == "printing" or new == "paused":
+            self._print_file = status.get("filename")
+            self._print_duration = status.get("print_duration") or 0.0
+        if new in ended:
+            if self.failure_incident:
+                self._close_failure("print ended")
+            self._print_file, self._print_duration = None, 0.0
             with self._lock:
                 self.analyzer.reset()
 
@@ -118,12 +132,15 @@ class Monitor:
 
     def _tick(self):
         t = time.time()
-        cs = self.camera.status()
-        self._camera_condition("camera_offline", t, cs["state"] in ("offline", "stalled", "connecting")
-                               and self.camera.kind != "dir" and self.camera.kind != "video",
-                               message=cs.get("error") or cs["state"])
+        if self.moon.connected and self.moon.status.get("state") == "printing":
+            self._print_duration = self.moon.status.get("print_duration") or self._print_duration
         active, reason = self._should_monitor()
         self.active, self.status_reason = active, reason
+        cs = self.camera.status()
+        # a missing camera matters while a print is being watched, not overnight
+        self._camera_condition("camera_offline", t, active and cs["state"] in ("offline", "stalled", "connecting")
+                               and self.camera.kind not in ("dir", "video"),
+                               message=cs.get("error") or cs["state"])
         if not active:
             return
         frame = self.camera.buffer.get(newer_than=self._last_seq)
@@ -196,6 +213,9 @@ class Monitor:
             iid = self.cam_incidents.pop(cat)
             self.incidents.update(iid, status="closed", closed_at=time.time())
             self.incidents.write_report(iid)
+
+    def refresh_timeline(self, iid):
+        self.incidents.update(iid, timeline_json=json.dumps(self._timeline()))
 
     def _timeline(self, seconds=1800):
         cut = time.time() - seconds
@@ -298,6 +318,9 @@ class Monitor:
             raise KeyError(iid)
         self.incidents.update(iid, status="dismissed", closed_at=time.time(),
                               action_detail=(inc["action_detail"] + " | dismissed as false alarm").strip(" |"))
+        for cat, cid in list(self.cam_incidents.items()):
+            if cid == iid:
+                del self.cam_incidents[cat]      # stays quiet until the condition clears and returns
         if iid == self.failure_incident:
             self.failure_incident = None
             with self._lock:
