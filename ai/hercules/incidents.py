@@ -17,7 +17,7 @@ CATEGORY_LABELS = {
     "camera_offline": "Camera offline / stream unavailable",
     "camera_frozen": "Camera image frozen",
     "camera_obstructed": "Camera view obstructed",
-    "bad_lighting": "Lighting unusable (too dark / overexposed)",
+    "bad_lighting": "Image quality poor (too dark / overexposed / noisy)",
 }
 
 SCHEMA = """

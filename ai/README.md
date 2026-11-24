@@ -16,11 +16,11 @@ Everything runs locally: no cloud service, account or subscription is needed.
 
 | Category | Status | Evidence |
 | :--- | :--- | :--- |
-| Spaghetti / filament mess / extrusion into the air | **Supported** | RESULT_SPAGHETTI ([EVALUATION](docs/EVALUATION.md)) |
+| Spaghetti / filament mess / extrusion into the air | **Supported** | 3/3 recorded spaghetti failures detected, 1–4 min after the first loose strand; 0 false alarms in 5.4 h of normal printing (one public dataset, another printer; 95 % upper bound 0.56 false alarms/h) ([EVALUATION](docs/EVALUATION.md)) |
 | Camera offline / stream unavailable / stalled | **Supported** | automated tests (USB, MJPEG, snapshot, reconnect) |
 | Frozen image, covered lens, unusable lighting | **Supported** | automated tests on synthetic frames |
 | Part detached from the bed | Partly: only once the loose part produces visible mess | not separately validated, no labelled data |
-| Layer shift, warping, under-extrusion, first-layer defects | **Not supported** | RESULT_LAYERSHIFT (see EVALUATION) |
+| Layer shift, warping, under-extrusion, first-layer defects | **Not supported** | 0/3 recorded layer shifts alerted (max. score 0.30 < warning 0.38); the network was not trained for these classes (see EVALUATION) |
 
 We do not claim a defect class unless a measurement supports it.
 
@@ -113,7 +113,7 @@ ai/
     web.py, static/    dashboard
   tools/               mock_moonraker, evaluate, score_sessions, benchmark, quantize_model, contact_sheet
   datasets/            dataset fetcher + our onset labels (labels/sessions.json)
-  tests/               pytest suite (43 tests, offline)
+  tests/               pytest suite (44 tests, offline)
   deploy/              install.sh, systemd unit
   docs/                architecture, research, evaluation, demo, troubleshooting
 ```

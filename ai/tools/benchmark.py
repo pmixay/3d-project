@@ -142,9 +142,10 @@ def bench_sustained(files, intervals, duration):
             an.step(imgs[k % len(imgs)], time.time())
             k += 1
             rss = max(rss, proc.memory_info().rss)
-        rows.append({"interval_s": iv, "analyses": k, "process_cpu_pct_of_one_core": round(proc.cpu_percent(None), 1),
+        pcpu = proc.cpu_percent(None)
+        rows.append({"interval_s": iv, "analyses": k, "process_cpu_pct_of_one_core": round(pcpu, 1),
                      "system_cpu_pct": round(psutil.cpu_percent(None), 1),
-                     "process_cpu_pct_of_machine": round(proc.cpu_percent(None) / psutil.cpu_count(), 1),
+                     "process_cpu_pct_of_machine": round(pcpu / psutil.cpu_count(), 1),
                      "peak_rss_mb": round(rss / 2**20)})
         print("  sustained", rows[-1], flush=True)
     return rows

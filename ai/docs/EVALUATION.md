@@ -1,0 +1,145 @@
+# Evaluation — measured results only
+
+All numbers here come from `tools/run_all_evaluations.sh`. The raw JSON files are in [`results/`](results/), and the tables are generated from them by `tools/results_tables.py`, not typed by hand. Measurements we could **not** make are listed as such in § 8.
+
+## 1. Data and protocol
+
+- **Recordings.** Zenodo record [18628777](https://zenodo.org/records/18628777) (CC-BY-4.0), test split, full resolution resized to 960×540. Nine complete prints from fixed side cameras, one print per camera folder, about 50 minutes and one frame every ~1.4 s each, **20 141 frames, 7.6 h**: 3 normal prints, 3 prints that turn into spaghetti (the dataset's "extrusion error"), and 3 prints with a layer shift.
+- **Ground truth.** The dataset labels only whole prints. We marked the frame where the defect first becomes visible (`onset`: first loose strand or step) and where it becomes unmistakable (`obvious`), using contact sheets: [`datasets/labels/sessions.json`](../datasets/labels/sessions.json).
+- **Replay.** Each print is replayed through the production `Analyzer`: frame validation, the decision engine, and the same thresholds as the live service. One frame is analysed every *N* seconds of recording time. Network outputs are cached once per frame (`tools/score_sessions.py`, results identical to a live run; see the script header).
+- **Normal printing time** = the normal prints plus every failure print before its onset = **5.38 h**.
+- **False alarm** = a failure incident opened during normal printing time. **Detection** = an incident opens or escalates at or after the onset. **Latency** is measured from the *first visible strand*, the strict choice, and also from the *obvious* point.
+- **No tuning on this data.** All decision parameters were fixed beforehand: Obico's published thresholds, our window lengths. § 4 shows how the results move when they change, for transparency, not to pick values.
+
+## 2. Main result (default settings, one analysis every 3 s)
+
+| | Result |
+| :--- | :--- |
+| Spaghetti prints detected | **3 / 3** |
+| False alarms in 5.38 h of normal printing | **0** (0.0 per printing hour) |
+| Session precision / recall / F1 | 1.0 / 1.0 / 1.0 (3 positive and 6 negative sessions, a very small sample) |
+| Warning latency after the first visible strand | 64 s, 114 s, 179 s |
+| Warning latency after the defect becomes obvious | −6 s (before), 21 s, 87 s |
+| Critical level (= pause under `auto`) after the first strand | 96 s, 147 s, 216 s |
+| Layer-shift prints alerted | 0 / 3: **not detected** |
+
+### Per session (3 s interval)
+
+| Session | Kind | Length, min | Onset, min | Frames analysed | False alarms | Detected | Latency, s | Critical, s | Max score before onset | Max score after onset |
+| :--- | :--- | ---: | ---: | ---: | ---: | :---: | ---: | ---: | ---: | ---: |
+| no_error_camera1 | normal | 48.9 | — | 979 | 0 | no | — | — | 0.23 | — |
+| no_error_camera2 | normal | 48.8 | — | 977 | 0 | no | — | — | 0.00 | — |
+| no_error_camera3 | normal | 49.0 | — | 981 | 0 | no | — | — | 0.00 | — |
+| extrusion_error_camera1 | spaghetti | 54.9 | 29.61 | 1098 | 0 | yes | 63.8 | 95.8 | 0.03 | 4.50 |
+| extrusion_error_camera2 | spaghetti | 55.0 | 28.56 | 1101 | 0 | yes | 114.3 | 147.1 | 0.00 | 4.99 |
+| extrusion_error_camera3 | spaghetti | 55.0 | 28.92 | 1100 | 0 | yes | 179.2 | 216.2 | 0.00 | 2.74 |
+| layershift_error_camera1 | layer_shift | 51.1 | 29.67 | 1023 | 0 | no | — | — | 0.08 | 0.30 |
+| layershift_error_camera2 | layer_shift | 51.1 | 29.57 | 1023 | 0 | no | — | — | 0.00 | 0.00 |
+| layershift_error_camera3 | layer_shift | 51.0 | 29.66 | 1020 | 0 | no | — | — | 0.00 | 0.00 |
+
+The decision score of the closest normal print (camera 1, a busy background) peaked at 0.23, against a warning level of 0.38. Spaghetti drove it to 2.7–5.0. The margin on this data is large, but it comes from one printer and one filament (§ 8).
+
+## 3. Is low-frequency inference enough? — inference interval sweep
+
+The same prints analysed every 1.4 s (every recorded frame) up to every 24 s:
+
+#### Our engine (time-normalised)
+
+| Interval, s | Detected | Latency from first strand, s | from 'obvious', s | Critical (pause) latency, s | False alarms | FA / print hour |
+| ---: | :---: | :--- | :--- | :--- | ---: | ---: |
+| 1.4 | 3/3 | 68, 114, 184 | -1, 21, 91 | 97, 143, 219 | 0 | 0.0 |
+| 3.0 | 3/3 | 64, 114, 179 | -6, 21, 87 | 96, 147, 216 | 0 | 0.0 |
+| 6.0 | 3/3 | 60, 111, 174 | -10, 19, 81 | 96, 147, 209 | 0 | 0.0 |
+| 12.0 | 3/3 | 60, 111, 174 | -10, 19, 81 | 96, 147, 209 | 0 | 0.0 |
+| 24.0 | 3/3 | 72, 134, 209 | 3, 41, 117 | 96, 158, 209 | 0 | 0.0 |
+
+#### Obico's original frame-count scheme (baseline, same detections)
+
+| Interval, s | Detected | Latency from first strand, s | from 'obvious', s | Critical (pause) latency, s | False alarms | FA / print hour |
+| ---: | :---: | :--- | :--- | :--- | ---: | ---: |
+| 1.4 | 3/3 | 18, 89, 95 | -51, -4, 3 | 56, 97, 168 | 0 | 0.0 |
+| 3.0 | 3/3 | 42, 93, 101 | -28, 0, 8 | 60, 111, 174 | 0 | 0.0 |
+| 6.0 | 3/3 | 54, 99, 168 | -15, 6, 75 | 85, 128, 192 | 0 | 0.0 |
+| 12.0 | 3/3 | 72, 123, 186 | 3, 30, 94 | 96, 158, 233 | 0 | 0.0 |
+| 24.0 | 3/3 | 96, 158, 209 | 26, 66, 117 | 144, 207, 282 | 0 | 0.0 |
+
+**Findings.**
+1. **Yes, low-frequency inference is enough for these failures.** With our engine, analysing every 12 s detects exactly as fast as analysing every recorded frame (1.4 s), at about one ninth of the compute (§ 6). Only at 24 s does the latency grow, by 12–35 s. Spaghetti develops over minutes, so per-frame analysis of the moving head adds nothing.
+2. **Time normalisation does what it was designed to do.** Our latency stays roughly constant across a 17× change in frame rate. Obico's frame-count smoothing gets 5× slower on the first print (18 s → 96 s) as the interval grows, because 12 frames is a different length of time at each rate.
+3. **The cost: at short intervals our default is slower than Obico's.** At 3 s Obico warns 21–78 s earlier, because its 12-frame window lasts about 34 s at that rate, against our 60 s time constant. With τ = 30 s (§ 4) we come within 6–67 s of it, still with no false alarms here. We keep 60 s as the default because this dataset contains only one printer and cannot show whether the shorter window stays quiet on noisier scenes. That decision should be revisited with recordings from our own printer.
+4. A single analysis takes 60–210 ms (§ 6). Even the 1.4 s interval leaves the CPU idle most of the time.
+
+## 4. What the temporal engine buys — comparison and sensitivity
+
+| Engine / setting | Interval, s | Detected | Latency, s | Critical, s | False alarms (FA/h) | Non-target alerts |
+| :--- | ---: | :---: | :--- | :--- | :--- | :---: |
+| **Hercules (ours), τ=60 s, gate 3** | 3.0 | 3/3 | 64, 114, 179 | 96, 147, 216 | **0 (0.0)** | 0/3 |
+| Hercules (ours), τ=60 s, gate 3 | 12.0 | 3/3 | 60, 111, 174 | 96, 147, 209 | 0 (0.0) | 0/3 |
+| Hercules (ours), τ=60 s, gate 3 | 24.0 | 3/3 | 72, 134, 209 | 96, 158, 209 | 0 (0.0) | 0/3 |
+| Obico original (frame-count EWM) | 3.0 | 3/3 | 42, 93, 101 | 60, 111, 174 | 0 (0.0) | 0/3 |
+| Obico original (frame-count EWM) | 12.0 | 3/3 | 72, 123, 186 | 96, 158, 233 | 0 (0.0) | 0/3 |
+| Obico original (frame-count EWM) | 24.0 | 3/3 | 96, 158, 209 | 144, 207, 282 | 0 (0.0) | 0/3 |
+| Naive: alert on any frame p ≥ 0.38 | 3.0 | 3/3 | 10, 74, 78 | 10, 74, 92 | **5 (0.93)** | 1/3 |
+| Naive: alert on any frame p ≥ 0.38 | 12.0 | 3/3 | 24, 74, 78 | 49, 74, 162 | 6 (1.115) | 1/3 |
+| Ours, τ=30 s | 3.0 | 3/3 | 54, 99, 168 | 82, 123, 192 | 0 (0.0) | 0/3 |
+| Ours, τ=120 s | 3.0 | 3/3 | 90, 141, 206 | 129, 180, 255 | 0 (0.0) | 0/3 |
+| Ours, evidence gate off | 3.0 | 3/3 | 64, 114, 179 | 96, 147, 216 | 0 (0.0) | 0/3 |
+| Ours, evidence gate off | 24.0 | 3/3 | 49, 111, 162 | 96, 158, 209 | 0 (0.0) | 0/3 |
+| Ours, warning 0.25 instead of 0.38 | 3.0 | 3/3 | 49, 101, 165 | 72, 123, 189 | 1 (0.186) | 1/3 |
+
+- **Without temporal analysis** (naive), the same network raises about one false alarm per printing hour. Four of them came from one normal print with a busy background and one from the normal phase of a layer-shift print; it also alerted once after a layer shift, on unrelated texture. That rate would make automatic pausing unusable. Temporal confirmation removes all of them, at the cost of 40–100 s more latency.
+- **The evidence gate** made no difference on this data. Here the scores either stay low or rise for minutes, so the gate never decided an outcome. Its purpose is to stop a single isolated spike from alerting at long intervals; a unit test shows this (`tests/test_temporal.py::test_single_spike_at_long_interval_is_gated`), but these recordings contain no such spike. We keep it because it costs nothing on this data.
+- **Lowering the warning threshold to 0.25** gains about 15 s and adds a false alarm, so the published value 0.38 is kept.
+
+## 5. Model-level (per frame) diagnostics
+
+These are per-frame numbers for the network alone, given for completeness. Adjacent frames are nearly identical, so they overstate the effective sample size; § 2 is the result that counts.
+
+Frames: 17 326 (3 306 after a spaghetti onset; frames after a layer shift are excluded).
+
+| Frame score threshold | Precision | Recall | F1 | False-positive rate |
+| ---: | ---: | ---: | ---: | ---: |
+| p ≥ 0.2 | 0.8 | 0.953 | 0.87 | 0.0561 |
+| p ≥ 0.38 | 0.968 | 0.946 | 0.957 | 0.0073 |
+| p ≥ 0.5 | 0.997 | 0.943 | 0.97 | 0.0006 |
+| p ≥ 0.78 | 1.0 | 0.926 | 0.961 | 0.0 |
+
+At the warning level of 0.38, 0.73 % of normal frames score as failure. This is what the naive baseline turns into false alarms and what the temporal engine absorbs.
+
+ROBUSTNESS_SECTION
+
+## 6. Performance
+
+HARDWARE_TABLES
+
+**Reading the tables.**
+- One analysis costs **60 ms (4 threads) to 206 ms (1 thread)** with the FP32 model in ONNX Runtime on this CPU. OpenCV DNN is 2× slower than ONNX Runtime on the same model, so ONNX Runtime is the default.
+- The camera resolution barely matters: frame validation, resizing and the decision engine take 3–4 ms whether the frame is 640×360 or 1920×1080. The network always sees 416×416. Capture at 1280×720: it is good for the live view and the evidence images, and costs nothing in analysis time.
+- At the default 3 s interval the monitor uses **13 % of one core** (3.3 % of this 4-core machine) and about **450 MB RAM**. The process size is dominated by the 192 MB FP32 weights.
+- The dynamic INT8 model is *slower* on this x86 CPU (ConvInteger kernels) and is not recommended. See § 7 for the static INT8 model.
+
+### Hardware requirements
+
+Derived from the measurements above. Requirements for hosts we could not measure are **estimates**, marked as such.
+
+| Host | Status | Recommendation |
+| :--- | :--- | :--- |
+| Any x86-64 PC from roughly the last 10 years, ≥ 2 cores, ≥ 2 GB RAM | Measured class: a 4-vCPU Xeon VM gives 60–206 ms per analysis | **Recommended** inference host. Default settings. |
+| Old dual-core laptop/PC (e.g. Core 2 / early i3) | Not measured. **Estimate**: 0.5–1.5 s per analysis | Usable: `threads = 2`, `interval_s = 6–12` (§ 3 shows no latency loss up to 12 s). |
+| BTT Pi v1.2 (Allwinner H616, 4× Cortex-A53 1.5 GHz, 1 GB RAM), also the Klipper host | **Not measured** (no board access) | Not recommended. 450 MB RSS on a 1 GB board shared with Klipper is risky. If tried at all: INT8 model, `threads = 1`, `interval_s ≥ 12`, and run `tools/benchmark.py` first. Keep Klipper's `Timer too close` log under observation. |
+
+## 7. INT8 model variant
+
+INT8_SECTION
+
+## 8. What we could not measure, and limitations
+
+- **Our own printer.** No recording of the Hefest/Hercules printer exists yet (the camera has not been bought; § RESEARCH 4). Every detection number above comes from one other printer, a Prusa MK3-type with red PLA, a simple block, three side cameras and lab lighting. Different filament colours (especially black or transparent), a top-down view, or a cluttered enclosure can change the false-alarm rate. **First action once the camera is installed:** record 5–10 normal prints with `python -m hercules record` and re-run § 2 on them before enabling `pause_policy = "auto"`.
+- **Sample size.** 3 failing and 6 non-failing sessions. 0 false alarms in 5.4 h does **not** prove a rate of 0. The 95 % upper bound for a Poisson count of 0 over 5.38 h is about **0.56 false alarms per printing hour**. Recall 3/3 has a 95 % lower bound of 0.29 (Clopper–Pearson).
+- **Failure types.** Validated: spaghetti. Not detected: layer shift (0/3, maximum score after the shift 0.30). Not measured, no labelled data: part detachment without mess, warping, under-extrusion, first-layer defects, gradual deterioration.
+- **Detection latency** is 1–4 minutes after the first strand. Some filament is wasted before a pause, but the print is stopped long before a large spaghetti nest forms around the nozzle.
+- **BTT Pi** performance: not measured (§ 6).
+- **Camera:** the Creality Nebula has not been tested (RESEARCH § 4).
+- **Live network faults** (Moonraker down, camera unplugged, stream stalls) are covered by automated tests with simulated faults, not by tests on the physical printer.
+
+SOAK_SECTION

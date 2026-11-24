@@ -12,6 +12,12 @@ sending to the neural network and whether the camera itself is healthy:
                bit-identical for frozen_after_s (stream hung, driver stuck)
 * obstruction  share of 16x16 blocks with almost no texture -> lens covered,
                camera knocked to face a wall, or a uniform black/white frame
+* noise        sensor noise sigma (Immerkaer 1996, fast Laplacian-difference
+               estimator). Heavy noise (dim light, cheap sensor) makes the
+               network fire on grain: measured in docs/EVALUATION.md. Noisy
+               frames are still analysed (spaghetti stays detectable), but a
+               persistent "noisy" state raises an image-quality incident.
+               Denoising before inference was tested and made it worse.
 """
 from __future__ import annotations
 
@@ -23,6 +29,8 @@ import numpy as np
 
 from .config import PipelineCfg
 
+_IMMERKAER = np.array([[1, -2, 1], [-2, 4, -2], [1, -2, 1]], np.float32)
+
 
 @dc.dataclass
 class Quality:
@@ -31,19 +39,21 @@ class Quality:
     sharpness_ratio: float
     change: float | None
     flat_fraction: float
+    noise_sigma: float
     too_dark: bool
     overexposed: bool
     blurred: bool
     duplicate: bool
     identical: bool
     obstructed: bool
+    noisy: bool = False
 
     @property
     def usable(self) -> bool:
         return not (self.too_dark or self.overexposed or self.obstructed)
 
     def flags(self) -> list[str]:
-        return [n for n in ("too_dark", "overexposed", "blurred", "duplicate", "obstructed")
+        return [n for n in ("too_dark", "overexposed", "noisy", "blurred", "duplicate", "obstructed")
                 if getattr(self, n)]
 
 
@@ -65,6 +75,9 @@ class FrameValidator:
         g = cv2.resize(g, (480, max(1, int(round(h * scale)))), interpolation=cv2.INTER_AREA)
 
         brightness = float(g.mean())
+        gn = cv2.resize(g, (480, 270), interpolation=cv2.INTER_AREA).astype(np.float32) \
+            if g.shape != (270, 480) else g.astype(np.float32)
+        noise = float(np.sqrt(np.pi / 2) * np.abs(cv2.filter2D(gn, -1, _IMMERKAER))[1:-1, 1:-1].mean() / 6)
         sharp = float(cv2.Laplacian(g, cv2.CV_32F).var())
         med = float(np.median(self._sharp_hist)) if len(self._sharp_hist) >= 5 else sharp
         ratio = sharp / med if med > 1e-6 else 1.0
@@ -87,6 +100,8 @@ class FrameValidator:
         return Quality(
             brightness=brightness, sharpness=sharp, sharpness_ratio=ratio, change=change,
             flat_fraction=flat,
+            noise_sigma=noise,
+            noisy=noise > c.noise_sigma_max,
             too_dark=brightness < c.dark_level,
             overexposed=brightness > c.bright_level,
             blurred=len(self._sharp_hist) >= 5 and ratio < c.blur_ratio,

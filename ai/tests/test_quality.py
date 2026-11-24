@@ -48,3 +48,13 @@ def test_motion_blur_is_relative_to_history():
     blurred = cv2.filter2D(textured(20), -1, k)
     q = v.check(blurred)
     assert q.blurred and q.usable
+
+
+def test_sensor_noise_is_measured_and_flagged():
+    v = FrameValidator(PipelineCfg())
+    clean = cv2.GaussianBlur(textured(5), (7, 7), 0)
+    q = v.check(clean)
+    assert q.noise_sigma < 2.5 and not q.noisy
+    noisy = np.clip(clean.astype(np.int16) + np.random.default_rng(1).normal(0, 18, clean.shape), 0, 255).astype(np.uint8)
+    q = v.check(noisy)
+    assert q.noisy and q.usable and "noisy" in q.flags()

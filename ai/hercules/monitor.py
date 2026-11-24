@@ -157,8 +157,10 @@ class Monitor:
                                f"{self.live.cfg.pipeline.frozen_after_s:.0f} s", frame)
         self._camera_condition("camera_obstructed", td, q.obstructed,
                                f"{100 * q.flat_fraction:.0f}% of the image has no texture", frame)
-        self._camera_condition("bad_lighting", td, q.too_dark or q.overexposed,
-                               f"mean brightness {q.brightness:.0f}/255", frame)
+        self._camera_condition("bad_lighting", td, q.too_dark or q.overexposed or q.noisy,
+                               f"mean brightness {q.brightness:.0f}/255, noise sigma {q.noise_sigma:.1f}"
+                               + (" - heavy noise: detection reliability reduced, improve lighting" if q.noisy else ""),
+                               frame)
         self.metrics.record(res.detection.latency_ms if res.detection else None, res.step_ms)
         self.metrics.count(f"skipped_{res.skipped}" if res.skipped else "inferences")
         a = res.assessment

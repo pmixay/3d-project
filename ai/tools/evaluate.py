@@ -206,8 +206,9 @@ def evaluate(cfg, labels, data_dir, cache_dir, interval, read_images=True, sessi
         opens = [x for x in alerts if x["event"] == "open"]
         false = [x for x in opens if x["t"] < normal_end]
         fa += len(false)
-        hit = next((x for x in opens if onset is not None and x["t"] >= onset), None)
-        # an incident already open at onset (opened as a false alarm) still covers the failure
+        # detection = an incident opens, or an already open one escalates, at/after the onset.
+        # (an incident that opened before the onset and never escalates counts as a miss + a false alarm)
+        hit = next((x for x in alerts if onset is not None and x["t"] >= onset), None)
         crit = next((x for x in alerts if x["level"] == "critical" and onset is not None and x["t"] >= onset), None)
         per[name] = {
             "kind": lab["kind"], "frames_analysed": len(trace),
@@ -217,6 +218,8 @@ def evaluate(cfg, labels, data_dir, cache_dir, interval, read_images=True, sessi
             "false_alarms": len(false), "false_alarm_times_min": [round(x["t"] / 60, 1) for x in false],
             "detected": hit is not None,
             "latency_s": None if hit is None else round(hit["t"] - onset, 1),
+            "latency_from_obvious_s": None if hit is None or lab.get("obvious_index") is None
+            else round(hit["t"] - onset_time(rows, lab["obvious_index"]), 1),
             "critical_latency_s": None if crit is None else round(crit["t"] - onset, 1),
             "max_score_normal": max([s for t, s, p, k in trace if s is not None and t < normal_end] or [0]),
             "max_score_after_onset": None if onset is None else max(
@@ -244,6 +247,8 @@ def evaluate(cfg, labels, data_dir, cache_dir, interval, read_images=True, sessi
             "session_recall": None if rec is None else round(rec, 3),
             "session_f1": None if f1 is None else round(f1, 3),
             "latency_s": lats, "latency_s_mean": round(sum(lats) / len(lats), 1) if lats else None,
+            "latency_from_obvious_s": [v["latency_from_obvious_s"] for v in tgt if v["latency_from_obvious_s"] is not None],
+            "critical_latency_s": [v["critical_latency_s"] for v in tgt if v["critical_latency_s"] is not None],
             "non_target_failures_alerted": sum(v["detected"] for v in nontarget_fail),
             "non_target_failure_sessions": len(nontarget_fail),
         },
@@ -324,7 +329,7 @@ def main():
         results["runs"].append(r)
         s = r["summary"]
         print(f"interval {iv:>5.1f}s  detected {s['detected']}/{s['target_sessions']}  "
-              f"latency {s['latency_s']}  FA {s['false_alarms']} ({s['false_alarms_per_print_hour']}/h over "
+              f"latency {s['latency_s']} (from obvious {s['latency_from_obvious_s']}, critical {s['critical_latency_s']})  FA {s['false_alarms']} ({s['false_alarms_per_print_hour']}/h over "
               f"{s['normal_print_hours']} h)  P/R/F1 {s['session_precision']}/{s['session_recall']}/{s['session_f1']}  "
               f"non-target alerted {s['non_target_failures_alerted']}/{s['non_target_failure_sessions']}", flush=True)
         for n, v in r["sessions"].items():

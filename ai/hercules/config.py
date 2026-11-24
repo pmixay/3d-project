@@ -69,6 +69,7 @@ class PipelineCfg:
     bright_level: float = 240.0
     frozen_after_s: float = 30.0
     obstructed_fraction: float = 0.75
+    noise_sigma_max: float = 4.0  # clean frames measure ~1-2, sigma-18 sensor noise ~6 (EVALUATION 5b)
 
 
 @dc.dataclass
