@@ -141,6 +141,7 @@ The team's camera is a cheap CSI module. Its real images could not be tested yet
 | cheap module: 640×360, σ 14, JPEG q40 | none (full frame) | 3/3 | 97, 114, 218 | 2 (0.889) |
 | cheap module: 640×360, σ 14, JPEG q40 | bed ROI, filter | 3/3 | 128, 114, 218 | 0 (0.0) |
 | cheap module + average_frames 4 | none (full frame) | 3/3 | 92, 127, 200 | 2 (0.889) |
+| cheap module + average_frames 4 | bed ROI, filter | 3/3 | 110, 127, 200 | 0 (0.0) |
 | cheap module + average_frames 4 | bed ROI, **crop** | 3/3 | 97, 151, 200 | 0 (0.0) |
 
 **What this shows**
