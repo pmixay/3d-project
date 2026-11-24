@@ -1,0 +1,64 @@
+# Hercules AI print monitor - configuration.
+# Every key can also be set with an environment variable HERCULES_<SECTION>__<KEY>,
+# e.g. HERCULES_CAMERA__SOURCE=/dev/video0 . Dashboard edits are stored in
+# <state_dir>/settings.json and override this file.
+
+state_dir = "state"
+log_level = "INFO"
+
+[camera]
+# "0" / "/dev/video0"                      USB webcam on this computer
+# "http://<btt-pi>/webcam/?action=stream"   Crowsnest/ustreamer MJPEG stream from the BTT Pi
+# "http://<btt-pi>/webcam/?action=snapshot" single JPEG, polled (lowest bandwidth)
+# "data/zenodo_fffqc/test_extrusion_error_print_camera1"  recorded session (offline test)
+source = "0"
+width = 1280
+height = 720
+fps = 15
+snapshot_interval_s = 1.0
+replay_speed = 1.0
+loop = false
+
+[detector]
+model_path = "models/obico-failure-5a6b1be1fa.onnx"
+backend = "onnxruntime"      # or "opencv"
+providers = "auto"           # auto | cpu | e.g. "OpenVINOExecutionProvider"
+threads = 0                  # 0 = all cores; set 2 to leave cores free on a shared host
+box_threshold = 0.08
+
+[pipeline]
+interval_s = 3.0             # see docs/EVALUATION.md for the measured effect of this value
+monitor_when = "printing"    # "always" for demos without a printer
+roi = [0.0, 0.0, 1.0, 1.0]
+roi_mode = "filter"
+ignore_zones = []
+skip_duplicates = true
+skip_blurred = true
+
+[decision]
+ewm_tau_s = 60.0
+baseline_tau_s = 3600.0
+warn_threshold = 0.38
+critical_factor = 1.75
+min_positive_frames = 3
+positive_p = 0.2
+evidence_window_s = 120.0
+warmup_s = 60.0
+clear_hold_s = 120.0
+
+[actions]
+pause_policy = "notify"      # notify | confirm | auto  (keep "notify" until validated on your printer)
+pause_on_camera_loss = false
+gcode_notify = true
+notify_gcode = "M117 {text}"
+webhook_url = ""
+
+[moonraker]
+url = ""                     # e.g. "http://192.168.1.50:7125" (BTT Pi); empty = no printer link
+api_key = ""
+poll_interval_s = 2.0
+
+[web]
+host = "0.0.0.0"
+port = 8090
+auth_token = ""              # set to require X-Hercules-Token on every state-changing request

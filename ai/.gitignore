@@ -1,0 +1,10 @@
+data/
+models/
+state/
+*.pyc
+__pycache__/
+.pytest_cache/
+state-demo/
+config/hercules.local.toml
+.venv/
+*.egg-info/
