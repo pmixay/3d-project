@@ -41,10 +41,12 @@ for k in identity lowres cheap_avg4; do
   $PY tools/evaluate.py --perturb $k --rois datasets/labels/rois.json --set pipeline.roi_mode=crop \
       --intervals 6 --window 600 900 --out $R/eval_roicrop_$k.json
 done
-# INT8 model variant
+# INT8 model (the Raspberry Pi default), calibrated on another printer's healthy frames
+if [ ! -f models/obico-failure-int8-qdq.onnx ]; then ./tools/build_int8.sh; fi
 if [ -f models/obico-failure-int8-qdq.onnx ]; then
   $PY tools/score_sessions.py data/zenodo_fffqc/test_* --model models/obico-failure-int8-qdq.onnx --cache data/cache_int8
-  $PY tools/evaluate.py --cache data/cache_int8 --intervals 3 12 --out $R/eval_int8.json
+  $PY tools/evaluate.py --cache data/cache_int8 --intervals 3 6 12 --out $R/eval_int8.json
+  $PY tools/evaluate.py --cache data/cache_int8 --rois datasets/labels/rois.json --intervals 12 --out $R/eval_int8_roi.json
 fi
 # performance on this host
 $PY tools/benchmark.py --frames data/zenodo_fffqc/test_extrusion_error_print_camera1 --out "$R/benchmark_$(hostname).json"

@@ -1,5 +1,7 @@
-# Hercules AI print monitor - preset for a Raspberry Pi (64-bit Raspberry Pi OS) with a
-# CSI ribbon camera. The installer uses this file as config/hercules.local.toml on a Pi.
+# Hercules AI print monitor - preset for a Raspberry Pi with 1 GB RAM (64-bit Raspberry Pi OS)
+# and a CSI ribbon camera. The installer uses this file as config/hercules.local.toml on a Pi.
+# Model: INT8 (measured on x86: 268 MB process instead of 433 MB, 2.25x faster on one thread;
+# same 3/3 detections and 0 false alarms; warnings 12-48 s later at 12 s - EVALUATION section 7).
 # Klipper stays on the BTT Pi; this Raspberry Pi only watches and, if needed, pauses.
 # Keys and environment overrides are documented in config/hercules.toml.
 
@@ -15,14 +17,17 @@ fps = 5                      # analysis needs a frame every few seconds; fewer f
 average_frames = 1           # 4 for a noisy module in dim light (docs/EVALUATION.md, cheap cameras)
 
 [detector]
-model_path = "models/obico-failure-5a6b1be1fa.onnx"
+model_path = "models/obico-failure-int8-qdq.onnx"   # built on a PC: tools/build_int8.sh
+model_url = ""                                      # not downloadable: built locally
+model_sha256 = ""
+fallback_model_path = "models/obico-failure-5a6b1be1fa.onnx"   # used until the INT8 file is copied
 backend = "onnxruntime"
 providers = "cpu"
 threads = 3                  # leave one core for the camera, the dashboard and the OS
 box_threshold = 0.08
 
 [pipeline]
-interval_s = 6.0             # measured: 6-12 s detects as fast as every frame (EVALUATION section 3)
+interval_s = 12.0            # measured: 12 s detects as fast as every frame (EVALUATION sections 3 and 7)
 monitor_when = "printing"
 roi = [0.0, 0.0, 1.0, 1.0]
 roi_mode = "crop"            # only the ROI goes to the network: draw the ROI around the bed (EVALUATION 5c)

@@ -346,7 +346,8 @@ class Monitor:
             "detector": {"backend": self.analyzer.detector.backend,
                          "providers": self.analyzer.detector.providers,
                          "load_s": round(self.analyzer.detector.load_s, 2),
-                         "model": cfg.detector.model_path},
+                         "model": getattr(self.analyzer.detector, "model_path", cfg.detector.model_path),
+                         "fallback_used": getattr(self.analyzer.detector, "fallback_used", False)},
             "analysis": None if res is None else {
                 "t": res.t, "skipped": res.skipped, "quality": {
                     "brightness": round(res.quality.brightness, 1),

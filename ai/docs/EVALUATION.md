@@ -183,6 +183,8 @@ Host: cloud VM, Intel(R) Xeon(R) Processor @ 2.10GHz, 4 logical cores, 16087 MB 
 | 3.0 | 20 | 13.3 | 3.3 | 3.7 | 447 |
 | 10.0 | 6 | 4.4 | 1.1 | 1.3 | 447 |
 
+*The INT8 rows above are an earlier build calibrated on one of the test prints; the current build (calibrated on another printer) is benchmarked in § 7 with nearly the same numbers.*
+
 **Reading the tables.**
 - One analysis costs **60 ms (4 threads) to 206 ms (1 thread)** with the FP32 model in ONNX Runtime on this CPU. OpenCV DNN is 2× slower than ONNX Runtime on the same model, so ONNX Runtime is the default.
 - The camera resolution barely matters: frame validation, resizing and the decision engine take 3–4 ms whether the frame is 640×360 or 1920×1080. The network always sees 416×416. Capture at 1280×720: it is good for the live view and the evidence images, and costs nothing in analysis time.
@@ -195,25 +197,36 @@ Derived from the measurements above. Requirements for hosts we could not measure
 
 | Host | Status | Recommendation |
 | :--- | :--- | :--- |
-| **Raspberry Pi 4 / Pi 5, 2 GB+ RAM, 64-bit Raspberry Pi OS, CSI camera** (the target setup) | **Not measured yet.** No Pi was available. A Cortex-A72/A76 core is slower than the measured Xeon core, so expect several times the latencies above. | Planned inference host. Use the `config/hercules.rpi.toml` preset: 3 threads, `interval_s = 6` (raise to 12 without latency loss per § 3). Measure with `tools/benchmark.py` as described in [RASPBERRY_PI.md § 5](RASPBERRY_PI.md#5-measure-the-pi-this-has-not-been-done-yet). |
-| Raspberry Pi 3B/3B+ (1 GB) | **Not measured.** | Only with the INT8 model (268 MB vs 419 MB measured on x86) and `interval_s = 12`. |
+| **Raspberry Pi with 1 GB RAM, 64-bit Raspberry Pi OS, CSI camera** (our target) | **Not measured yet**: no Pi was available. A Pi core is slower than the measured Xeon core, so expect several times the latencies above. | `config/hercules.rpi.toml`: INT8 model (268 MB vs 433 MB process RAM on x86), `interval_s = 12` (no latency loss per § 3 and § 7), 3 threads. Measure with `tools/benchmark.py` ([RASPBERRY_PI.md § 5](RASPBERRY_PI.md#5-measure-the-pi-this-has-not-been-done-yet)). |
+| Raspberry Pi 4/5 with 2 GB+ | **Not measured.** | Same preset; FP32 (`model_path` = the fallback file) is also possible and warns 12–48 s earlier. |
 | Any x86-64 PC from roughly the last 10 years, ≥ 2 cores, ≥ 2 GB RAM | Measured class: a 4-vCPU Xeon VM gives 60–206 ms per analysis | Works with default settings, e.g. a laptop with a USB camera. |
 | Old dual-core laptop/PC (e.g. Core 2 / early i3) | Not measured. **Estimate**: 0.5–1.5 s per analysis | Usable: `threads = 2`, `interval_s = 6–12` (§ 3 shows no latency loss up to 12 s). |
 | BTT Pi v1.2 (Allwinner H616, 4× Cortex-A53 1.5 GHz, 1 GB RAM), also the Klipper host | **Not measured** (no board access) | Not recommended. 450 MB RSS on a 1 GB board shared with Klipper is risky. If tried at all: INT8 model, `threads = 1`, `interval_s ≥ 12`, and run `tools/benchmark.py` first. Keep Klipper's `Timer too close` log under observation. |
 
-## 7. INT8 model variant
+## 7. INT8 model — the Raspberry Pi default
 
-Static INT8 quantisation (`tools/quantize_model.py --mode qdq`, per-tensor because the model is opset 11), re-run on all 20 141 frames and evaluated exactly like FP32:
+Static INT8 quantisation (`tools/build_int8.sh` → `tools/quantize_model.py --mode qdq`, per-tensor because the model is opset 11). Activation ranges are **calibrated on 64 healthy-print frames from a different printer** (Snapmaker U1, Hugging Face `Alex-Ultra/3d-cli-print-failure-frames`, CC-BY-4.0), so the evaluation recordings play no part in building the model. It was re-run on all 20 141 frames and evaluated exactly like FP32:
 
-| Model | Interval, s | Detected | Latency, s | Critical, s | False alarms | Frame P / R at p ≥ 0.38 | Inference (1 / 4 threads) | Process RAM |
-| :--- | ---: | :---: | :--- | :--- | ---: | :--- | :--- | ---: |
-| FP32 (default) | 3 | 3/3 | 64, 114, 179 | 96, 147, 216 | 0 | 0.968 / 0.946 | 206 / 59 ms | 419 MB |
-| INT8 QDQ | 3 | 3/3 | 99, 129, 198 | 135, 171, 255 | 0 | 1.000 / 0.937 | 88 / 33 ms | 268 MB |
-| INT8 QDQ | 12 | 3/3 | 96, 123, 198 | 144, 171, 257 | 0 | — | — | — |
+| Model | Interval, s | Detected | Warning latency, s | Critical (pause) latency, s | False alarms (5.38 h) |
+| :--- | ---: | :---: | :--- | :--- | ---: |
+| FP32 | 3 | 3/3 | 64, 114, 179 | 96, 147, 216 | 0 |
+| FP32 | 12 | 3/3 | 60, 111, 174 | 96, 147, 209 | 0 |
+| **INT8** | 3 | 3/3 | 99, 129, 209 | 144, 171, 260 | 0 |
+| **INT8** | 6 | 3/3 | 108, 123, 203 | 150, 171, 276 | 0 |
+| **INT8** | **12** (Pi preset) | 3/3 | 108, 123, 209 | 157, 171, 282 | 0 |
 
-INT8 compresses the scores: fewer false positives per frame, but warnings come 15–35 s later. It is **2.3× faster on one thread and uses 150 MB less RAM**, which makes it the candidate for weak hosts. It is not the default, because FP32 is faster to warn and has more margin.
+Per frame at p ≥ 0.38, INT8 has precision 0.998 and recall 0.936, against 0.968 / 0.946 for FP32.
 
-*Caveat:* the activation ranges were calibrated on 64 frames of one of the normal test prints (`no_error_camera1`). Calibration uses no labels and only sets value ranges, but strictly that print is no longer unseen for the INT8 variant. A re-calibration on our own printer's footage is planned anyway.
+| Model (x86 VM, same host as § 6) | 1 thread | 3 threads | Process RAM | Load |
+| :--- | ---: | ---: | ---: | ---: |
+| FP32 | 207 ms | 73 ms | 433 MB | 0.8 s |
+| INT8 | 92 ms | 43 ms | 268 MB | 0.2 s |
+
+Raw data: [`results/eval_int8.json`](results/eval_int8.json), [`results/benchmark_int8_vs_fp32.json`](results/benchmark_int8_vs_fp32.json).
+
+**Reading.** INT8 compresses the scores: fewer false positives per frame, but it takes longer to cross the thresholds. At 12 s, warnings come **12–48 s later** and the pause **24–73 s later** than with FP32. In exchange it is **2.25× faster on one thread** and uses **165 MB less RAM**. On a 1 GB Raspberry Pi, that RAM margin and the lower CPU load matter more than half a minute of extra filament, so INT8 is the default in `config/hercules.rpi.toml`. FP32 stays the default on bigger machines and is the automatic fallback on the Pi if the INT8 file is missing.
+
+**Building it.** The build needs about **1.2 GB RAM** (measured peak, independent of the number of calibration frames), so it is done on a PC and copied to the Pi ([RASPBERRY_PI.md § 3.1](RASPBERRY_PI.md)). Two builds on the same machine gave a bit-identical file. Builds with other library versions may differ slightly and are not covered by this evaluation, so re-run § 7 if the toolchain changes.
 
 ## 8. What we could not measure, and limitations
 

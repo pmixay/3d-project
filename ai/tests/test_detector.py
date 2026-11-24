@@ -90,3 +90,14 @@ def test_crop_mode_maps_boxes_back_to_full_frame():
     assert det.boxes and det.p > 0.38                # spaghetti in this frame
     for b in det.boxes:
         assert 0 <= b.x1 < b.x2 <= W and 0.3 * H - 1 <= b.y1 < b.y2 <= H
+
+
+@needs_model
+def test_missing_int8_model_falls_back_to_fp32(tmp_path):
+    from hercules.config import DetectorCfg
+    cfg = DetectorCfg(model_path=str(tmp_path / "missing-int8.onnx"), model_url="", model_sha256="",
+                      fallback_model_path=MODEL)
+    det = Detector(cfg)
+    assert det.fallback_used and det.model_path == MODEL
+    with pytest.raises(FileNotFoundError, match="build_int8"):
+        Detector(DetectorCfg(model_path=str(tmp_path / "missing.onnx"), model_url="", model_sha256=""))

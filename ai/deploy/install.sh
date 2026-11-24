@@ -39,8 +39,9 @@ if grep -qi "raspberry pi" /proc/device-tree/model 2>/dev/null; then
   fi
   MEM_MB=$(awk '/MemTotal/ {print int($2/1024)}' /proc/meminfo)
   if [ "$MEM_MB" -lt 1800 ]; then
-    echo "WARNING: ${MEM_MB} MB RAM. The FP32 model process needs ~450 MB; close other services,"
-    echo "         or build the INT8 model (~270 MB) - see docs/RASPBERRY_PI.md."
+    echo "NOTE: ${MEM_MB} MB RAM. The Pi preset uses the INT8 model (~270 MB). Build it on a PC with"
+    echo "      tools/build_int8.sh and copy it to models/ (docs/RASPBERRY_PI.md section 3.1);"
+    echo "      until then the FP32 model (~450 MB) runs as a fallback."
   fi
 fi
 

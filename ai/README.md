@@ -59,6 +59,13 @@ sudo systemctl restart hercules
 journalctl -u hercules -f         # logs (also state/logs/hercules.log, rotated)
 ```
 
+Our Pi has **1 GB RAM**, so the Pi preset uses the **INT8 model**. It measured 268 MB instead of 433 MB and ran 2.25× faster, with the same detections and no false alarms, but warns 12–48 s later (EVALUATION § 7). Building it needs ~1.2 GB, so build it once on the laptop and copy it:
+```bash
+./tools/build_int8.sh             # on the laptop, inside 3d-project/ai
+scp models/obico-failure-int8-qdq.onnx <user>@<raspberry-pi-ip>:3d-project/ai/models/
+```
+Until the file is there, the Pi runs the full FP32 model as a fallback, shown in the dashboard as "model FP32 (fallback)".
+
 The service restarts automatically after a crash (`Restart=always`). It runs at low CPU priority (`Nice=10`, `CPUWeight=20`) with a memory cap. Hardware requirements are in [EVALUATION § hardware](docs/EVALUATION.md#hardware-requirements).
 
 ### Other camera sources

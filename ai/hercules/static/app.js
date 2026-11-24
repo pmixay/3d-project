@@ -47,8 +47,11 @@ function renderStatus(s) {
   else pill("pill-printer", pr.connected ? (pr.state === "printing" ? "ok" : "info") : "crit",
     pr.connected ? "printer " + pr.state : "printer offline");
   $("pill-printer").title = pr.error || pr.url;
-  pill("pill-model", "ok", s.detector.backend);
-  $("pill-model").title = s.detector.providers.join(", ");
+  const variant = /int8/i.test(s.detector.model || "") ? "INT8" : "FP32";
+  pill("pill-model", s.detector.fallback_used ? "warn" : "ok",
+    `model ${variant}${s.detector.fallback_used ? " (fallback)" : ""}`);
+  $("pill-model").title = `${s.detector.model} · ${s.detector.backend} · ${s.detector.providers.join(", ")}` +
+    (s.detector.fallback_used ? " · configured model missing: run tools/build_int8.sh (docs/RASPBERRY_PI.md)" : "");
 
   $("feed-meta").textContent = `${cam.kind} · ${cam.resolution.join("×")} · ${fmt(cam.fps, 1)} fps` + (an && an.frame_label ? " · " + an.frame_label : "");
   $("feed-off").classList.toggle("hidden", cam.state === "online" || cam.state === "ended" || cam.frames > 0);

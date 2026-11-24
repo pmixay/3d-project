@@ -59,8 +59,20 @@ def cmd_run(a) -> int:
 
 def cmd_download(a) -> int:
     cfg = config_mod.load(a.config, use_overrides=False)
+    from .config import DetectorCfg
     from .detector import ensure_model
-    print(ensure_model(cfg.detector), "OK (sha256 verified)")
+    try:
+        print(ensure_model(cfg.detector), "OK" + (" (sha256 verified)" if cfg.detector.model_sha256 else ""))
+    except FileNotFoundError:
+        if not cfg.detector.fallback_model_path:
+            raise
+        fb = DetectorCfg()
+        if cfg.detector.fallback_model_path != fb.model_path:
+            fb.model_url, fb.model_sha256 = "", ""
+        fb.model_path = cfg.detector.fallback_model_path
+        print(ensure_model(fb), "OK (fallback model)")
+        print(f"NOTE: {cfg.detector.model_path} is not here yet. Build it on a PC with tools/build_int8.sh "
+              "and copy it over (docs/RASPBERRY_PI.md); until then the fallback model is used.")
     return 0
 
 

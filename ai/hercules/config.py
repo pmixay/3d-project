@@ -47,6 +47,8 @@ class DetectorCfg:
     model_path: str = "models/obico-failure-5a6b1be1fa.onnx"
     model_url: str = "https://www.obico.io/static_pub/ml-models/model-weights-5a6b1be1fa.onnx"
     model_sha256: str = "0a6ebd8e30dbf6a450c50f9c0a5406f04ba7eb1c99fd5996e888c78bb383b9aa"
+    # used when model_path is missing and has no URL (e.g. the INT8 model was not copied to the Pi yet)
+    fallback_model_path: str = ""
     backend: str = "onnxruntime"  # onnxruntime | opencv
     providers: str = "auto"       # auto | cpu | comma list of ORT providers
     threads: int = 0              # 0 = library default

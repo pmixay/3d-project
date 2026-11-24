@@ -97,7 +97,22 @@ def nms(boxes: np.ndarray, scores: np.ndarray, thr: float) -> list[int]:
 class Detector:
     def __init__(self, cfg: DetectorCfg):
         self.cfg = cfg
-        path = ensure_model(cfg)
+        self.fallback_used = False
+        try:
+            path = ensure_model(cfg)
+        except FileNotFoundError:
+            if not cfg.fallback_model_path:
+                raise FileNotFoundError(
+                    f"model {cfg.model_path} not found. For the INT8 model run tools/build_int8.sh "
+                    "on a PC with 2 GB+ RAM and copy the file (docs/RASPBERRY_PI.md)") from None
+            fb = DetectorCfg()                     # the official FP32 model: URL + SHA-256
+            if cfg.fallback_model_path != fb.model_path:
+                fb.model_url, fb.model_sha256 = "", ""
+            fb.model_path = cfg.fallback_model_path
+            log.warning("model %s not found, using fallback %s", cfg.model_path, fb.model_path)
+            path = ensure_model(fb)
+            self.fallback_used = True
+        self.model_path = path
         t0 = time.time()
         self.backend = cfg.backend
         if self.backend == "opencv":
