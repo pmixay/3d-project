@@ -6,14 +6,14 @@ Head coordinates (as in the team's KOMPAS assembly): origin at the MGN12H carria
 Inputs
   parts_dir   the team's assembly export ("Сборка/Hefest extruder.stp", KAPACbik/Hefest, branch
               Side-PCB-test, 18697e8) split into .brep files by split_assy.py
-  head/v3     frame v3, hotend mount 2 with the MicroProbe seat, the probe and the front cover
+  head/v3     frame v3 with the cover boss, hotend mount 2 with the MicroProbe seat, the probe, the cover
 
 What goes in: everything in the assembly except the carriage block (the printer model has its
 own), with the frame and hotend mount 2 replaced by their v3 versions, plus the BIQU MicroProbe
-and the front cover (node "head_cover", so that renders can hide it).
+and the cover with its three screws (nodes "head_cover*", so that renders can hide them).
 With --by-part the printed parts get one colour each, as in the CAD screenshots.
 
-Run:  python model/tools/head_glb.py <parts_dir> model/parts/hefest_head.glb [--by-part]
+Run:  python model/tools/head_glb.py <parts_dir> model/parts/hefest_head.glb [--by-part] [--exploded]
 """
 import json
 import os
@@ -25,6 +25,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 V3 = os.path.join(HERE, "..", "..", "head", "v3")
 sys.path.insert(0, V3)
 import cover            # noqa: E402
+import cover_points     # noqa: E402
+import frame_cover      # noqa: E402
 import mount2_probe     # noqa: E402
 import probe            # noqa: E402
 
@@ -45,6 +47,7 @@ C = {
     "xt30": (0.95, 0.75, 0.10),
     "terminal": (0.20, 0.60, 0.25),
     "probe": (0.90, 0.45, 0.08),
+    "screw": (0.78, 0.80, 0.82),
     # one colour per printed part (--by-part)
     "frame": (0.16, 0.32, 0.62), "belt_cover": (0.80, 0.42, 0.12), "mount1": (0.25, 0.60, 0.33), "mount2": (0.20, 0.62, 0.62),
     "triangle": (0.66, 0.20, 0.16), "duct": (0.85, 0.68, 0.15), "minifeeder": (0.55, 0.75, 0.25), "cover": (0.88, 0.89, 0.90),
@@ -75,7 +78,7 @@ s = g.Solids()
 in_solids = {sh.hashCode() for sol in s for sh in sol.Shells()}
 free = [sh for sh in g.Shells() if sh.hashCode() not in in_solids and len(sh.Faces()) > 10]
 duct_shell = min(free, key=lambda sh: sh.BoundingBox().ymin)          # the other free shell is the original frame
-add("head_frame_v3", cq.importers.importStep(os.path.join(V3, "out", "frame_v3.step")), "printed", "frame")
+add("head_frame_v3", frame_cover.build(), "printed", "frame")
 add("head_belt_cover", wp([s[0], s[3]]), "printed", "belt_cover")
 add("head_hotend_mount_1", wp(s[1]), "printed", "mount1")
 add("head_hotend_mount_2_probe", mount2_probe.build(), "printed", "mount2")
@@ -110,7 +113,13 @@ add("head_ebb42_gen2_small", wp([b for b in rest if b.Volume() <= 60]), "steel")
 
 # BIQU MicroProbe V2 and the front cover
 add("head_microprobe", probe.probe_model(), "probe")
-add("head_cover", cover.build(), "printed", "cover")
+# with --exploded the cover is pulled off to the front and its screws are backed out (for the mounting picture)
+EXPLODE_X, EXPLODE_SCREW = (-55.0, 14.0) if "--exploded" in sys.argv else (0.0, 0.0)
+add("head_cover", cover.build().translate((EXPLODE_X, 0, 0)), "printed", "cover")
+side_a, side_b, top = cover_points.screws((cover.Z0, cover.Z1), cover.Y_TOP)
+add("head_cover_screws", wp([side_a.translate((EXPLODE_X, 0, -EXPLODE_SCREW)).val(), side_b.translate((EXPLODE_X, 0, EXPLODE_SCREW)).val(),
+                             top.translate((EXPLODE_X, EXPLODE_SCREW, 0)).val()]), "steel")
+add("head_inserts_cover", wp([s.val() for s in cover_points.inserts()]), "brass")
 
 os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
 assy.export(out, tolerance=0.08, angularTolerance=0.35)

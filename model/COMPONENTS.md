@@ -73,7 +73,7 @@ The model draws each run as a straight belt between its pulleys, in one plane, t
 The photos still show the previous head (green breakout board standing at the rear, S2DW accelerometer on a
 printed arm, braided harness looping above the printer). The model shows the new **Hefest** head instead:
 `model/parts/hefest_head.glb`, built by `tools/head_glb.py` from the team's assembly with the v3 parts
-(`head/v3/`: frame, front hotend mount with the MicroProbe seat, front cover) and placed on the X carriage when `printer.py` writes the GLB.
+(`head/v3/`: frame with the cover boss, front hotend mount with the MicroProbe seat, head cover) and placed on the X carriage when `printer.py` writes the GLB.
 
 | Component | Model part | Notes |
 | :--- | :--- | :--- |
@@ -83,7 +83,7 @@ printed arm, braided harness looping above the printer). The model shows the new
 | 3010 hotend fan, 5015 part-cooling blower | `head_fans` | |
 | BIGTREETECH EBB42 GEN2 V1.0 | `head_ebb42_gen2_*` | The board from the team's assembly; on the left side wall of the head, XT30 up. |
 | BIQU MicroProbe V2 | `head_microprobe` | Official mockup, pin extended; under the front hotend mount, shown in orange. |
-| Front cover with the printer name | `head_cover` | Over the hotend fan. |
+| Head cover with the printer name | `head_cover`, `head_cover_screws`, `head_inserts_cover` | One shell over the front and top of the head, on three M3 screws of its own. |
 | Single 24 V + CAN cable from the XT30 to the rear-right corner | `toolhead_cable_can` | Route approximate. Hidden in the presentation renders. |
 
 ## Electronics tray (underside)

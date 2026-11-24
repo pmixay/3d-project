@@ -21,5 +21,6 @@ node make_head_pdf.mjs    # пояснительная записка к гол�
 python3 cutout_bg.py in.jpg out.png preview.png   # убрать серый фон со скриншота из САПР
 soffice --headless --convert-to pdf --outdir .. ../Hefest_prezentaciya.pptx   # PDF из презентации; шрифты из fonts/ должны быть установлены
 # рендеры головы: node render_head.mjs <голова.glb> head_views.json ../materials/img   (голова.glb: python3 ../../model/tools/head_glb.py <parts_dir> голова.glb --by-part)
+# схема крепления крышки: голова.glb с ключом --exploded, вид hefest_head_cover_mount, затем python3 head_cover_mount.py <рендер.png> ../materials/img/hefest_head_cover_mount.png
 # рендеры: node render_model.mjs ../../model/out/hefest_printer.glb <папка> front_iso right_iso gantry_close (нужен three@0.160.0)
 ```

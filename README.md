@@ -40,7 +40,7 @@ Team name: **«Печатники»**. Captain: Курышев Андрей Ва
 | `Hefest_komplektuyushchie.xlsx` | The single list of components with prices, status and order numbers, split into two stages, with totals (in Russian). |
 | `Hefest_Spec_and_Plan-v3.docx` | Upgrade plan (v3): architecture of the new boards and notes from photos of the build. |
 | `model/` | Parametric CadQuery model of the whole printer (`printer.py`, dimensions in `params.py`), exported to STEP / GLB / STL in `model/out/`, with renders and the list of components seen on the machine (`COMPONENTS.md`). The GLB carries the Hefest head on the X carriage. Only the outer size and build volume are published figures; the rest is measured on photos. |
-| `head/` | Explanatory note for the Hefest print head (in Russian): why each part and component is needed, the toolhead board on the side wall of the frame, the MicroProbe mount, the front cover and the current budget of the head cable. `head/v3/` holds the printable parts and the CadQuery scripts that build them. |
+| `head/` | Explanatory note for the Hefest print head (in Russian): why each part and component is needed, the toolhead board on the side wall of the frame, the MicroProbe mount, the head cover and the current budget of the head cable. `head/v3/` holds the printable parts and the CadQuery scripts that build them. |
 | `submission/` | Application for the "3D Profi" championship: presentation and project description (in Russian). |
 
 ---
@@ -166,7 +166,7 @@ Creality lists it only for its own printers and pads. On arrival, confirm that i
 
 **Before the orders arrive (November 22–24):**
 
-1. Print frame v3 of the head ([`head/v3/out/frame_v3.stl`](head/v3/out/frame_v3.stl)), the front hotend mount with the MicroProbe seat ([`head/v3/out/hotend_mount_2_probe.stl`](head/v3/out/hotend_mount_2_probe.stl)) and the front cover ([`head/v3/out/head_cover.stl`](head/v3/out/head_cover.stl)).
+1. Print the head parts from `head/v3/out/`: the frame with the cover boss (`frame_v3_cover.stl`), the front hotend mount with the MicroProbe seat (`hotend_mount_2_probe.stl`) and the head cover (`head_cover.stl`, top face on the bed, no supports); fit three M3 heat-set inserts for the cover screws.
 
 **To verify on the hardware:**
 

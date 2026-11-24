@@ -5,7 +5,9 @@ Starts from "Крепление хотенда 2" of the team's head assembly (K
 corner on the board side (-Z):
   1. a block under the wing, flush with the mount's front and rear faces;
   2. an arm that runs forward beside the 3010 fan;
-  3. two blind holes for the M2.5 screws of the probe, from below.
+  3. two blind holes for the M2.5 screws of the probe, from below;
+and, for the cover (cover.py), a matching block on the other side (+Z) and one hole for an M3
+heat-set insert in the side face of each block.
 The mating faces, the fan seat and the clamp-screw holes are untouched.
 
 Run:  python3 mount2_probe.py
@@ -14,6 +16,7 @@ import os
 
 import cadquery as cq
 
+import cover_points as CP
 import probe as P
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -22,24 +25,25 @@ OUT = os.path.join(HERE, "out")
 
 FRONT_X, REAR_X = -52.6, -40.6            # front and rear faces of the mount
 SIDE_Z = -27.7                             # outer (-Z) face of the wing
+SIDE_Z_PLUS, BLOCK_PLUS_Z0 = 28.5, 17.5    # the +Z block: outer face of that wing, inner face clear of the fan screw
 BLOCK_Z1, BLOCK_TOP_Y = -12.5, -36.0       # the block stays 1.5 mm below the clamp-screw counterbore
 ARM_FRONT_X = P.HOLE_X[1] - 2.5            # the arm ends flush with the end of the probe flange
 ARM_Z1, ARM_TOP_Y = -14.7, -37.0           # 0.8 mm from the fan; below the clamp-screw head
 SCREW_D, SCREW_DEPTH = 2.2, 5.5            # M2.5 x 6 straight into the plastic (2.1 mm flange + 3.9 mm thread)
 
 
-def box(x0, x1, y0, y1, z0, z1):
-    return cq.Workplane("XY").box(x1 - x0, y1 - y0, z1 - z0, centered=False).translate((x0, y0, z0))
+box = CP.box
 
 
 def build():
     mount = cq.importers.importStep(SRC)
     block = box(FRONT_X, REAR_X, P.SEAT_Y, BLOCK_TOP_Y, SIDE_Z, BLOCK_Z1)
     arm = box(ARM_FRONT_X, FRONT_X, P.SEAT_Y, ARM_TOP_Y, SIDE_Z, ARM_Z1).edges("|Y").edges("<X").fillet(2.0)
-    mount = mount.union(block, clean=True).union(arm, clean=True)
-    for x in P.HOLE_X:
-        hole = (cq.Workplane("XZ").circle(SCREW_D / 2).extrude(-SCREW_DEPTH)      # XZ extrudes towards -Y
-                .translate((x, P.SEAT_Y, P.HOLE_Z)))
+    block_plus = box(FRONT_X, REAR_X, P.SEAT_Y, BLOCK_TOP_Y, BLOCK_PLUS_Z0, SIDE_Z_PLUS)
+    mount = mount.union(block, clean=True).union(arm, clean=True).union(block_plus, clean=True)
+    for x in P.HOLE_X:                     # probe screws, from the seat upwards
+        mount = mount.cut(CP.ycyl(SCREW_D, P.SEAT_Y, P.SEAT_Y + SCREW_DEPTH, x, P.HOLE_Z))
+    for hole in CP.insert_holes_mount():   # cover screws, from the sides
         mount = mount.cut(hole)
     return mount
 
