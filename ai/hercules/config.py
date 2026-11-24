@@ -33,6 +33,7 @@ class CameraCfg:
     height: int = 720
     fps: int = 15
     fourcc: str = "MJPG"          # USB cameras deliver 720p/1080p at full rate only as MJPG
+    average_frames: int = 1       # >1: average the last N frames before analysis (noisy/cheap cameras)
     snapshot_interval_s: float = 1.0
     replay_speed: float = 1.0     # files only: 1.0 = real time, 4.0 = 4x faster
     replay_frame_interval_s: float = 0.0  # directories: seconds per frame (0 = read frames.csv / 1 s)
@@ -136,7 +137,7 @@ class Config:
 
 
 RUNTIME_EDITABLE = {
-    "camera": {"source", "width", "height", "fps", "replay_speed", "loop"},
+    "camera": {"source", "width", "height", "fps", "replay_speed", "loop", "average_frames"},
     "detector": {"box_threshold"},
     "pipeline": {"interval_s", "monitor_when", "roi", "roi_mode", "ignore_zones",
                  "skip_duplicates", "skip_blurred"},
@@ -198,6 +199,11 @@ def validate(cfg: Config) -> None:
         raise ValueError("detector.box_threshold must be in (0,1)")
     if d.warn_threshold <= 0 or d.critical_factor < 1.0:
         raise ValueError("decision thresholds invalid")
+    if not 1 <= cfg.camera.average_frames <= 16:
+        raise ValueError("camera.average_frames must be 1..16")
+    src = cfg.camera.source.strip()
+    if src.startswith("csi:") and not src[4:].isdigit():
+        raise ValueError("camera.source: use csi or csi:<camera number>")
     if cfg.actions.pause_policy not in ("notify", "confirm", "auto"):
         raise ValueError("actions.pause_policy must be notify, confirm or auto")
     if cfg.detector.backend not in ("onnxruntime", "opencv"):

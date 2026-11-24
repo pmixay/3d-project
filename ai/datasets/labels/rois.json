@@ -1,0 +1,8 @@
+{
+  "note": "Region of interest per fixed camera view, drawn as an operator would in the dashboard: the bed and the space where the print grows, excluding unrelated background (lab, other printer, cabinets). Drawn from one frame per view (extrusion_error camera1-3, frame 1700). Caveat: the camera1 rectangle was drawn after seeing that noise-induced detections were in its top-left background.",
+  "by_camera": {
+    "camera1": [0.28, 0.15, 1.0, 1.0],
+    "camera2": [0.0, 0.3, 1.0, 1.0],
+    "camera3": [0.15, 0.25, 1.0, 1.0]
+  }
+}

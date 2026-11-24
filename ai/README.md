@@ -1,6 +1,6 @@
 # Hercules AI — print failure monitor
 
-The camera subsystem of the Hefest / Hercules printer rebuild (owner: Голубев Павел). It watches the print through a USB or network camera and runs a neural network on the frames. A temporal decision engine sits between the network and the alerts, so it only raises an incident when a failure is persistent. It shows everything on a local dashboard and can pause the print through Moonraker. Klipper keeps full control of the printer. This process can only **pause**: it never resumes, cancels, heats or moves anything.
+The camera subsystem of the Hefest / Hercules printer rebuild (owner: Голубев Павел). It runs on a **Raspberry Pi** next to the printer, watches the print through a CSI ribbon camera (or a USB/network camera) and runs a neural network on the frames. A temporal decision engine sits between the network and the alerts, so it only raises an incident when a failure is persistent. It shows everything on a local dashboard and can pause the print through Moonraker. Klipper keeps full control of the printer. This process can only **pause**: it never resumes, cancels, heats or moves anything.
 
 Everything runs locally: no cloud service, account or subscription is needed.
 
@@ -9,6 +9,7 @@ Everything runs locally: no cloud service, account or subscription is needed.
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Pipeline diagram, design decisions, Obico vs. own pipeline, what is ours and what is third-party |
 | [docs/RESEARCH.md](docs/RESEARCH.md) | Models, datasets, licences, camera compatibility (Creality Nebula) |
 | [docs/EVALUATION.md](docs/EVALUATION.md) | **Measured** detection quality, false alarms per hour, latency, inference interval and hardware benchmarks |
+| [docs/RASPBERRY_PI.md](docs/RASPBERRY_PI.md) | **Target setup:** Raspberry Pi + CSI camera — hardware, camera check, install, Pi defaults, how to measure the Pi |
 | [docs/DEMO.md](docs/DEMO.md) | Step-by-step competition demonstration (December 3, 2026) |
 | [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | Camera, Moonraker, performance and service problems |
 
@@ -41,46 +42,47 @@ HERCULES_MOONRAKER__URL=http://127.0.0.1:7125 python -m hercules run
 
 For replays the decision engine runs on the **recording's clock**, so the 10× replay makes the same decisions at the same points of the print as real time would. 0.3 s of wall time at 10× is 3 s of print time, the default interval.
 
-## Install on the inference computer (Linux)
+## Install
+
+### Target setup — Raspberry Pi with a CSI camera (recommended)
+
+```
+CSI camera ──ribbon──► Raspberry Pi (Hercules AI + dashboard) ──LAN──► BTT Pi (Moonraker → Klipper)
+```
+The BTT Pi has no CSI connector, and running the network on the Klipper host would compete with Klipper. A separate Raspberry Pi takes the camera and the AI load. Step-by-step guide, Pi defaults and the (still missing) Pi measurements: **[docs/RASPBERRY_PI.md](docs/RASPBERRY_PI.md)**.
 
 ```bash
-git clone <repo> && cd 3d-project/ai
-./deploy/install.sh          # venv, dependencies, model, config/hercules.local.toml, systemd service
-nano config/hercules.local.toml   # camera.source, moonraker.url
+git clone https://github.com/pmixay/3d-project && cd 3d-project/ai
+./deploy/install.sh               # 64-bit check, rpicam-apps, venv, model, Pi config preset, systemd service
+nano config/hercules.local.toml   # moonraker.url = "http://<btt-pi-ip>:7125"
 sudo systemctl restart hercules
-journalctl -u hercules -f    # logs (also state/logs/hercules.log, rotated)
+journalctl -u hercules -f         # logs (also state/logs/hercules.log, rotated)
 ```
 
-The service restarts automatically after a crash (`Restart=always`). It runs at low CPU priority (`Nice=10`, `CPUWeight=20`) and is capped at 1.5 GB RAM. Hardware requirements are in [EVALUATION § hardware](docs/EVALUATION.md#hardware-requirements).
+The service restarts automatically after a crash (`Restart=always`). It runs at low CPU priority (`Nice=10`, `CPUWeight=20`) with a memory cap. Hardware requirements are in [EVALUATION § hardware](docs/EVALUATION.md#hardware-requirements).
 
-### Deployment A — camera on the inference computer
+### Other camera sources
 
-```
-USB camera ──► inference PC (Hercules) ──HTTP──► BTT Pi (Moonraker/Klipper)
-```
-```toml
-[camera]
-source = "0"                       # or /dev/video0
-[moonraker]
-url = "http://<btt-pi-ip>:7125"
-```
+| `camera.source` | Camera |
+| :--- | :--- |
+| `csi`, `csi:1` | Raspberry Pi CSI ribbon camera (OV5647, IMX219, IMX708, …) through `rpicam-vid` |
+| `/dev/video0` or `0` | USB webcam (UVC) on the computer running Hercules |
+| `http://<host>/webcam/?action=snapshot` | Crowsnest/ustreamer on another machine, one JPEG per analysis |
+| `http://<host>/webcam/?action=stream` | the same as an MJPEG stream (smoother live view, more bandwidth) |
+| a video file or a folder of frames | offline replay for tests and the demo |
 
-### Deployment B — camera on the BTT Pi (Crowsnest), video sent over the network
+Any other Linux computer (x86 PC, laptop) works the same way with a USB or network camera; the installer then uses `config/hercules.toml`.
 
-```
-USB camera ──► BTT Pi (Crowsnest/ustreamer) ──HTTP──► inference PC (Hercules) ──► Moonraker
-```
-```toml
-[camera]
-source = "http://<btt-pi-ip>/webcam/?action=snapshot"   # one JPEG per analysis: least CPU on the Pi
-# source = "http://<btt-pi-ip>/webcam/?action=stream"   # MJPEG stream: smoother live view, more bandwidth
-snapshot_interval_s = 1.0
-```
-Mainsail/Fluidd keep using the same Crowsnest stream, so the printer UI camera keeps working.
+### Cheap / low-quality cameras
+
+Small modules with M12 lenses are noisy in dim light, and noise was the measured weak point (EVALUATION § 5b). In order of effect:
+1. **Light the bed** (the 24 V LED strip).
+2. Set `camera.average_frames = 4` (dashboard → Settings → Camera). It averages the last 4 frames before each analysis, which reduces sensor noise without blurring the print (measured effect in EVALUATION § 5c).
+3. Focus the lens at the bed distance, then use the ROI to cut away a cluttered background.
 
 ### Running on the BTT Pi itself
 
-This is not recommended and has **not been measured** yet: we had no access to the board. Run `python tools/benchmark.py` there first (see EVALUATION). Even when the numbers look acceptable, keep `detector.threads = 1` and `interval_s >= 10`. The systemd unit's CPU weighting keeps Klipper ahead of the monitor.
+Not recommended and **not measured**. The BTT Pi runs Klipper, has no CSI port, and its 1 GB RAM is shared with Klipper.
 
 ## Configuration
 
@@ -104,7 +106,8 @@ This is not recommended and has **not been measured** yet: we had no access to t
 ```
 ai/
   hercules/            the application (Python package)
-    camera.py          USB / MJPEG / snapshot / video / frame-folder sources, reconnect, bounded buffer
+    camera.py          CSI (rpicam-vid) / USB / MJPEG / snapshot / video / frame-folder sources, reconnect,
+                       bounded buffer, temporal frame averaging
     quality.py         frame validation: dark, overexposed, noise, blur, duplicate, frozen, obstructed
     detector.py        ONNX Runtime / OpenCV DNN wrapper for the Obico model, ROI, ignore zones
     temporal.py        time-normalised decision engine, evidence gate, hysteresis

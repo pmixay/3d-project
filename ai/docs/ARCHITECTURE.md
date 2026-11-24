@@ -6,13 +6,10 @@
 flowchart LR
     subgraph Printer["Printer host: BTT Pi v1.2"]
         K[Klipper<br/>motion, heaters,<br/>thermal protection] --- M[Moonraker API]
-        CN[Crowsnest / ustreamer<br/>optional, deployment B]
     end
-    CAM[USB camera] -->|A: USB| ACQ
-    CAM -.->|B: USB| CN
-    CN -.->|HTTP snapshot / MJPEG| ACQ
-    subgraph AI["Inference computer: Hercules AI (this project)"]
-        ACQ[Camera acquisition<br/>thread, 1-frame buffer,<br/>reconnect] --> VAL[Frame validation<br/>dark, blur, noise, duplicate,<br/>frozen, obstructed]
+    CAM[CSI ribbon camera<br/>or USB / network camera] -->|rpicam-vid MJPEG| ACQ
+    subgraph AI["Raspberry Pi: Hercules AI (this project)"]
+        ACQ[Camera acquisition<br/>thread, 1-frame buffer,<br/>reconnect, frame averaging] --> VAL[Frame validation<br/>dark, blur, noise, duplicate,<br/>frozen, obstructed]
         VAL --> PRE[Preprocessing<br/>ROI, resize 416, RGB]
         PRE --> NN[Inference<br/>Obico YOLOv2, ONNX Runtime]
         NN --> TMP[Temporal engine<br/>time-normalised EWM,<br/>baseline, evidence gate]
@@ -32,8 +29,8 @@ ASCII version for the slides:
 
 ```
  camera ─► acquisition ─► validation ─► preprocessing ─► inference ─► temporal ─► decision ─► actions ─► Moonraker ─► Klipper
- (USB/     (thread,       (skip bad,    (ROI, 416²)      (ONNX,       analysis    (incident,  (notify,   (pause only)
-  MJPEG)    latest only)   duplicates)                    ~0.1-0.3 s)  (EWM, gate) dedup)      pause)
+ (CSI/     (thread,       (skip bad,    (ROI, 416²)      (ONNX,       analysis    (incident,  (notify,   (pause only)
+  MJPEG)    latest only)   duplicates)                    x86 .06-.2s) (EWM, gate) dedup)      pause)
                                                                                      │
                                                                   dashboard ◄────────┴──► SQLite + evidence + report
 ```
@@ -70,7 +67,7 @@ Other candidates we checked: PrintGuard (GPL-2.0, ShuffleNet prototypes) detecte
 
 **Three pause policies.** `auto` (default: pause and verify) → `confirm` (a person presses Pause in the dashboard) → `notify` (alert only). A false alarm under `auto` costs a paused print that the operator resumes; a missed failure costs the print and possibly the hotend, so pausing is the default. Switch to `confirm` or `notify` if a camera view produces false alarms.
 
-**Separate inference computer.** A Klipper host has to answer the MCU in real time. Measured CPU load is in EVALUATION. The service unit runs at `Nice=10` and `CPUWeight=20` with a memory cap, so even co-located it yields to Klipper. The recommended setup still keeps the network off the BTT Pi.
+**Separate Raspberry Pi as the inference computer.** A Klipper host has to answer the MCU in real time, and the BTT Pi has no CSI connector for the ribbon camera. A Raspberry Pi takes the camera and the network load, and reaches Klipper only through Moonraker over the LAN. CSI cameras are read through `rpicam-vid`, because OpenCV cannot open libcamera cameras directly; the command line is fixed so the dashboard cannot inject commands. The service unit also runs at `Nice=10` and `CPUWeight=20` with a memory cap. Pi performance has not been measured yet (EVALUATION § 6).
 
 **Replays use the recording's clock.** The demo can replay a 55-minute print at 10× and the decision engine makes the same decisions at the same print times. This removes a whole class of "works in the demo but not live" errors.
 

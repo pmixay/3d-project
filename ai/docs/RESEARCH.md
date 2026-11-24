@@ -35,6 +35,14 @@ Research date: November 2026. Sources are linked; anything we did not verify our
 **Fine-tuning: why not now.** We have no footage of our own printer yet. The public sets are small, imbalanced or unlicensed, and the one large clean set (Zenodo) has a single printer, filament and geometry, so a model fine-tuned on it would learn "red block on a Prusa". The tooling for when our own footage exists:
 `python -m hercules record` (capture sessions) → `tools/contact_sheet.py` (find onset frames) → `datasets/labels/*.json` → `tools/score_sessions.py` + `tools/evaluate.py` (session-level evaluation). A fine-tune that does not beat the pretrained model on held-out *sessions* should not ship.
 
+## 4a. Camera in use: CSI ribbon module on a Raspberry Pi
+
+The team's camera is a small CSI board camera with an M12 lens and a flat ribbon cable (Raspberry Pi camera format). Consequences we checked:
+- **The BTT Pi v1.2 has no CSI connector.** Its listed I/O is 4× USB 2.0, micro-HDMI, Ethernet, GPIO, SPI-screen and UART ([CNX Software](https://www.cnx-software.com/2023/05/01/bigtreetech-pi-v1-2-a-raspberry-pi-sized-allwinner-h616-sbc-for-3d-printers/), [Tom's Hardware](https://www.tomshardware.com/news/bigtreetech-pi-12-a-raspberry-pi-alternative-aimed-squarely-at-3d-printers), [LinuxGizmos](https://linuxgizmos.com/btt-pi-is-a-low-cost-allwinner-h616-based-sbc/)). PCs and laptops have no CSI port either. **The monitor therefore runs on a Raspberry Pi**, which also keeps the network off the Klipper host.
+- On current Raspberry Pi OS, CSI cameras are driven by **libcamera**. OpenCV's V4L2 capture cannot use them directly, so Hercules reads them through `rpicam-vid` (`libcamera-vid` on Bullseye) as an MJPEG stream (`camera.source = "csi"`). The command line is built from fixed arguments only, because the source can be changed from the dashboard.
+- **Sensor:** most cheap M12 modules use the OV5647 (Camera v1, 5 MP), which libcamera supports. Confirm with `rpicam-hello --list-cameras`. Setup and troubleshooting: [RASPBERRY_PI.md](RASPBERRY_PI.md).
+- **Image quality:** these modules are noisy in dim light. The temporal averaging option and its measured effect are in EVALUATION § 5c.
+
 ## 4. Camera: Creality Nebula Camera — compatibility is **unverified**
 
 Public reports conflict. The camera connects over USB-A and is marketed for Creality's Sonic Pad, Nebula Pad and K-series ([Creality store](https://store.creality.com/products/creality-nebula-camera)). Users report it enumerating as a camera, but one OctoPrint user found its advertised MJPEG mode did not work on a Raspberry Pi ([OctoPrint forum](https://community.octoprint.org/t/creality-camera-with-rasberry-pi-4/37775)). The documented Klipper route ([SimplyPrint](https://simplyprint.io/setup-guide/methods/nebula-smart-kit)) relies on Creality's own rooted firmware. We found no confirmation for a generic Linux host.

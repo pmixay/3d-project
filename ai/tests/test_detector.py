@@ -74,3 +74,19 @@ def test_opencv_backend_agrees_with_onnxruntime():
     except cv2.error as e:
         pytest.skip(f"OpenCV DNN cannot load this model: {e}")
     assert abs(a.p - b.p) < 0.02
+
+
+@needs_model
+def test_crop_mode_maps_boxes_back_to_full_frame():
+    import cv2
+    frames = sorted(glob.glob(os.path.join(ROOT, "data/zenodo_fffqc/test_extrusion_error_print_camera2/frame_0017*.jpg")))
+    if not frames:
+        pytest.skip("evaluation data not downloaded")
+    img = cv2.imread(frames[0])
+    H, W = img.shape[:2]
+    cfg = Config()
+    cfg.pipeline.roi, cfg.pipeline.roi_mode = [0.0, 0.3, 1.0, 1.0], "crop"
+    det = Detector(cfg.detector).detect(img, cfg.pipeline)
+    assert det.boxes and det.p > 0.38                # spaghetti in this frame
+    for b in det.boxes:
+        assert 0 <= b.x1 < b.x2 <= W and 0.3 * H - 1 <= b.y1 < b.y2 <= H

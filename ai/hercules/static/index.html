@@ -86,7 +86,8 @@
     <div class="panel-h"><h2>Settings</h2><span class="muted" id="set-msg"></span></div>
     <form id="settings" class="settings">
       <fieldset><legend>Camera</legend>
-        <label>Source<input name="camera.source" placeholder="0, /dev/video0, http://…/?action=stream, file"></label>
+        <label>Source<input name="camera.source" placeholder="csi, /dev/video0, http://…/?action=stream, file"></label>
+        <label>Average frames (noisy camera)<input name="camera.average_frames" type="number" min="1" max="16"></label>
         <div class="row">
           <label>Width<input name="camera.width" type="number" min="160" max="3840"></label>
           <label>Height<input name="camera.height" type="number" min="120" max="2160"></label>

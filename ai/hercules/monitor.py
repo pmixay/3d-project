@@ -150,7 +150,7 @@ class Monitor:
         self._last_seq = frame.seq
         td = self._decision_time(t, frame)
         with self._lock:
-            res = self.analyzer.step(frame.image, td)
+            res = self.analyzer.step(self.camera.averaged(frame), td)
         self.last, self.last_frame = res, frame
         q = res.quality
         self._camera_condition("camera_frozen", td, q.identical, "image identical for "

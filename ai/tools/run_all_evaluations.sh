@@ -28,6 +28,19 @@ for k in dark blur occlusion noise; do
   $PY tools/evaluate.py --perturb $k --intervals 6 --window 600 900 --out $R/eval_perturb_$k.json
 done
 $PY tools/evaluate.py --intervals 6 --window 600 900 --out $R/eval_perturb_none.json
+# cheap / low-quality cameras: low resolution, compression, noise, temporal averaging (camera.average_frames=4)
+for k in noise_avg4 lowres cheap cheap_avg4; do
+  $PY tools/evaluate.py --perturb $k --intervals 6 --window 600 900 --out $R/eval_perturb_$k.json
+done
+# the same with a region of interest per camera view (datasets/labels/rois.json), filter and crop mode
+for k in noise noise_avg4 cheap cheap_avg4; do
+  $PY tools/evaluate.py --perturb $k --rois datasets/labels/rois.json --intervals 6 --window 600 900 \
+      --out $R/eval_roi_$k.json
+done
+for k in identity lowres cheap_avg4; do
+  $PY tools/evaluate.py --perturb $k --rois datasets/labels/rois.json --set pipeline.roi_mode=crop \
+      --intervals 6 --window 600 900 --out $R/eval_roicrop_$k.json
+done
 # INT8 model variant
 if [ -f models/obico-failure-int8-qdq.onnx ]; then
   $PY tools/score_sessions.py data/zenodo_fffqc/test_* --model models/obico-failure-int8-qdq.onnx --cache data/cache_int8

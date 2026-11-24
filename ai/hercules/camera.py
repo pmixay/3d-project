@@ -11,14 +11,24 @@ Supported sources (CameraCfg.source):
   "http://.../?action=snapshot"   single-JPEG URL, polled every snapshot_interval_s
   "/path/video.mp4"               video file replay (paced by the file's fps)
   "/path/dir/"                    directory of JPEG/PNG frames (paced by frames.csv t_s)
+  "csi" / "csi:1"                 Raspberry Pi CSI ribbon camera (OV5647, IMX219, ...) read
+                                  through rpicam-vid / libcamera-vid; number = camera index.
+                                  The command line is built here from fixed arguments and
+                                  validated numbers only: nothing user-supplied reaches it.
+
+Cheap cameras: CameraCfg.average_frames > 1 averages the last N captured
+frames before analysis (temporal denoising, see Camera.averaged).
 """
 from __future__ import annotations
 
+import collections
 import csv
 import dataclasses as dc
 import glob
 import logging
 import os
+import shutil
+import subprocess
 import threading
 import time
 
@@ -87,6 +97,8 @@ class Camera:
         self._stop = threading.Event()
         self._thread: threading.Thread | None = None
         self._lock = threading.Lock()
+        self._recent: collections.deque = collections.deque(maxlen=max(1, cfg.average_frames))
+        self._proc: subprocess.Popen | None = None
 
     # ---- lifecycle -------------------------------------------------------
     def start(self) -> None:
@@ -101,6 +113,9 @@ class Camera:
         with self._lock:
             self._stop.set()
             t = self._thread
+            proc = self._proc
+        if proc and proc.poll() is None:
+            proc.terminate()               # unblocks the reader thread
         if t:
             t.join(timeout=5)
         self.state = "stopped"
@@ -108,9 +123,30 @@ class Camera:
     def restart(self) -> None:
         self.stop()
         self.buffer = LatestFrame()
+        self._recent = collections.deque(maxlen=max(1, self.cfg.average_frames))
         self.frames = 0
         self.fps = 0.0
         self.start()
+
+    def averaged(self, frame: "Frame") -> np.ndarray:
+        """Temporal denoising for cheap/noisy cameras: mean of the last
+        `average_frames` captured frames of the same size.
+
+        Sensor noise is independent between frames, so averaging N frames
+        divides it by sqrt(N) without the spatial smoothing that made the
+        network fire more (quality.py). Static parts (bed, print, spaghetti)
+        stay sharp; the moving head ghosts, which is harmless because failures
+        are judged over minutes, not single frames. Done once per analysis."""
+        n = self.cfg.average_frames
+        if n <= 1 or frame.t_media is not None:       # replays: frames are seconds apart
+            return frame.image
+        imgs = [im for im in list(self._recent)[-n:] if im.shape == frame.image.shape]
+        if len(imgs) < 2:
+            return frame.image
+        acc = np.zeros(frame.image.shape, np.float32)
+        for im in imgs:
+            acc += im
+        return (acc / len(imgs)).astype(np.uint8)
 
     def status(self) -> dict:
         age = time.time() - self.last_frame_wall if self.last_frame_wall else None
@@ -142,6 +178,10 @@ class Camera:
             log.info("camera online: %s %dx%d", self.cfg.source, img.shape[1], img.shape[0])
         self.state = "online"
         self.error = ""
+        if self.cfg.average_frames > 1:
+            if self._recent.maxlen != self.cfg.average_frames:
+                self._recent = collections.deque(self._recent, maxlen=self.cfg.average_frames)
+            self._recent.append(img)
         self.buffer.put(img, t_media, label)
 
     def _run(self) -> None:
@@ -149,7 +189,7 @@ class Camera:
         while not self._stop.is_set():
             try:
                 runner = {"usb": self._run_usb, "mjpeg": self._run_http, "http": self._run_http,
-                          "video": self._run_video, "dir": self._run_dir}[self.kind]
+                          "video": self._run_video, "dir": self._run_dir, "csi": self._run_csi}[self.kind]
                 finished = runner()
                 if finished:          # replay reached the end and loop is off
                     self.state = "ended"
@@ -217,10 +257,46 @@ class Camera:
             self._publish(img)
         return False
 
+    def _run_csi(self) -> bool:
+        cmd = csi_command(self.cfg)          # fixed executable + validated numbers, no shell
+        tail: collections.deque = collections.deque(maxlen=8)
+        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, bufsize=0)
+        with self._lock:
+            self._proc = proc
+
+        def drain():                         # keep stderr from blocking; remember the last lines
+            for line in iter(proc.stderr.readline, b""):
+                tail.append(line.decode(errors="replace").strip())
+        threading.Thread(target=drain, daemon=True).start()
+        try:
+            self._read_mjpeg_chunks(iter(lambda: proc.stdout.read(32768), b""), "CSI camera stream")
+        except IOError as e:
+            if self._stop.is_set():
+                return False
+            try:
+                proc.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                pass
+            msg = " | ".join(x for x in tail if x)[-300:]
+            raise IOError(f"{e}; exit code {proc.returncode}; {msg or 'no stderr'}") from None
+        finally:
+            if proc.poll() is None:
+                proc.terminate()
+                try:
+                    proc.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    proc.kill()
+            with self._lock:
+                self._proc = None
+        return False
+
     def _read_mjpeg(self, r: requests.Response) -> None:
+        self._read_mjpeg_chunks(r.iter_content(chunk_size=32768), "MJPEG stream")
+
+    def _read_mjpeg_chunks(self, chunks, what: str) -> None:
         # Robust to boundary formats: find JPEG SOI/EOI markers in the byte stream.
         buf = b""
-        for chunk in r.iter_content(chunk_size=32768):
+        for chunk in chunks:
             if self._stop.is_set():
                 return
             buf += chunk
@@ -239,7 +315,7 @@ class Camera:
                 buf = buf[b + 2:]
                 if img is not None:
                     self._publish(img)
-        raise IOError("MJPEG stream closed by server")
+        raise IOError(f"{what} closed")
 
     def _run_video(self) -> bool:
         cap = cv2.VideoCapture(self.cfg.source)
@@ -295,8 +371,31 @@ def _decode(data: bytes):
     return cv2.imdecode(np.frombuffer(data, np.uint8), cv2.IMREAD_COLOR)
 
 
+CSI_TOOLS = ("rpicam-vid", "libcamera-vid")   # Raspberry Pi OS Bookworm+, Bullseye
+
+
+def csi_command(cfg: CameraCfg) -> list[str]:
+    """Command that streams a Raspberry Pi CSI camera as MJPEG to stdout.
+
+    Only fixed arguments and validated integers: the camera source string can be
+    changed from the dashboard, so it must never be able to inject a command."""
+    idx = cfg.source.strip().partition(":")[2] or "0"
+    if not idx.isdigit():
+        raise IOError(f"invalid CSI camera index {idx!r}; use csi or csi:<number>")
+    exe = next((shutil.which(t) for t in CSI_TOOLS if shutil.which(t)), None)
+    if exe is None:
+        raise IOError("CSI camera needs rpicam-vid or libcamera-vid: on Raspberry Pi OS run "
+                      "'sudo apt install rpicam-apps'. Boards without a CSI port (BTT Pi, PCs) "
+                      "cannot use ribbon-cable cameras.")
+    w, h, fps = int(cfg.width), int(cfg.height), int(cfg.fps)
+    return [exe, "--camera", str(int(idx)), "-t", "0", "-n", "--codec", "mjpeg", "--quality", "85",
+            "--width", str(w), "--height", str(h), "--framerate", str(fps), "--flush", "-o", "-"]
+
+
 def source_kind(src: str) -> str:
     s = src.strip()
+    if s == "csi" or s.startswith("csi:"):
+        return "csi"
     if s.isdigit() or s.startswith("/dev/video"):
         return "usb"
     if s.startswith(("http://", "https://")):

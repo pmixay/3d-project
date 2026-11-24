@@ -165,7 +165,9 @@ Derived from the measurements above. Requirements for hosts we could not measure
 
 | Host | Status | Recommendation |
 | :--- | :--- | :--- |
-| Any x86-64 PC from roughly the last 10 years, ≥ 2 cores, ≥ 2 GB RAM | Measured class: a 4-vCPU Xeon VM gives 60–206 ms per analysis | **Recommended** inference host. Default settings. |
+| **Raspberry Pi 4 / Pi 5, 2 GB+ RAM, 64-bit Raspberry Pi OS, CSI camera** (the target setup) | **Not measured yet.** No Pi was available. A Cortex-A72/A76 core is slower than the measured Xeon core, so expect several times the latencies above. | Planned inference host. Use the `config/hercules.rpi.toml` preset: 3 threads, `interval_s = 6` (raise to 12 without latency loss per § 3). Measure with `tools/benchmark.py` as described in [RASPBERRY_PI.md § 5](RASPBERRY_PI.md#5-measure-the-pi-this-has-not-been-done-yet). |
+| Raspberry Pi 3B/3B+ (1 GB) | **Not measured.** | Only with the INT8 model (268 MB vs 419 MB measured on x86) and `interval_s = 12`. |
+| Any x86-64 PC from roughly the last 10 years, ≥ 2 cores, ≥ 2 GB RAM | Measured class: a 4-vCPU Xeon VM gives 60–206 ms per analysis | Works with default settings, e.g. a laptop with a USB camera. |
 | Old dual-core laptop/PC (e.g. Core 2 / early i3) | Not measured. **Estimate**: 0.5–1.5 s per analysis | Usable: `threads = 2`, `interval_s = 6–12` (§ 3 shows no latency loss up to 12 s). |
 | BTT Pi v1.2 (Allwinner H616, 4× Cortex-A53 1.5 GHz, 1 GB RAM), also the Klipper host | **Not measured** (no board access) | Not recommended. 450 MB RSS on a 1 GB board shared with Klipper is risky. If tried at all: INT8 model, `threads = 1`, `interval_s ≥ 12`, and run `tools/benchmark.py` first. Keep Klipper's `Timer too close` log under observation. |
 

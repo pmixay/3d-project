@@ -1,0 +1,55 @@
+# Hercules AI print monitor - preset for a Raspberry Pi (64-bit Raspberry Pi OS) with a
+# CSI ribbon camera. The installer uses this file as config/hercules.local.toml on a Pi.
+# Klipper stays on the BTT Pi; this Raspberry Pi only watches and, if needed, pauses.
+# Keys and environment overrides are documented in config/hercules.toml.
+
+state_dir = "state"
+log_level = "INFO"
+
+[camera]
+source = "csi"               # CSI camera 0 via rpicam-vid; "csi:1" for a second port (Pi 5 / CM),
+                             # "/dev/video0" for a USB webcam
+width = 1280
+height = 720
+fps = 5                      # analysis needs a frame every few seconds; fewer frames = less CPU
+average_frames = 1           # 4 for a noisy module in dim light (docs/EVALUATION.md, cheap cameras)
+
+[detector]
+model_path = "models/obico-failure-5a6b1be1fa.onnx"
+backend = "onnxruntime"
+providers = "cpu"
+threads = 3                  # leave one core for the camera, the dashboard and the OS
+box_threshold = 0.08
+
+[pipeline]
+interval_s = 6.0             # measured: 6-12 s detects as fast as every frame (EVALUATION section 3)
+monitor_when = "printing"
+roi = [0.0, 0.0, 1.0, 1.0]
+roi_mode = "filter"
+ignore_zones = []
+skip_duplicates = true
+skip_blurred = true
+
+[decision]
+ewm_tau_s = 60.0
+warn_threshold = 0.38
+critical_factor = 1.75
+min_positive_frames = 3
+warmup_s = 60.0
+
+[actions]
+pause_policy = "auto"
+gcode_notify = true
+notify_gcode = "M117 {text}"
+
+[moonraker]
+url = "http://<btt-pi-ip>:7125"   # the BTT Pi running Klipper
+api_key = ""
+poll_interval_s = 2.0
+
+[web]
+host = "0.0.0.0"
+port = 8090
+auth_token = ""
+stream_fps = 2.0             # live view encoding costs CPU on a Pi
+stream_width = 640

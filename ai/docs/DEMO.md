@@ -1,6 +1,6 @@
 # Competition demonstration (December 3, 2026)
 
-Duration: about 8 minutes. You need one laptop (the inference computer) and a browser. A phone on the same Wi-Fi makes a good second screen to show the mobile dashboard.
+Duration: about 8 minutes. The replay demo runs on the Raspberry Pi (the real inference computer) or, as a fallback, on any laptop. Show it in a browser; a phone on the same Wi-Fi makes a good second screen for the mobile dashboard. On the Pi, stop the service first (`sudo systemctl stop hercules`) so the demo can use port 8090. If the CSI camera is connected, its live view can be shown separately with `camera.source = "csi"` and `pipeline.monitor_when = "always"`.
 
 ## Preparation (the day before)
 

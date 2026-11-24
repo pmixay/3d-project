@@ -119,7 +119,34 @@ def perturb(img, kind):
     if kind == "noise":           # cheap sensor in low light
         rng = np.random.default_rng(0)
         return np.clip(img.astype(np.int16) + rng.normal(0, 18, img.shape), 0, 255).astype("uint8")
+    if kind == "identity":        # unchanged image, but a real network run (needed for roi_mode=crop)
+        return img
+    if kind == "noise_avg4":      # same sensor, camera.average_frames = 4 (static scene assumed)
+        return _avg_noise(img, 18, 4)
+    if kind == "lowres":          # 320x180 sensor + heavy JPEG, upscaled by the pipeline
+        return _degrade(img, 320, 30)
+    if kind == "cheap":           # cheap module: 640x360, sigma-14 noise, JPEG quality 40
+        return _degrade(_avg_noise(img, 14, 1), 640, 40)
+    if kind == "cheap_avg4":      # the same module with camera.average_frames = 4
+        return _degrade(_avg_noise(img, 14, 4), 640, 40)
     raise ValueError(kind)
+
+
+def _avg_noise(img, sigma, n):
+    """Mean of n frames of a static scene, each with independent Gaussian sensor noise."""
+    import numpy as np
+    rng = np.random.default_rng(int(img[::97, ::89].sum()) % 2**32)
+    acc = np.zeros(img.shape, np.float32)
+    for _ in range(n):
+        acc += np.clip(img.astype(np.float32) + rng.normal(0, sigma, img.shape), 0, 255)
+    return (acc / n).astype("uint8")
+
+
+def _degrade(img, width, jpeg_q):
+    h, w = img.shape[:2]
+    small = cv2.resize(img, (width, round(h * width / w)), interpolation=cv2.INTER_AREA)
+    ok, buf = cv2.imencode(".jpg", small, [cv2.IMWRITE_JPEG_QUALITY, jpeg_q])
+    return cv2.imdecode(buf, cv2.IMREAD_COLOR)
 
 
 def load_cache(path):
@@ -180,12 +207,16 @@ def onset_time(rows, index):
 
 
 def evaluate(cfg, labels, data_dir, cache_dir, interval, read_images=True, sessions=None,
-             engine="hercules", perturbation=None, detector=None, window=None):
+             engine="hercules", perturbation=None, detector=None, window=None, rois=None):
     per = {}
     normal_s, fa = 0.0, 0
+    default_roi = list(cfg.pipeline.roi)
     for name, lab in labels["sessions"].items():
         if sessions and name not in sessions:
             continue
+        # per-camera-view region of interest (datasets/labels/rois.json), as drawn in the dashboard
+        cam = name.rsplit("_", 1)[-1]
+        cfg.pipeline.roi = list(rois["by_camera"][cam]) if rois and cam in rois["by_camera"] else default_roi
         cpath = os.path.join(cache_dir, name + ".jsonl")
         if not os.path.exists(cpath):
             print("missing cache", cpath, file=sys.stderr)
@@ -301,11 +332,12 @@ def main():
     ap.add_argument("--no-images", action="store_true", help="skip frame validation (faster sweeps)")
     ap.add_argument("--engine", choices=["hercules", "obico", "naive"], default="hercules",
                     help="decision engine: ours, Obico's original frame-count scheme, or a per-frame threshold")
-    ap.add_argument("--perturb", choices=["dark", "blur", "occlusion", "noise"],
+    ap.add_argument("--perturb", choices=["identity", "dark", "blur", "occlusion", "noise", "noise_avg4", "lowres", "cheap", "cheap_avg4"],
                     help="apply a synthetic camera problem and re-run the network (slow)")
     ap.add_argument("--window", type=float, nargs=2, metavar=("BEFORE_S", "AFTER_S"),
                     help="evaluate only this span around the onset (for --perturb runs)")
     ap.add_argument("--sessions", nargs="*", help="only these session names")
+    ap.add_argument("--rois", help="per-camera ROI file, e.g. datasets/labels/rois.json")
     ap.add_argument("--out", help="write JSON results here")
     a = ap.parse_args()
     labels = json.load(open(a.labels))
@@ -317,6 +349,7 @@ def main():
         cur = getattr(sub, key)
         setattr(sub, key, json.loads(v) if isinstance(cur, list) else type(cur)(v) if not isinstance(cur, bool) else v.lower() == "true")
     results = {"config": cfg.to_dict(), "engine": a.engine, "perturbation": a.perturb, "window": a.window,
+               "rois": a.rois,
                "runs": [], "frame_level": frame_metrics(
         labels, a.cache, box_threshold=cfg.detector.box_threshold, roi=cfg.pipeline.roi)}
     det = None
@@ -325,7 +358,7 @@ def main():
         det = Detector(cfg.detector)
     for iv in a.intervals:
         r = evaluate(copy.deepcopy(cfg), labels, a.data, a.cache, iv, not a.no_images, a.sessions,
-                     a.engine, a.perturb, det, a.window)
+                     a.engine, a.perturb, det, a.window, json.load(open(a.rois)) if a.rois else None)
         results["runs"].append(r)
         s = r["summary"]
         print(f"interval {iv:>5.1f}s  detected {s['detected']}/{s['target_sessions']}  "

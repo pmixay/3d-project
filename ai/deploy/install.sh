@@ -1,14 +1,17 @@
 #!/usr/bin/env bash
-# Hercules AI print monitor - installer for Debian/Ubuntu/Armbian (x86_64 or aarch64).
+# Hercules AI print monitor - installer for Raspberry Pi OS 64-bit (main target),
+# Debian/Ubuntu/Armbian on x86_64 or aarch64.
 #
 #   cd 3d-project/ai && ./deploy/install.sh            # install + systemd service
 #   ./deploy/install.sh --no-service                   # install only (run by hand)
 #
 # What it does (idempotent, safe to re-run):
-#   1. apt packages: python3-venv, libgl/libglib (OpenCV runtime), v4l-utils
+#   1. apt packages: python3-venv, OpenCV runtime libs, v4l-utils; on a Raspberry Pi
+#      also rpicam-apps (CSI cameras), and it refuses a 32-bit OS with a clear message
 #   2. Python virtualenv in ./.venv with pinned-minimum dependencies
 #   3. downloads the detector weights and verifies the SHA-256
-#   4. creates config/hercules.local.toml from the template (never overwrites)
+#   4. creates config/hercules.local.toml from the template (never overwrites);
+#      on a Raspberry Pi from config/hercules.rpi.toml (CSI camera, Pi-sized load)
 #   5. installs and starts the systemd unit "hercules" (auto-restart on crash)
 set -euo pipefail
 
@@ -17,7 +20,7 @@ SERVICE=1
 for arg in "$@"; do
   case "$arg" in
     --no-service) SERVICE=0 ;;
-    -h|--help) sed -n '2,13p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,15p' "$0"; exit 0 ;;
     *) echo "unknown option $arg"; exit 2 ;;
   esac
 done
@@ -25,10 +28,33 @@ done
 cd "$HERE"
 echo "==> installing into $HERE"
 
+IS_RPI=0
+if grep -qi "raspberry pi" /proc/device-tree/model 2>/dev/null; then
+  IS_RPI=1
+  echo "==> Raspberry Pi detected: $(tr -d '\0' < /proc/device-tree/model)"
+  if [ "$(uname -m)" != "aarch64" ]; then
+    echo "ERROR: 32-bit OS ($(uname -m)). ONNX Runtime publishes Linux ARM wheels only for 64-bit."
+    echo "       Flash 'Raspberry Pi OS (64-bit)' Lite with Raspberry Pi Imager and run this again."
+    exit 1
+  fi
+  MEM_MB=$(awk '/MemTotal/ {print int($2/1024)}' /proc/meminfo)
+  if [ "$MEM_MB" -lt 1800 ]; then
+    echo "WARNING: ${MEM_MB} MB RAM. The FP32 model process needs ~450 MB; close other services,"
+    echo "         or build the INT8 model (~270 MB) - see docs/RASPBERRY_PI.md."
+  fi
+fi
+
 if command -v apt-get >/dev/null; then
   SUDO=""; [ "$(id -u)" -ne 0 ] && SUDO="sudo"
   $SUDO apt-get update -qq
-  $SUDO apt-get install -y -qq python3 python3-venv python3-pip libglib2.0-0 libgl1 v4l-utils curl >/dev/null
+  $SUDO apt-get install -y -qq python3 python3-venv python3-pip libglib2.0-0 v4l-utils curl >/dev/null
+  $SUDO apt-get install -y -qq libgl1 >/dev/null 2>&1 || true
+  if [ "$IS_RPI" = 1 ]; then
+    # CSI ribbon cameras are read through rpicam-vid (Bookworm) / libcamera-vid (Bullseye)
+    $SUDO apt-get install -y -qq rpicam-apps >/dev/null 2>&1 \
+      || $SUDO apt-get install -y -qq libcamera-apps >/dev/null 2>&1 \
+      || echo "WARNING: could not install rpicam-apps; CSI cameras will not work"
+  fi
 fi
 
 python3 - <<'PY'
@@ -43,8 +69,12 @@ PY
 echo "==> python packages installed"
 
 if [ ! -f config/hercules.local.toml ]; then
-  cp config/hercules.toml config/hercules.local.toml
-  echo "==> created config/hercules.local.toml - edit camera.source and moonraker.url"
+  if [ "$IS_RPI" = 1 ]; then
+    cp config/hercules.rpi.toml config/hercules.local.toml
+  else
+    cp config/hercules.toml config/hercules.local.toml
+  fi
+  echo "==> created config/hercules.local.toml - edit moonraker.url (and camera.source if not a CSI camera)"
 fi
 
 .venv/bin/python -m hercules --config config/hercules.local.toml download-model

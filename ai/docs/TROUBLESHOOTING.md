@@ -12,6 +12,7 @@ curl -s localhost:8090/api/status | python3 -m json.tool
 
 | Symptom | Cause / fix |
 | :--- | :--- |
+| CSI ribbon camera (Raspberry Pi): offline, `no cameras available` or `rpicam-vid` errors | See [RASPBERRY_PI.md § 6](RASPBERRY_PI.md#6-troubleshooting-pi-specific): cable direction, overlay for clone modules, `rpicam-apps`, only one program per camera. |
 | `camera offline`, error `cannot open USB camera 0` | Wrong index or no permission. Run `v4l2-ctl --list-devices`, then use `/dev/videoN`. Add the service user to the `video` group (the installer does this) and log in again. |
 | USB camera opens but gives 5 fps or less at 1080p | The camera is sending uncompressed YUYV. Keep `fourcc = "MJPG"`, or lower `width`/`height`. One frame every few seconds is enough for detection. |
 | Camera only supports YUYV (some Nebula reports) | Set `fourcc = ""` and 1280×720 or lower. |
