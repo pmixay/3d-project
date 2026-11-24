@@ -1,4 +1,4 @@
-// Build Hefest_golova_poyasnitelnaya_zapiska.pdf from head/README.md (without section 6 "Файлы").
+// Build Hefest_golova_poyasnitelnaya_zapiska.pdf from head/README.md (without the last section, "Файлы").
 // Markdown -> HTML with pandoc, then printed to A4 PDF in Chromium (Playwright). Fonts: Montserrat from fonts/.
 // Run from anywhere:  node submission/tools/make_head_pdf.mjs
 import { execFileSync } from "node:child_process";
@@ -17,7 +17,7 @@ const BUILD = path.join(TOOLS, "build");
 const OUT = path.join(REPO, "submission", "Hefest_golova_poyasnitelnaya_zapiska.pdf");
 
 let md = fs.readFileSync(path.join(HEAD, "README.md"), "utf8");
-md = md.split(/^## 6\. Файлы/m)[0];
+md = md.split(/^## \d+\. Файлы/m)[0];
 // image paths in the note are relative to head/
 md = md.replace(/src="([^"]+)"/g, (_, src) => `src="${pathToFileURL(path.resolve(HEAD, src)).href}"`);
 

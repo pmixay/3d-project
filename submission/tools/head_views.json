@@ -1,0 +1,9 @@
+{
+  "hefest_head_board":        {"dir": [-0.75, 0.55, -1.0], "target": [-12, -6, -4], "span": 200, "size": [800, 800], "fit": 0.9525, "hide": "head_cover"},
+  "hefest_head_extruder":     {"dir": [-0.9, 0.6, 1.0],   "target": [-14, -4, 0],  "span": 200, "size": [800, 800], "fit": 0.7337},
+  "hefest_head_board_detail": {"dir": [-0.35, 0.3, -1.0], "target": [4, 40, -30],  "span": 64,  "size": [648, 678], "hide": "head_cover"},
+  "hefest_head_probe":        {"dir": [-1.0, -0.35, -0.9], "target": [-46, -50, -8], "span": 62, "size": [700, 620], "hide": "head_cover"},
+  "hefest_head_cover":        {"dir": [-1.0, 0.25, -0.55], "target": [-40, -24, 0], "span": 92,  "size": [700, 620]},
+  "hefest_parts_front":       {"dir": [-0.9, 0.5, 1.0],   "target": [-10, -8, 0],  "span": 200, "size": [800, 800], "fit": 0.76, "only": "head_(frame|belt_cover|hotend_mount|triangle|duct|cover)"},
+  "hefest_parts_rear":        {"dir": [0.9, 0.5, -1.0],   "target": [-10, -8, 0],  "span": 200, "size": [800, 800], "fit": 0.76, "only": "head_(frame|belt_cover|hotend_mount|triangle|duct|cover)"}
+}

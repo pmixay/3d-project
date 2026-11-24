@@ -18,6 +18,7 @@
 
 - [Пояснительная записка: зачем нужна каждая деталь и каждый компонент](../head/README.md)
 - Рендеры головы в сборке: [со стороны платы](materials/img/hefest_head_board.png) и [со стороны экструдера](materials/img/hefest_head_extruder.png)
+- [Датчик стола MicroProbe под креплением хотенда](materials/img/hefest_head_probe.png) и [передняя крышка с названием принтера](materials/img/hefest_head_cover.png)
 - [Печатные детали - вид спереди](materials/img/hefest_parts_front.png) и [вид сзади](materials/img/hefest_parts_rear.png)
 
 **Рендеры принтера**
