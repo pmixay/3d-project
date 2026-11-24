@@ -85,4 +85,5 @@
 
 - **3D-модель головы** - сборка и детали в STEP и STL: [KAPACbik/Hefest](https://github.com/KAPACbik/Hefest/tree/Side-PCB-test).
 - **Рама v2 для печати** - [`v2/out/frame_v2.stl`](v2/out/frame_v2.stl), [`v2/out/frame_v2.step`](v2/out/frame_v2.step); габарит платы EBB42 GEN2 для проверки посадки - [`v2/out/ebb42_gen2_envelope.step`](v2/out/ebb42_gen2_envelope.step).
+- **Рама v3 для печати** - [`v3/out/frame_v3.stl`](v3/out/frame_v3.stl), [`v3/out/frame_v3.step`](v3/out/frame_v3.step): актуальная рама из KAPACbik/Hefest, четыре отверстия крепления платы уменьшены с 3,8 до 3,5 мм. Строится скриптом [`v3/frame_v3.py`](v3/frame_v3.py).
 - **Построение рамы v2** - [`v2/frame_v2.py`](v2/frame_v2.py) (CadQuery) строит раму v2 из исходной; размеры размещения платы заданы константами в начале файла.
