@@ -53,7 +53,7 @@ Then:
 sudo systemctl restart hercules
 journalctl -u hercules -f
 ```
-Open `http://<raspberry-pi-ip>:8090` from the laptop or a phone. Drag the region of interest around the bed in Settings.
+Open `http://<raspberry-pi-ip>:8090` from the laptop or a phone. **Drag the region of interest around the bed in Settings.** With a cheap module this is the most important setting: it removed every false alarm in the simulated cheap-camera tests and speeds up detection (EVALUATION § 5c).
 
 On the BTT Pi, allow the Raspberry Pi to use Moonraker. In `moonraker.conf`, under `[authorization]`, add its address to `trusted_clients` (or set `moonraker.api_key` instead).
 
@@ -64,6 +64,7 @@ On the BTT Pi, allow the Raspberry Pi to use Moonraker. In `moonraker.conf`, und
 | `camera.source` | `csi` | rpicam-vid streams MJPEG to the monitor (no Crowsnest needed on this Pi) |
 | `camera.width × height, fps` | 1280×720, 5 fps | the network sees 416×416 anyway; fewer frames = less CPU for JPEG encoding |
 | `detector.threads` | 3 | one core stays free for the camera, the dashboard and the OS |
+| `pipeline.roi_mode` | crop | once the ROI is drawn, only the bed goes to the network: more pixels on the print, measured faster on distant views (EVALUATION § 5c) |
 | `pipeline.interval_s` | 6 s | measured on recorded prints: 6–12 s detects as fast as analysing every frame (EVALUATION § 3) |
 | `web.stream_fps / stream_width` | 2 fps, 640 px | live-view encoding costs CPU |
 | `camera.average_frames` | 1 | set to **4** if the camera is noisy (grainy image, "Image quality poor" incidents) |

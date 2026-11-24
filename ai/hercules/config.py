@@ -59,7 +59,8 @@ class PipelineCfg:
     interval_s: float = 3.0       # seconds between inferences
     monitor_when: str = "printing"  # printing | always
     roi: list = dc.field(default_factory=lambda: [0.0, 0.0, 1.0, 1.0])  # x0,y0,x1,y1 normalised
-    roi_mode: str = "filter"      # filter: full frame to model, drop boxes outside ROI; crop: crop ROI first
+    roi_mode: str = "crop"        # crop: only the ROI goes to the network (more pixels on the print,
+                                  # measured faster, EVALUATION 5c); filter: full frame, drop boxes outside
     ignore_zones: list = dc.field(default_factory=list)  # [[x0,y0,x1,y1], ...] boxes centred here are dropped
     skip_duplicates: bool = True
     duplicate_diff: float = 0.8   # mean abs grey diff (0-255) below which a frame counts as unchanged

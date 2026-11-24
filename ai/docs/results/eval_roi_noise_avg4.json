@@ -1,0 +1,316 @@
+{
+ "config": {
+  "camera": {
+   "source": "0",
+   "width": 1280,
+   "height": 720,
+   "fps": 15,
+   "fourcc": "MJPG",
+   "average_frames": 1,
+   "snapshot_interval_s": 1.0,
+   "replay_speed": 1.0,
+   "replay_frame_interval_s": 0.0,
+   "loop": false,
+   "stale_after_s": 5.0,
+   "reconnect_max_s": 30.0
+  },
+  "detector": {
+   "model_path": "models/obico-failure-5a6b1be1fa.onnx",
+   "model_url": "https://www.obico.io/static_pub/ml-models/model-weights-5a6b1be1fa.onnx",
+   "model_sha256": "0a6ebd8e30dbf6a450c50f9c0a5406f04ba7eb1c99fd5996e888c78bb383b9aa",
+   "backend": "onnxruntime",
+   "providers": "auto",
+   "threads": 2,
+   "box_threshold": 0.08,
+   "nms_threshold": 0.45
+  },
+  "pipeline": {
+   "interval_s": 3.0,
+   "monitor_when": "printing",
+   "roi": [
+    0.0,
+    0.0,
+    1.0,
+    1.0
+   ],
+   "roi_mode": "filter",
+   "ignore_zones": [],
+   "skip_duplicates": true,
+   "duplicate_diff": 0.8,
+   "skip_blurred": true,
+   "blur_ratio": 0.35,
+   "max_consecutive_skips": 5,
+   "dark_level": 20.0,
+   "bright_level": 240.0,
+   "frozen_after_s": 30.0,
+   "obstructed_fraction": 0.75,
+   "noise_sigma_max": 4.0
+  },
+  "decision": {
+   "enabled_categories": [
+    "failure",
+    "camera_offline",
+    "camera_frozen",
+    "camera_obstructed",
+    "bad_lighting"
+   ],
+   "ewm_tau_s": 60.0,
+   "baseline_tau_s": 3600.0,
+   "warn_threshold": 0.38,
+   "critical_factor": 1.75,
+   "min_positive_frames": 3,
+   "positive_p": 0.2,
+   "evidence_window_s": 120.0,
+   "warmup_s": 60.0,
+   "clear_ratio": 0.5,
+   "clear_hold_s": 120.0,
+   "dismiss_suppress_s": 600.0,
+   "camera_alert_after_s": 20.0
+  },
+  "actions": {
+   "pause_policy": "auto",
+   "pause_on_camera_loss": false,
+   "gcode_notify": true,
+   "notify_gcode": "M117 {text}",
+   "webhook_url": ""
+  },
+  "moonraker": {
+   "url": "",
+   "api_key": "",
+   "poll_interval_s": 2.0,
+   "timeout_s": 3.0
+  },
+  "web": {
+   "host": "0.0.0.0",
+   "port": 8090,
+   "auth_token": "",
+   "stream_fps": 5.0,
+   "stream_width": 960
+  },
+  "state_dir": "state",
+  "log_level": "INFO"
+ },
+ "engine": "hercules",
+ "perturbation": "noise_avg4",
+ "window": [
+  600.0,
+  900.0
+ ],
+ "rois": "datasets/labels/rois.json",
+ "runs": [
+  {
+   "interval_s": 6.0,
+   "engine": "hercules",
+   "perturbation": "noise_avg4",
+   "sessions": {
+    "test_no_error_print_camera1": {
+     "kind": "normal",
+     "frames_analysed": 250,
+     "inferences": 250,
+     "duration_min": 25.0,
+     "onset_min": null,
+     "false_alarms": 0,
+     "false_alarm_times_min": [],
+     "detected": false,
+     "latency_s": null,
+     "latency_from_obvious_s": null,
+     "critical_latency_s": null,
+     "max_score_normal": 0.0105,
+     "max_score_after_onset": null
+    },
+    "test_no_error_print_camera2": {
+     "kind": "normal",
+     "frames_analysed": 250,
+     "inferences": 250,
+     "duration_min": 25.0,
+     "onset_min": null,
+     "false_alarms": 0,
+     "false_alarm_times_min": [],
+     "detected": false,
+     "latency_s": null,
+     "latency_from_obvious_s": null,
+     "critical_latency_s": null,
+     "max_score_normal": 0.0,
+     "max_score_after_onset": null
+    },
+    "test_no_error_print_camera3": {
+     "kind": "normal",
+     "frames_analysed": 250,
+     "inferences": 250,
+     "duration_min": 25.0,
+     "onset_min": null,
+     "false_alarms": 0,
+     "false_alarm_times_min": [],
+     "detected": false,
+     "latency_s": null,
+     "latency_from_obvious_s": null,
+     "critical_latency_s": null,
+     "max_score_normal": 0.0,
+     "max_score_after_onset": null
+    },
+    "test_extrusion_error_print_camera1": {
+     "kind": "spaghetti",
+     "frames_analysed": 250,
+     "inferences": 250,
+     "duration_min": 44.6,
+     "onset_min": 29.61,
+     "false_alarms": 0,
+     "false_alarm_times_min": [],
+     "detected": true,
+     "latency_s": 91.6,
+     "latency_from_obvious_s": 22.2,
+     "critical_latency_s": 115.2,
+     "max_score_normal": 0.0119,
+     "max_score_after_onset": 3.2553
+    },
+    "test_extrusion_error_print_camera2": {
+     "kind": "spaghetti",
+     "frames_analysed": 250,
+     "inferences": 250,
+     "duration_min": 43.6,
+     "onset_min": 28.56,
+     "false_alarms": 0,
+     "false_alarm_times_min": [],
+     "detected": true,
+     "latency_s": 102.8,
+     "latency_from_obvious_s": 10.0,
+     "critical_latency_s": 127.1,
+     "max_score_normal": 0.0,
+     "max_score_after_onset": 2.4609
+    },
+    "test_extrusion_error_print_camera3": {
+     "kind": "spaghetti",
+     "frames_analysed": 250,
+     "inferences": 250,
+     "duration_min": 43.9,
+     "onset_min": 28.92,
+     "false_alarms": 0,
+     "false_alarm_times_min": [],
+     "detected": true,
+     "latency_s": 187.7,
+     "latency_from_obvious_s": 95.3,
+     "critical_latency_s": 230.4,
+     "max_score_normal": 0.0,
+     "max_score_after_onset": 1.7587
+    },
+    "test_layershift_error_print_camera1": {
+     "kind": "layer_shift",
+     "frames_analysed": 250,
+     "inferences": 250,
+     "duration_min": 44.6,
+     "onset_min": 29.67,
+     "false_alarms": 0,
+     "false_alarm_times_min": [],
+     "detected": false,
+     "latency_s": null,
+     "latency_from_obvious_s": null,
+     "critical_latency_s": null,
+     "max_score_normal": 0.0,
+     "max_score_after_onset": 0.0
+    },
+    "test_layershift_error_print_camera2": {
+     "kind": "layer_shift",
+     "frames_analysed": 250,
+     "inferences": 250,
+     "duration_min": 44.6,
+     "onset_min": 29.57,
+     "false_alarms": 0,
+     "false_alarm_times_min": [],
+     "detected": false,
+     "latency_s": null,
+     "latency_from_obvious_s": null,
+     "critical_latency_s": null,
+     "max_score_normal": 0.0,
+     "max_score_after_onset": 0.0
+    },
+    "test_layershift_error_print_camera3": {
+     "kind": "layer_shift",
+     "frames_analysed": 250,
+     "inferences": 250,
+     "duration_min": 44.6,
+     "onset_min": 29.66,
+     "false_alarms": 0,
+     "false_alarm_times_min": [],
+     "detected": false,
+     "latency_s": null,
+     "latency_from_obvious_s": null,
+     "critical_latency_s": null,
+     "max_score_normal": 0.0,
+     "max_score_after_onset": 0.0
+    }
+   },
+   "summary": {
+    "target_sessions": 3,
+    "detected": 3,
+    "missed": 0,
+    "sessions_with_false_alarm": 0,
+    "false_alarms": 0,
+    "normal_print_hours": 2.25,
+    "false_alarms_per_print_hour": 0.0,
+    "session_precision": 1.0,
+    "session_recall": 1.0,
+    "session_f1": 1.0,
+    "latency_s": [
+     91.6,
+     102.8,
+     187.7
+    ],
+    "latency_s_mean": 127.4,
+    "latency_from_obvious_s": [
+     22.2,
+     10.0,
+     95.3
+    ],
+    "critical_latency_s": [
+     115.2,
+     127.1,
+     230.4
+    ],
+    "non_target_failures_alerted": 0,
+    "non_target_failure_sessions": 3
+   }
+  }
+ ],
+ "frame_level": {
+  "frames": 17326,
+  "positives": 3306,
+  "by_threshold": {
+   "0.2": {
+    "precision": 0.8,
+    "recall": 0.953,
+    "f1": 0.87,
+    "fp_rate": 0.0561,
+    "tp": 3149,
+    "fp": 787,
+    "fn": 157
+   },
+   "0.38": {
+    "precision": 0.968,
+    "recall": 0.946,
+    "f1": 0.957,
+    "fp_rate": 0.0073,
+    "tp": 3128,
+    "fp": 103,
+    "fn": 178
+   },
+   "0.5": {
+    "precision": 0.997,
+    "recall": 0.943,
+    "f1": 0.97,
+    "fp_rate": 0.0006,
+    "tp": 3118,
+    "fp": 8,
+    "fn": 188
+   },
+   "0.78": {
+    "precision": 1.0,
+    "recall": 0.926,
+    "f1": 0.961,
+    "fp_rate": 0.0,
+    "tp": 3060,
+    "fp": 0,
+    "fn": 246
+   }
+  }
+ }
+}

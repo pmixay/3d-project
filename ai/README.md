@@ -75,10 +75,13 @@ Any other Linux computer (x86 PC, laptop) works the same way with a USB or netwo
 
 ### Cheap / low-quality cameras
 
-Small modules with M12 lenses are noisy in dim light, and noise was the measured weak point (EVALUATION § 5b). In order of effect:
-1. **Light the bed** (the 24 V LED strip).
-2. Set `camera.average_frames = 4` (dashboard → Settings → Camera). It averages the last 4 frames before each analysis, which reduces sensor noise without blurring the print (measured effect in EVALUATION § 5c).
-3. Focus the lens at the bed distance, then use the ROI to cut away a cluttered background.
+Small CSI modules with M12 lenses are noisy in dim light, and noise caused false alarms in testing. In order of measured effect (EVALUATION § 5c):
+1. **Draw the region of interest around the bed** (dashboard → Settings → Region of interest). In every simulated noisy or cheap-camera condition, this removed all false alarms, which came from background clutter. In the default crop mode it also speeds up detection on distant views, because the print fills more of the network's input.
+2. **Resolution: 1280×720, at least 640×480.** At 320×180, detection dropped to 1 of 3 failures.
+3. **Light the bed** (the 24 V LED strip).
+4. If the picture is still grainy, set `camera.average_frames = 4`. It averages the last 4 frames before each analysis, which recovered detection under strong noise (2/3 → 3/3).
+
+These results come from simulated degradations of another printer's footage. Record a normal print with our own module to confirm them.
 
 ### Running on the BTT Pi itself
 

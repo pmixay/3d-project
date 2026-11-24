@@ -99,6 +99,25 @@ def perturb():
         print(f"| {k} | {s['detected']}/{s['target_sessions']} | {fmt_list(s['latency_s'])} | {s['false_alarms']} | {skipped} | {mx} |")
 
 
+def cheap():
+    """Low-quality camera conditions x region-of-interest handling."""
+    names = {"identity": "clean camera", "noise": "strong sensor noise (σ 18)",
+             "noise_avg4": "strong noise + average_frames 4", "lowres": "320×180 + heavy JPEG",
+             "cheap": "cheap module: 640×360, σ 14, JPEG q40", "cheap_avg4": "cheap module + average_frames 4"}
+    print("\n| Camera condition | ROI | Detected | Latency, s | False alarms (FA/h) |")
+    print("| :--- | :--- | :---: | :--- | :--- |")
+    for k in ["identity", "noise", "noise_avg4", "lowres", "cheap", "cheap_avg4"]:
+        for prefix, roi in (("eval_perturb_", "none (full frame)"), ("eval_roi_", "bed ROI, filter"),
+                            ("eval_roicrop_", "bed ROI, **crop**")):
+            f = prefix + ("none" if (k == "identity" and prefix == "eval_perturb_") else k) + ".json"
+            d = load(f)
+            if not d:
+                continue
+            s = d["runs"][0]["summary"]
+            print(f"| {names[k]} | {roi} | {s['detected']}/{s['target_sessions']} | {fmt_list(s['latency_s'])} | "
+                  f"{s['false_alarms']} ({s['false_alarms_per_print_hour']}) |")
+
+
 def bench():
     for p in sorted(glob.glob(os.path.join(R, "benchmark_*.json"))):
         d = json.load(open(p))
@@ -137,5 +156,7 @@ if __name__ == "__main__":
     frame_level("eval_hercules.json")
     print("\n### Robustness")
     perturb()
+    print("\n### Cheap cameras")
+    cheap()
     print("\n### Benchmarks")
     bench()

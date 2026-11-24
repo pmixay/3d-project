@@ -124,6 +124,35 @@ Synthetic degradations applied to the **real** recorded frames, followed by a fu
 - **Covering a third of the view** delays detection only when the spaghetti grows in the covered part (camera 2: 294 s). Choose the camera position so the bed and nozzle area is fully visible; the ROI editor helps check this.
 
 
+## 5c. Cheap / low-quality cameras (CSI modules with M12 lenses)
+
+The team's camera is a cheap CSI module. Its real images could not be tested yet (no Pi available), so its weaknesses were **simulated on the real recordings**: low resolution with heavy JPEG compression, sensor noise, and both together. Each condition was run without and with a region of interest drawn around the bed per camera view ([`datasets/labels/rois.json`](../datasets/labels/rois.json)). The setup matches § 5b: 10 min before to 15 min after each onset, 2.25 h of normal printing, a 6 s interval, and a fresh network run for every frame.
+
+| Camera condition | ROI | Detected | Latency, s | False alarms (FA/h) |
+| :--- | :--- | :---: | :--- | :--- |
+| clean camera | none (full frame) | 3/3 | 61, 108, 193 | 0 (0.0) |
+| clean camera | bed ROI, **crop** | 3/3 | 56, 97, 98 | 0 (0.0) |
+| strong sensor noise (σ 18) | none (full frame) | 2/3 | 108, 200 | 3 (1.334) |
+| strong sensor noise (σ 18) | bed ROI, filter | 3/3 | 110, 108, 200 | 0 (0.0) |
+| strong noise + average_frames 4 | none (full frame) | 3/3 | 61, 103, 188 | 2 (0.889) |
+| strong noise + average_frames 4 | bed ROI, filter | 3/3 | 92, 103, 188 | 0 (0.0) |
+| 320×180 + heavy JPEG | none (full frame) | 1/3 | 43 | 0 (0.0) |
+| 320×180 + heavy JPEG | bed ROI, **crop** | 2/3 | 265, 309 | 0 (0.0) |
+| cheap module: 640×360, σ 14, JPEG q40 | none (full frame) | 3/3 | 97, 114, 218 | 2 (0.889) |
+| cheap module: 640×360, σ 14, JPEG q40 | bed ROI, filter | 3/3 | 128, 114, 218 | 0 (0.0) |
+| cheap module + average_frames 4 | none (full frame) | 3/3 | 92, 127, 200 | 2 (0.889) |
+| cheap module + average_frames 4 | bed ROI, **crop** | 3/3 | 97, 151, 200 | 0 (0.0) |
+
+**What this shows**
+1. **The bed ROI matters most.** Every false alarm in every noisy or cheap condition came from the camera-1 view, where the network fires on the cluttered lab background (another printer, cables) once the image is grainy: all 58 boxes in a one-off 29-frame check sat in that background. With a rectangle around the bed, every condition here had **0 false alarms**.
+2. **Resolution has a floor.** At 320×180 the distant views (cameras 2 and 3) fall from scores of 1.6–2.4 to 0.13–0.22, so only 1/3 failures is detected (2/3 with crop). At 640×360 all three are detected. **Run the camera at 1280×720 or at least 640×480**, and mount it so the bed fills most of the picture.
+3. **Crop mode turns spare camera pixels into detection speed.** With a clean 960 px image, cropping to the bed nearly halves the latency on the distant view (193 → 98 s), because the print covers more of the network's 416×416 input. It cannot add detail a low-resolution camera never captured. Crop is therefore the default `roi_mode`; with the default full-frame ROI it is identical to the old behaviour.
+4. **Averaging 4 frames** (`camera.average_frames = 4`) recovers detection under strong noise (2/3 → 3/3), but does not remove background false alarms by itself. Use it when the image is visibly grainy, together with the ROI.
+
+**Limits of this test.** The degradations are synthetic and applied to another printer's footage. Averaging was simulated as 4 independent noise draws on one frame, i.e. a static scene. In a live stream the print head moves between those frames; the effect of that ghosting on scores is not measured. The camera-1 ROI was drawn after seeing where the noise boxes were. Lens distortion (wide M12 lenses), colour casts without an IR-cut filter and auto-exposure flicker were not simulated. **The real check is a recorded normal print from our own module** (RASPBERRY_PI.md).
+
+**Setup rule for the CSI module:** light the bed, run the camera at 1280×720, draw the ROI around the bed in the dashboard (crop mode is the default), and enable `average_frames = 4` only if the picture is grainy.
+
 ## 6. Performance
 
 Host: cloud VM, Intel(R) Xeon(R) Processor @ 2.10GHz, 4 logical cores, 16087 MB RAM, x86_64, ONNX Runtime 1.29.0, OpenCV 5.1.0

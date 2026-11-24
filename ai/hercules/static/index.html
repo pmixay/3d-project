@@ -101,6 +101,7 @@
       <fieldset><legend>Analysis</legend>
         <label>Inference interval, s<input name="pipeline.interval_s" type="number" step="0.5" min="0.1"></label>
         <label>Monitor when<select name="pipeline.monitor_when"><option value="printing">printer is printing</option><option value="always">always (demo / no printer)</option></select></label>
+        <label>ROI handling<select name="pipeline.roi_mode"><option value="crop">crop: only the ROI goes to the network</option><option value="filter">filter: full frame, ignore boxes outside</option></select></label>
         <label>Box confidence floor<input name="detector.box_threshold" type="number" step="0.01" min="0.01" max="0.99"></label>
         <label class="chk"><input name="pipeline.skip_duplicates" type="checkbox">Skip unchanged frames</label>
         <label class="chk"><input name="pipeline.skip_blurred" type="checkbox">Skip motion-blurred frames</label>
