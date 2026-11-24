@@ -171,7 +171,17 @@ Derived from the measurements above. Requirements for hosts we could not measure
 
 ## 7. INT8 model variant
 
-INT8_SECTION
+Static INT8 quantisation (`tools/quantize_model.py --mode qdq`, per-tensor because the model is opset 11), re-run on all 20 141 frames and evaluated exactly like FP32:
+
+| Model | Interval, s | Detected | Latency, s | Critical, s | False alarms | Frame P / R at p ≥ 0.38 | Inference (1 / 4 threads) | Process RAM |
+| :--- | ---: | :---: | :--- | :--- | ---: | :--- | :--- | ---: |
+| FP32 (default) | 3 | 3/3 | 64, 114, 179 | 96, 147, 216 | 0 | 0.968 / 0.946 | 206 / 59 ms | 419 MB |
+| INT8 QDQ | 3 | 3/3 | 99, 129, 198 | 135, 171, 255 | 0 | 1.000 / 0.937 | 88 / 33 ms | 268 MB |
+| INT8 QDQ | 12 | 3/3 | 96, 123, 198 | 144, 171, 257 | 0 | — | — | — |
+
+INT8 compresses the scores: fewer false positives per frame, but warnings come 15–35 s later. It is **2.3× faster on one thread and uses 150 MB less RAM**, which makes it the candidate for weak hosts. It is not the default, because FP32 is faster to warn and has more margin.
+
+*Caveat:* the activation ranges were calibrated on 64 frames of one of the normal test prints (`no_error_camera1`). Calibration uses no labels and only sets value ranges, but strictly that print is no longer unseen for the INT8 variant. A re-calibration on our own printer's footage is planned anyway.
 
 ## 8. What we could not measure, and limitations
 
@@ -182,5 +192,21 @@ INT8_SECTION
 - **BTT Pi** performance: not measured (§ 6).
 - **Camera:** the Creality Nebula has not been tested (RESEARCH § 4).
 - **Live network faults** (Moonraker down, camera unplugged, stream stalls) are covered by automated tests with simulated faults, not by tests on the physical printer.
+- **Long-term operation:** 40 minutes measured (§ 9), not days.
 
-SOAK_SECTION
+## 9. Extended operation (soak test)
+
+`tools/soak.py` ran the complete live service (camera thread, analyser, mock Moonraker, dashboard API polled every minute) for **40 minutes** at an analysis interval of 1 s, three times the default load. It replayed a normal print in a loop at 4× speed, about 2.7 h of printing. Raw samples: [`results/soak_40min.json`](results/soak_40min.json).
+
+| Metric | Start (after warm-up) | End |
+| :--- | ---: | ---: |
+| Analyses | — | 2 400 |
+| Errors in the analysis loop | — | 0 |
+| Process RAM (RSS) | 501.4 MB | 501.5 MB (+0.1 MB) |
+| Threads | 19 | 19 |
+| Open file descriptors | 7 | 7 |
+| Camera reconnects | — | 0 |
+| Slowest `/api/status` response | — | 41 ms |
+| Incidents (false alarms) | — | 0 |
+
+No memory, thread or file-descriptor growth was observed. A multi-day run on the real inference PC is still to be done (§ 8).
