@@ -12,8 +12,11 @@ What goes in: everything in the assembly except the carriage block (the printer 
 own), with the frame and hotend mount 2 replaced by their v3 versions, plus the BIQU MicroProbe
 and the cover with its three screws (nodes "head_cover*", so that renders can hide them).
 With --by-part the printed parts get one colour each, as in the CAD screenshots.
+The toolhead board of the assembly is a 40 x 40 mm placeholder of the first-generation EBB42.  With
+--board=<file> the real EBB42 GEN2 is put in its place: <file> is the official CAD
+(github.com/bigtreetech/EBB, EBB_GEN2/EBB42_GEN2/CAD/EBB 42 GEN2 V1.0.step, or a BREP saved from it).
 
-Run:  python model/tools/head_glb.py <parts_dir> model/parts/hefest_head.glb [--by-part] [--exploded]
+Run:  python model/tools/head_glb.py <parts_dir> model/parts/hefest_head.glb [--by-part] [--exploded] [--board=<file>]
 """
 import json
 import os
@@ -24,6 +27,7 @@ import cadquery as cq
 HERE = os.path.dirname(os.path.abspath(__file__))
 V3 = os.path.join(HERE, "..", "..", "head", "v3")
 sys.path.insert(0, V3)
+import board as board_v3  # noqa: E402
 import cover            # noqa: E402
 import cover_points     # noqa: E402
 import frame_cover      # noqa: E402
@@ -100,7 +104,8 @@ add("head_screws", wp(fan5015[2:]), "steel")
 add("head_inserts", wp([load(i) for i in (18, 22, 23)]), "brass")      # item 24 is a loose nut floating beside the belt cover
 
 # EBB42 GEN2 on the side wall
-board = load(27).Solids()
+board_file = next((a.split("=", 1)[1] for a in sys.argv if a.startswith("--board=")), None)
+board = board_v3.model(board_file) if board_file else load(27).Solids()
 big = sorted(board, key=lambda b: -b.Volume())
 pcb, xt30 = big[0], big[1]
 terminal = min((b for b in board if b.Volume() > 200 and b is not pcb and b is not xt30), key=lambda b: b.BoundingBox().ymin)

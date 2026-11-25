@@ -32,6 +32,17 @@ TOP_Y = XT30[3]                                     # 66.87: the highest point o
 PROBE_PORT_C = ((PROBE_PORT[0] + PROBE_PORT[1]) / 2, (PROBE_PORT[2] + PROBE_PORT[3]) / 2, FRONT_Z - PROBE_PORT[4])
 
 
+def model(path, min_volume=0.2):
+    """The official CAD of the board (STEP, or a BREP saved from it) in place on the frame, for the head model.
+
+    In that file the origin is the upper mounting hole on the +X side, the component face looks along +Z and the
+    plate is drawn 0.56 mm thick; its back face is put on the standoffs.  Parts smaller than min_volume mm3 are dropped.
+    """
+    shape = (cq.importers.importBrep(path) if path.lower().endswith(".brep") else cq.importers.importStep(path)).val()
+    return [s.rotate((0, 0, 0), (0, 1, 0), 180).translate((HOLES_X[1], HOLES_Y[1], BACK_Z - 0.56))
+            for s in shape.Solids() if s.Volume() >= min_volume]
+
+
 def _block(x0, x1, y0, y1, h):
     return cq.Workplane("XY").box(x1 - x0, y1 - y0, h, centered=False).translate((x0, y0, FRONT_Z - h))
 
