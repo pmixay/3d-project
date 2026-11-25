@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Hefest - стенд команды «Печатники»</title>
+<!--
+  Выставочный стенд: один баннер 1600 x 1000 мм, сгибы на 400 и 1200 мм (створки 40 см, центр 80 см).
+  Все размеры в миллиметрах. Сборка в PDF и превью: node submission/tools/make_stand.mjs
+  Фото в блоках «Фото» - файлы img/photo_1.jpg и img/photo_2.jpg: заменить и пересобрать.
+-->
+<style>
+@font-face { font-family: "Benzin"; font-weight: 500; src: url("../tools/fonts/Benzin-Medium.ttf"); }
+@font-face { font-family: "Benzin"; font-weight: 600; src: url("../tools/fonts/Benzin-Semibold.ttf"); }
+@font-face { font-family: "Benzin"; font-weight: 700; src: url("../tools/fonts/Benzin-Bold.ttf"); }
+@font-face { font-family: "Benzin"; font-weight: 800; src: url("../tools/fonts/Benzin-ExtraBold.ttf"); }
+@font-face { font-family: "Montserrat"; font-weight: 400; src: url("../tools/fonts/Montserrat-Regular.ttf"); }
+@font-face { font-family: "Montserrat"; font-weight: 500; src: url("../tools/fonts/Montserrat-Medium.ttf"); }
+@font-face { font-family: "Montserrat"; font-weight: 600; src: url("../tools/fonts/Montserrat-SemiBold.ttf"); }
+@font-face { font-family: "Montserrat"; font-weight: 700; src: url("../tools/fonts/Montserrat-Bold.ttf"); }
+
+@page { size: 1600mm 1000mm; margin: 0; }
+:root {
+  --text: #F2F4F5; --muted: #9AA8AD; --teal: #2BD1C2; --teal-dark: #1F8F86; --orange: #FF7A1A;
+  --line: #2B373B; --card: rgba(23, 32, 36, 0.86); --bg: #0B1114;
+  --edge: 24mm;      /* поле по краю баннера */
+  --fold: 16mm;      /* поле от линии сгиба */
+  --gap: 11mm;       /* между блоками */
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1600mm; height: 1000mm; }
+body {
+  position: relative; overflow: hidden; color: var(--text);
+  font-family: "Montserrat", sans-serif; font-weight: 500; font-size: 12.4mm; line-height: 1.34;
+  -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  background:
+    radial-gradient(520mm 420mm at 800mm 330mm, rgba(31, 143, 134, 0.42), transparent 70%),
+    radial-gradient(330mm 380mm at 1420mm 560mm, rgba(31, 143, 134, 0.26), transparent 70%),
+    radial-gradient(330mm 380mm at 170mm 700mm, rgba(31, 143, 134, 0.22), transparent 70%),
+    var(--bg);
+}
+.panel { position: absolute; top: var(--edge); bottom: var(--edge); display: flex; flex-direction: column; gap: var(--gap); }
+.left   { left: var(--edge); width: calc(400mm - var(--edge) - var(--fold)); }
+.centre { left: calc(400mm + var(--fold)); width: calc(800mm - 2 * var(--fold)); }
+.right  { left: calc(1200mm + var(--fold)); width: calc(400mm - var(--edge) - var(--fold)); }
+
+.card { background: var(--card); border: 0.6mm solid var(--line); border-radius: 7mm; padding: 13mm 14mm; position: relative; overflow: hidden; }
+.label { font-family: "Benzin"; font-weight: 700; font-size: 17.5mm; line-height: 1.12; color: var(--teal); margin-bottom: 8mm; letter-spacing: -0.15mm; }
+.label.orange { color: var(--orange); }
+p + p { margin-top: 6mm; }
+.accent { color: var(--text); font-weight: 700; }
+.muted { color: var(--muted); }
+.nw { white-space: nowrap; }
+ol { list-style: none; counter-reset: n; }
+ol li { counter-increment: n; position: relative; padding-left: 27mm; margin-bottom: 6mm; }
+ol li:last-child { margin-bottom: 0; }
+ol li::before { content: counter(n, decimal-leading-zero); position: absolute; left: 0; top: 0.9mm;
+  font-family: "Benzin"; font-weight: 700; font-size: 11mm; color: var(--teal); }
+ol li b { font-weight: 700; }
+
+/* ---------- левая створка ---------- */
+.task { flex: 0 0 auto; }
+.task .big { font-family: "Benzin"; font-weight: 700; font-size: 15.5mm; line-height: 1.2; color: var(--orange); margin-top: 8mm; }
+.compare { flex: 0 0 auto; }
+.compare table { width: 100%; border-collapse: collapse; font-size: 11mm; line-height: 1.22; }
+.compare th { font-family: "Benzin"; font-weight: 600; font-size: 9.6mm; text-align: left; padding: 0 0 4.4mm; }
+.compare th:nth-child(2) { color: var(--muted); }
+.compare th:nth-child(3) { color: var(--teal); }
+.compare td { padding: 4.2mm 4mm 4.2mm 0; border-top: 0.5mm solid var(--line); vertical-align: top; }
+.compare td:first-child { color: var(--muted); width: 33%; font-size: 9.8mm; }
+.compare td:nth-child(2) { width: 27%; }
+.compare td:nth-child(3) { color: var(--teal); font-weight: 700; padding-right: 0; }
+.photo { flex: 1 1 0; min-height: 0; padding: 0; display: flex; flex-direction: column; }
+.photo img { flex: 1 1 0; min-height: 0; width: 100%; object-fit: cover; display: block; }
+.photo figcaption { flex: 0 0 auto; padding: 6.5mm 12mm 7.5mm; font-size: 9.4mm; line-height: 1.3; color: var(--muted); border-top: 0.6mm solid var(--line); }
+
+/* ---------- центр ---------- */
+.title { flex: 0 0 auto; display: flex; align-items: flex-end; justify-content: space-between; padding: 2mm 2mm 0; }
+.title h1 { font-family: "Benzin"; font-weight: 800; font-size: 96mm; line-height: 0.86; color: var(--orange); letter-spacing: -2mm; }
+.title .sub { font-family: "Benzin"; font-weight: 700; font-size: 27mm; line-height: 1.08; margin-top: 8mm; }
+.title .event { text-align: right; font-size: 10.6mm; line-height: 1.3; color: var(--muted); padding-bottom: 1mm; }
+.title .event b { display: block; font-family: "Benzin"; font-weight: 700; font-size: 13mm; color: var(--teal); margin-bottom: 2mm; }
+.price { margin-top: 10mm; display: inline-block; text-align: left; border: 0.7mm solid var(--orange); border-radius: 7mm; padding: 8mm 12mm 9mm; }
+.price .now { font-family: "Benzin"; font-weight: 800; font-size: 36mm; line-height: 1; color: var(--orange); white-space: nowrap; }
+.price .was { font-size: 10.4mm; line-height: 1.25; color: var(--text); margin-top: 4mm; }
+
+.team { flex: 0 0 auto; padding-bottom: 13mm; }
+.team .head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 9mm; }
+.team .head .label { margin: 0; }
+.team .head span { font-size: 9.6mm; color: var(--muted); text-align: right; }
+.people { display: grid; grid-template-columns: repeat(5, 1fr); gap: 7mm; }
+.person { text-align: center; }
+.person img { width: 82mm; height: 82mm; border-radius: 50%; object-fit: cover; border: 0.9mm solid var(--teal); display: block; margin: 0 auto 5.5mm; }
+.person .name { font-family: "Benzin"; font-weight: 700; font-size: 12.6mm; line-height: 1.1; }
+.person .role { font-size: 8.8mm; line-height: 1.22; color: var(--teal); margin-top: 2.4mm; font-weight: 600; }
+
+.row { display: grid; gap: var(--gap); min-height: 0; }
+.row.three { flex: 1.14 1 0; grid-template-columns: 1fr 0.96fr 1fr; }
+.row.two { flex: 0.86 1 0; grid-template-columns: 0.74fr 1fr; }
+.illus { position: relative; }
+.illus img { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); height: 96%; }
+.row .card { min-height: 0; display: flex; flex-direction: column; font-size: 13.4mm; }
+.row .card ol { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: space-evenly; }
+.row ol li { margin-bottom: 0; }
+
+/* ---------- правая створка ---------- */
+.done { flex: 0 0 auto; }
+.heads { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; }
+.heads .label { margin-bottom: 4mm; }
+.heads .pics { flex: 1 1 0; min-height: 0; display: flex; align-items: center; justify-content: space-around; padding: 2mm 0 6mm; }
+.chips { flex: 0 0 auto; display: flex; flex-wrap: wrap; gap: 4.5mm; }
+.chips span { border: 0.6mm solid var(--teal-dark); border-radius: 20mm; padding: 2.6mm 6.5mm 3mm; font-size: 9.6mm; line-height: 1.2; white-space: nowrap; }
+.heads .pics img { height: 100%; max-width: 48%; object-fit: contain; }
+.heads figcaption { flex: 0 0 auto; font-size: 9.4mm; line-height: 1.3; color: var(--muted); margin-top: 6mm; }
+.next { flex: 0 0 auto; }
+.qr { display: flex; align-items: center; gap: 10mm; margin-top: 9mm; padding-top: 9mm; border-top: 0.5mm solid var(--line); }
+.qr img { width: 64mm; height: 64mm; border-radius: 3mm; display: block; flex: 0 0 auto; }
+.qr div { font-size: 9.8mm; line-height: 1.28; }
+.qr b { display: block; font-family: "Benzin"; font-weight: 700; font-size: 11.6mm; line-height: 1.15; color: var(--teal); margin-bottom: 3mm; }
+
+/* линии сгиба - только в превью, в печатном PDF их нет */
+.fold { display: none; position: absolute; top: 0; bottom: 0; width: 0; border-left: 0.8mm dashed rgba(255, 255, 255, 0.55); }
+body.preview .fold { display: block; }
+</style>
+</head>
+<body>
+
+<section class="panel left">
+  <div class="card task">
+    <div class="label">Какую задачу решаем</div>
+    <p>Школы, инженерные центры и вузы закупали <span class="nw">3D-принтеры</span> в <span class="nw">2015-2020</span> годах. Механика у них исправна, но электроника и прошивка устарели: печать медленная, настройка ручная.</p>
+    <p>Новый быстрый принтер стоит от 70 000 ₽, а его запчасти, прошивка и сервисы закрыты производителем.</p>
+    <p class="big">Hefest превращает списанный принтер в современный за долю цены нового.</p>
+  </div>
+
+  <div class="card compare">
+    <div class="label">Было и стало</div>
+    <table>
+      <tr><th></th><th>Hercules H18</th><th>Hefest</th></tr>
+      <tr><td>Электроника</td><td>8 бит</td><td>32 бита, SKR 3 EZ</td></tr>
+      <tr><td>Прошивка</td><td>Marlin</td><td>Klipper</td></tr>
+      <tr><td>Питание</td><td>12 В</td><td>24 В, 350 Вт</td></tr>
+      <tr><td>Хотенд</td><td>до 260 °C</td><td>до 300 °C</td></tr>
+      <tr><td>Калибровка</td><td>вручную</td><td>автоматически</td></tr>
+      <tr><td>Проводка к голове</td><td>жгут</td><td>один кабель CAN</td></tr>
+    </table>
+  </div>
+
+  <figure class="card photo">
+    <img src="img/photo_1.jpg" alt="" style="object-position: 50% 62%">
+    <figcaption>Imprinta Hercules H18 2018 года - основа Hefest: от него остались рама, рельсы, ось Z и стол.</figcaption>
+  </figure>
+</section>
+
+<section class="panel centre">
+  <div class="title">
+    <div>
+      <h1>Hefest</h1>
+      <div class="sub">новый принтер<br>на базе старого</div>
+    </div>
+    <div class="event">
+      <b>Чемпионат «3D Профи»</b>
+      Направление «Оборудование для 3D-печати»
+      <div><div class="price">
+        <div class="now">22 067 ₽</div>
+        <div class="was">вся пересборка вместо 70 000 ₽ за новый принтер</div>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="card team">
+    <div class="head"><div class="label">Команда «Печатники»</div><span>Университетский лицей № 1523 Предуниверситария НИЯУ МИФИ</span></div>
+    <div class="people">
+      <div class="person"><img src="img/team_eremey.jpg" alt=""><div class="name">Еремей</div><div class="role">программист и электронщик</div></div>
+      <div class="person"><img src="img/team_andrey.jpg" alt=""><div class="name">Андрей</div><div class="role">инженер-конструктор, капитан</div></div>
+      <div class="person"><img src="img/team_ilya.jpg" alt=""><div class="name">Илья</div><div class="role">периферия и сенсорика</div></div>
+      <div class="person"><img src="img/team_pasha.jpg" alt=""><div class="name">Паша</div><div class="role">ИИ-контроль печати</div></div>
+      <div class="person"><img src="img/team_petr.jpg" alt=""><div class="name">Пётр</div><div class="role">комплектующие и документация</div></div>
+    </div>
+  </div>
+
+  <div class="row three">
+    <div class="card">
+      <div class="label">Для кого проект</div>
+      <ol>
+        <li>Школы и лицеи</li>
+        <li>Вузы и колледжи</li>
+        <li>Кванториумы и инженерные центры</li>
+        <li>Мастерские и предприятия</li>
+      </ol>
+      <p class="muted" style="margin-top: 5mm; font-size: 10.4mm">Все, у кого остались принтеры <span class="nw">2015-2020</span> годов.</p>
+    </div>
+    <div class="illus"><img src="img/printer.png" alt=""></div>
+    <div class="card">
+      <div class="label">Польза для клиента</div>
+      <ol>
+        <li><b>В 3 раза дешевле</b> нового принтера</li>
+        <li><b>Печать без ручной подготовки:</b> автокалибровка, очистка сопла, ИИ-контроль</li>
+        <li><b>Открытая прошивка Klipper:</b> ремонт и доработка на месте</li>
+        <li><b>Нагрев до 300 °C:</b> инженерные пластики и композиты</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="row two">
+    <figure class="card photo">
+      <img src="img/photo_2.jpg" alt="" style="object-position: 50% 38%">
+      <figcaption>Hefest в мастерской команды.</figcaption>
+    </figure>
+    <div class="card">
+      <div class="label">Кто пользователь</div>
+      <ol>
+        <li><b>Учителя и педагоги:</b> принтер готов к занятию без настройки перед каждой печатью</li>
+        <li><b>Школьники и студенты:</b> учатся <span class="nw">3D-печати</span> и электронике на модернизации настоящего принтера</li>
+        <li><b>Инженеры и мастера:</b> печатают прототипы и детали, в том числе из композитов</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<section class="panel right">
+  <div class="card done">
+    <div class="label orange">Что сделано на чемпионате</div>
+    <ol>
+      <li>Спроектировали и напечатали <b>собственную печатную голову Hefest</b></li>
+      <li>Заменили электронику: плата SKR 3 EZ, плата головы EBB42 GEN2, питание 24 В</li>
+      <li>Перевели принтер <b>с Marlin на Klipper</b></li>
+      <li>Провели к голове <b>один кабель</b> вместо жгута из 12 проводов</li>
+      <li>Добавили автокалибровку стола, очистку сопла и гашение вибраций</li>
+      <li>Подключили камеру с <b>ИИ-контролем дефектов</b></li>
+    </ol>
+  </div>
+
+  <figure class="card heads">
+    <div class="label">Печатная голова Hefest</div>
+    <div class="pics"><img src="img/head_open.png" alt=""><img src="img/head_cover.png" alt=""></div>
+    <div class="chips"><span>собственная разработка</span><span>экструдер в раме</span><span>один вентилятор обдува</span><span>плата на боковой стенке</span><span>датчик стола</span></div>
+  </figure>
+
+  <div class="card next">
+    <div class="label">Перспективы</div>
+    <ol>
+      <li>Готовый комплект пересборки для устаревших принтеров</li>
+      <li>Открытые файлы и инструкция для самостоятельной сборки</li>
+      <li>Установка «под ключ» для школ и вузов</li>
+    </ol>
+    <div class="qr"><img src="img/qr.png" alt=""><div><b>Все материалы проекта</b>Презентация, описание, 3D-модели и стоимость - по QR-коду</div></div>
+  </div>
+</section>
+
+<div class="fold" style="left: 400mm"></div>
+<div class="fold" style="left: 1200mm"></div>
+</body>
+</html>
