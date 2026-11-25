@@ -170,6 +170,9 @@ Creality lists it only for its own printers and pads. On arrival, confirm that i
 
 **To verify on the hardware:**
 
+- **MicroProbe height.** The probe seat has no height adjustment and assumes 71.2 mm from the top of the hotend heatsink to the nozzle tip. Measure this on the assembled CHC Pro before printing the front hotend mount: the seat tolerates a hotend up to 1.0 mm longer or 1.3 mm shorter. If it is off by more than 0.5 mm, correct `NOZZLE` in `head/v3/probe.py` and rebuild the part. On the printer, with the nozzle on the glass, the retracted pin must clear the glass by about 1.3 mm.
+- **MicroProbe wiring.** Set the probe voltage jumper on the EBB42 GEN2 to 5 V before plugging the probe in (the other position puts 24 V on the port). The `PROBE` port is a 5-pin PH2.0 header, the probe itself has a 1.25 mm connector: check what the supplied 150 mm lead ends in and re-crimp the board end if needed. The port inverts the signal through an opto-coupler, so for the V2 probe start with `pin: EBBCan:PA5` (no `!`), control on `PA4`, and confirm with `QUERY_PROBE`.
+- **Toolhead board size.** The head assembly shows the board as a 40 × 40 mm placeholder; the real EBB42 GEN2 is 40 × 45 mm and ends 5 mm above the frame (`head/v3/board.py`). The cover has a slot in its top for the board and the XT30 plug.
 - **Toolhead board clearance.** Check that the board on the side wall of the head does not touch the X-axis end parts at the end of travel.
 - **SKR 3 EZ package.** Confirm on arrival that the kit includes the 5 `EZ2209` drivers.
 - **EBB42 GEN2 pin names.** Take them from BigTreeTech's [sample config for the EBB42 GEN2](https://github.com/bigtreetech/EBB/blob/master/EBB_GEN2/EBB42_GEN2/sample-bigtreetech-ebb42-gen2-v1.0.cfg) when writing `printer.cfg`.

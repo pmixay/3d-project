@@ -5,8 +5,11 @@ a nose over the 3010 hotend fan and the hotend mounts, and a taller box over the
 the NEMA14 and the frame.  The back is open.  Left open on purpose:
   - a window in front of the extruder (lever and gears stay reachable and visible);
   - the EBB42 GEN2 side: the board with its connectors and wiring stands outside the shell;
-  - a slot in the top for the XT30 and USB-C plugs, a hole for the filament;
+  - a slot in the top over the whole board: the real board (board.py) ends 1.3 mm above the cover,
+    its XT30 2.1 mm above; a hole for the filament;
   - everything below the lower edge: the MicroProbe, its arm and cable, the nozzle, the duct.
+The -Z wall carries two pairs of slots for cable ties: the probe lead (and the hotend wires) go up
+this wall to the board, in front of the belt and above it.
 The side walls stop above the rail and the belts.  The part under the rail (triangle, 5015
 blower) is not covered: a shell there cannot be one piece with this one, and the blower needs air.
 
@@ -24,6 +27,7 @@ import os
 
 import cadquery as cq
 
+import board as B
 import cover_points as CP
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -37,7 +41,7 @@ FAN_C = (-27.05, 1.15)                    # fan axis (y, z)
 WING_Z = (-27.7, 28.5)                    # hotend mounts across the wings
 MOUNT_TOP_Y = 1.4                         # top of hotend mount 2
 EXTRUDER_FRONT_X = -45.4                  # front of the K3D Minifeeder
-HEAD_TOP_Y = 62.4                         # top of the EBB42 GEN2 (frame: 61.0)
+HEAD_TOP_Y = 62.4                         # the inner top face is GAP above this: 2.2 mm over the frame (61.0)
 FRAME_REAR_X = 27.0
 FILAMENT = (-38.9, 0.1)                   # filament axis (x, z)
 GAP = 0.8                                 # to the wings and the top of mount 2
@@ -56,8 +60,10 @@ Z0, Z1 = WING_Z[0] - GAP - WALL, WING_Z[1] + GAP + WALL
 FAN_HOLE_D, FAN_RIM = 27.0, 2.0            # opening for the fan; rim left below it
 PAD_D, SIDE_PAD = 9.0, 0.6                # pads under the screws: the side ones take up most of GAP
 WINDOW_Y, WINDOW_Z = (14.0, 46.0), (-17.0, 20.0)         # extruder window in the upper front wall; its lower end is a 45 degree point
-BOARD_X = -17.0                                          # the -Z wall ends here: behind it is the board
-PLUG_SLOT_X, PLUG_SLOT_Z = -11.0, -22.5                  # slot in the top for the XT30 and USB-C plugs, open to the back
+BOARD_X = B.X0 - 1.5                                     # -17.0: the -Z wall ends here: behind it is the board
+PLUG_SLOT_X, PLUG_SLOT_Z = BOARD_X, -22.5                # slot in the top over the board and its XT30 plug, open to the back
+TIE_POINTS = ((-44.0, -12.0), (-29.0, 18.0))             # cable ties on the -Z wall (x, y): at least 12 mm free behind the wall
+TIE_SLOT, TIE_PITCH = (1.8, 4.0), 7.0                    # slot (along X, along Y); the two slots of a pair are TIE_PITCH apart
 FILAMENT_HOLE_D = 10.0
 TEXT, TEXT_W, TEXT_DEPTH, TEXT_Y = "HEFEST", 52.0, 0.8, 54.8
 
@@ -130,6 +136,10 @@ def build():
     cover = cover.cut(box(BOARD_X, X_BACK + 1, Y_BOTTOM - 1, Y_TOP - WALL, Z0 - 1, Z0 + WALL + 1))
     cover = cover.cut(box(PLUG_SLOT_X, X_BACK + 1, Y_TOP - WALL - 1, Y_TOP + 1, Z0 - 1, PLUG_SLOT_Z))
     cover = cover.cut(ycyl(FILAMENT_HOLE_D, Y_TOP - WALL - 1, Y_TOP + 1, *FILAMENT))
+    for x, y in TIE_POINTS:
+        for dx in (-TIE_PITCH / 2, TIE_PITCH / 2):
+            cover = cover.cut(box(x + dx - TIE_SLOT[0] / 2, x + dx + TIE_SLOT[0] / 2, y - TIE_SLOT[1] / 2, y + TIE_SLOT[1] / 2,
+                                  Z0 - 1, Z0 + WALL + 1))
     # screw points: a pad inside the wall and a clearance hole through it
     x, y = CP.SIDE_XY
     cover = cover.union(zcyl(PAD_D, Z0 + WALL - 0.1, Z0 + WALL + SIDE_PAD, x, y)).union(zcyl(PAD_D, Z1 - WALL - SIDE_PAD, Z1 - WALL + 0.1, x, y))
