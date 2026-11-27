@@ -137,7 +137,7 @@ NEMA17_L = 40.0           # [EST] X/Y/Z motor body length
 HEAD_ORIGIN_Z = X_RAIL_TOP_Z - 4.0          # 413
 NOZZLE_Y_OFFSET = -38.4   # [DOC] nozzle tip in FRONT of the X-rail centre line (Hefest head)
 NOZZLE_Z = HEAD_ORIGIN_Z - 69.8             # [DOC] 343.2: nozzle tip (head y = -69.8)
-XT30_HEAD = (-2.6, 62.3, -34.0)             # [DOC] XT30 plug on the EBB42 GEN2, head coordinates (x, y, z)
+XT30_HEAD = (1.6, 66.9, -31.0)              # [DOC] XT30 plug on the EBB42 GEN2, head coordinates (x, y, z); see head/v3/board.py
 
 # --------------------------------------------------------------------------- #
 # Bed and Z axis (cantilevered bed on two rods + lead screw at the rear centre)

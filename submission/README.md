@@ -11,6 +11,7 @@
 | [Hefest_prezentaciya.pdf](Hefest_prezentaciya.pdf) | Презентация проекта (9 слайдов) |
 | [Hefest_prezentaciya.pptx](Hefest_prezentaciya.pptx) | Та же презентация в PowerPoint |
 | [Hefest_opisanie_proekta.docx](Hefest_opisanie_proekta.docx) | Описание проекта |
+| [Hefest_stend.pdf](Hefest_stend.pdf) | Выставочный стенд: баннер 160 × 100 см, створки по 40 см и центр 80 см ([превью](stand/preview.png)) |
 
 ## Дополнительные материалы
 

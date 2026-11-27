@@ -3,6 +3,10 @@
 Run:  python3 check_fit.py <parts_dir>
 parts_dir: the team's assembly export ("Сборка/Hefest extruder.stp" from KAPACbik/Hefest)
 split into .brep files by model/tools/split_assy.py.
+
+The toolhead board of the assembly is a 40 x 40 mm placeholder, so it is left out and the real
+outline of the EBB42 GEN2 (board.py) is checked in its place.  The cover's three screws are checked
+too: a screw that runs past the bottom of its insert hole shows up as a clash with the printed part.
 """
 import json
 import os
@@ -11,7 +15,9 @@ import sys
 import cadquery as cq
 from OCP.BRepBuilderAPI import BRepBuilderAPI_Sewing
 
+import board
 import cover
+import cover_points as CP
 import frame_cover
 import frame_v3
 import mount2_probe
@@ -20,10 +26,14 @@ import probe as P
 parts_dir = sys.argv[1]
 index = json.load(open(os.path.join(parts_dir, "index.json")))
 REPLACED = {(28, "solid", 2), (28, "shell", 7)}       # the original hotend mount 2 and the original frame
+BOARD_ITEM = 27                                       # the placeholder board: replaced by board.build()
 
 # of the frame only the added boss is checked: the assembly has the board's inserts drawn inside the frame wall
 frame_boss = frame_cover.build().cut(frame_v3.build()[0]).val()
 new = {"cover boss on the frame": frame_boss, "mount 2 with probe seat": mount2_probe.build().val(), "MicroProbe": P.probe_model().val(), "cover": cover.build().val()}
+new["EBB42 GEN2 (real outline)"] = board.build().val()
+for name, screw in zip(("cover screw, -Z side", "cover screw, +Z side", "cover screw, top"), CP.screws((cover.Z0, cover.Z1), cover.Y_TOP)):
+    new[name] = screw.val()
 # room the probe needs besides its own body: the pin moving, and the cable plug behind the connector
 b = new["MicroProbe"].BoundingBox()
 new["probe cable plug (8 mm behind the connector)"] = cq.Workplane("XY").box(11.5, 3.5, 8.0, centered=(True, True, False)).translate(
@@ -32,6 +42,8 @@ new["probe cable plug (8 mm behind the connector)"] = cq.Workplane("XY").box(11.
 others = []
 surfaces = []          # parts that cannot be closed into a solid: checked by distance to their surface
 for row in index:
+    if row["i"] == BOARD_ITEM:
+        continue
     shape = cq.importers.importBrep(os.path.join(parts_dir, row["file"])).val()
     solids = shape.Solids()
     for j, s in enumerate(solids):

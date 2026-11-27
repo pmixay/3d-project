@@ -7,6 +7,8 @@ Head coordinates, see probe.py.
 import cadquery as cq
 
 INSERT_D, INSERT_DEPTH = 4.0, 5.5          # hole for an M3 heat-set insert (4.6 mm outside, 4-5 mm long)
+SIDE_INSERT_DEPTH = 7.5                    # the side holes are deeper: an M3 x 8 through the 2.4 mm of the cover wall, pad
+                                           # and gap reaches 5.6 mm into the block, 1.1 mm past the end of the insert
 SCREW_D = 3.4                              # clearance hole in the cover
 SCREW_LEN = 8.0                            # M3 x 8, button head
 
@@ -34,7 +36,7 @@ def box(x0, x1, y0, y1, z0, z1):
 
 def insert_holes_mount():
     x, y = SIDE_XY
-    return [zcyl(INSERT_D, SIDE_Z[0], SIDE_Z[0] + INSERT_DEPTH, x, y), zcyl(INSERT_D, SIDE_Z[1] - INSERT_DEPTH, SIDE_Z[1], x, y)]
+    return [zcyl(INSERT_D, SIDE_Z[0], SIDE_Z[0] + SIDE_INSERT_DEPTH, x, y), zcyl(INSERT_D, SIDE_Z[1] - SIDE_INSERT_DEPTH, SIDE_Z[1], x, y)]
 
 
 def inserts():

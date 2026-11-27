@@ -10,6 +10,10 @@ and, for the cover (cover.py), a matching block on the other side (+Z) and one h
 heat-set insert in the side face of each block.
 The mating faces, the fan seat and the clamp-screw holes are untouched.
 
+Printing: the arm reaches 10.8 mm past the front face, so the part cannot lie on that face.  Print it
+with the rear mating face (x = -40.6) on the bed, arm up; the hotend bore then faces the bed and wants
+supports from the build plate.
+
 Run:  python3 mount2_probe.py
 """
 import os
@@ -29,7 +33,8 @@ SIDE_Z_PLUS, BLOCK_PLUS_Z0 = 28.5, 17.5    # the +Z block: outer face of that wi
 BLOCK_Z1, BLOCK_TOP_Y = -12.5, -36.0       # the block stays 1.5 mm below the clamp-screw counterbore
 ARM_FRONT_X = P.HOLE_X[1] - 2.5            # the arm ends flush with the end of the probe flange
 ARM_Z1, ARM_TOP_Y = -14.7, -37.0           # 0.8 mm from the fan; below the clamp-screw head
-SCREW_D, SCREW_DEPTH = 2.2, 5.5            # M2.5 x 6 straight into the plastic (2.1 mm flange + 3.9 mm thread)
+SCREW_D, SCREW_DEPTH = 2.2, 5.5            # M2.5 straight into the plastic: x 6 (2.1 mm flange + 3.9 mm thread) or the
+                                           # M2.5 x 5 from the probe's box (2.9 mm thread)
 
 
 box = CP.box
